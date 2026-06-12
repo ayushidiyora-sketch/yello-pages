@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YellowPages Scraper</title>
+  <style>
+    :root{
+      --yp:#f5c518; --yp-dark:#e0b200; --ink:#1f2328; --muted:#6b7280;
+      --line:#e5e7eb; --bg:#f7f8fa; --card:#fff;
+      --green:#1a7f37; --amber:#c47f00; --red:#b00020; --blue:#0a66c2;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:var(--ink);
+      background:var(--bg);margin:0;padding:32px 16px;line-height:1.5}
+    .wrap{max-width:1000px;margin:0 auto}
+    h1{font-size:24px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+    h1 .dot{width:26px;height:26px;border-radius:6px;background:var(--yp);display:inline-block}
+    .sub{color:var(--muted);margin:0 0 20px;font-size:14px}
+
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+      padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+    label .req{color:var(--red)}
+    input,select{padding:10px 12px;font-size:15px;border:1px solid var(--line);
+      border-radius:8px;background:#fff;width:100%;outline:none}
+    input:focus,select:focus{border-color:var(--yp);box-shadow:0 0 0 3px rgba(245,197,24,.25)}
+    .hint{font-size:11px;color:var(--muted)}
+
+    .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+    button{padding:11px 20px;font-size:15px;font-weight:600;border:0;border-radius:8px;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .btn-primary{background:var(--yp);color:#1f2328}
+    .btn-primary:hover:not(:disabled){background:var(--yp-dark)}
+    .btn-stop{background:#fff;color:var(--red);border:1px solid var(--red)}
+    .btn-stop:hover:not(:disabled){background:#fdecef}
+    .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+
+    .status{display:flex;align-items:center;gap:10px;margin:20px 0 6px;font-size:16px;font-weight:600;min-height:24px}
+    .status .spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--amber);
+      border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .running{color:var(--amber)}.done{color:var(--green)}.error{color:var(--red)}.stopped{color:var(--muted)}
+    .bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:4px 0 16px;display:none}
+    .bar>i{display:block;height:100%;background:var(--yp);width:0;transition:width .3s}
+
+    table{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line);
+      border-radius:10px;overflow:hidden;display:none}
+    th,td{padding:9px 12px;font-size:13px;text-align:left;border-bottom:1px solid var(--line)}
+    th{background:#fafafa;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.03em}
+    tr:last-child td{border-bottom:0}
+    tr:hover td{background:#fffdf5}
+    td a{color:var(--blue);text-decoration:none}
+    .count{font-size:13px;color:var(--muted);margin:8px 0}
+    .empty{color:var(--muted);font-style:italic}
+
+    /* yellowpages-style result cards */
+    #results{display:flex;flex-direction:column;gap:12px}
+    .yp-card{display:flex;gap:14px;background:#fff;border:1px solid var(--line);
+      border-radius:10px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .yp-thumb{flex:0 0 92px;width:92px;height:92px;border-radius:8px;overflow:hidden;
+      background:#f0f1f3;display:flex;align-items:center;justify-content:center}
+    .yp-thumb img{width:100%;height:100%;object-fit:cover}
+    .yp-thumb .ph{font-size:30px;color:#c7ccd3}
+    .yp-main{flex:1;min-width:0}
+    .yp-name{font-size:17px;font-weight:700;color:var(--blue);text-decoration:none}
+    .yp-name:hover{text-decoration:underline}
+    .yp-name .rank{color:var(--ink);font-weight:700}
+    .yp-cats{font-size:13px;color:#3a3f45;margin:3px 0}
+    .yp-links{font-size:13px;margin:4px 0}
+    .yp-links a{color:var(--blue);text-decoration:none}
+    .yp-links a:hover{text-decoration:underline}
+    .yp-links .sep{color:var(--line);margin:0 7px}
+    .yp-badges{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0;font-size:12.5px;color:#555}
+    .yp-badges .open{color:var(--green);font-weight:600}
+    .yp-badges .closed{color:var(--red);font-weight:600}
+    .yp-badges .stars{color:#e8a200;letter-spacing:1px}
+    .yp-snippet{font-size:13px;color:#555;margin-top:6px;line-height:1.45}
+    .yp-snippet b{color:#3a3f45}
+    .yp-side{flex:0 0 200px;text-align:right;font-size:13px;color:#3a3f45}
+    .yp-phone{font-weight:700;color:var(--ink);font-size:15px;white-space:nowrap}
+    .yp-addr{margin-top:6px;color:#555;line-height:1.4}
+    @media(max-width:640px){
+      .yp-card{flex-wrap:wrap}.yp-side{flex-basis:100%;text-align:left;margin-top:8px}
+      .yp-thumb{flex-basis:64px;width:64px;height:64px}
+    }
+
+    /* pagination */
+    #pager{display:flex;align-items:center;justify-content:center;gap:6px;
+      flex-wrap:wrap;margin:18px 0 4px}
+    #pager button{padding:7px 12px;font-size:14px;font-weight:600;border:1px solid var(--line);
+      background:#fff;color:var(--ink);border-radius:7px;cursor:pointer;min-width:38px}
+    #pager button:hover:not(:disabled){border-color:var(--yp);background:#fffdf5}
+    #pager button.active{background:var(--yp);border-color:var(--yp)}
+    #pager button:disabled{opacity:.45;cursor:not-allowed}
+    #pager .pinfo{color:var(--muted);font-size:13px;margin:0 8px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="dot"></span> YellowPages Scraper</h1>
+  <p class="sub">Search a category in a location, scrape business listings, and export to JSON.</p>
+
+  <div class="panel">
+    <div class="grid">
+      <div class="field">
+        <label>Region</label>
+        <select id="region"></select>
+        <span class="hint" id="regionHint"></span>
+      </div>
+      <div class="field">
+        <label>Search <span class="req">*</span></label>
+        <input id="search" placeholder="e.g. Dentists" value="Dentists">
+      </div>
+      <div class="field">
+        <label>Location <span class="req">*</span></label>
+        <input id="location" placeholder="e.g. New York, NY" value="New York, NY">
+      </div>
+      <div class="field">
+        <label>Limit (records)</label>
+        <input id="limit" type="number" min="1" placeholder="all" >
+        <span class="hint">Leave empty to fetch all available.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="startBtn" onclick="start()">▶ Start scraping</button>
+      <button class="btn-stop" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
+      <a id="download" style="display:none" href="#"><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="bar" id="bar"><i></i></div>
+  <div class="count" id="count"></div>
+  <div id="results"></div>
+  <div id="pager"></div>
+</div>
+
+<script>
+let timer = null, currentJob = null;
+
+async function loadRegions(){
+  const sel = document.getElementById('region');
+  try{
+    const list = await (await fetch('/api/regions')).json();
+    sel.innerHTML = '';
+    list.forEach(r=>{
+      const o = document.createElement('option');
+      o.value = r.code;
+      o.textContent = r.label + (r.supported ? '' : ' — not yet supported');
+      o.dataset.supported = r.supported;
+      sel.appendChild(o);
+    });
+    sel.value = 'us';
+  }catch(e){
+    sel.innerHTML = '<option value="us">US (yellowpages.com)</option>';
+  }
+  updateRegionHint();
+}
+function updateRegionHint(){
+  const opt = document.getElementById('region').selectedOptions[0];
+  const hint = document.getElementById('regionHint');
+  const ok = !opt || opt.dataset.supported === 'true';
+  hint.textContent = ok ? '' : '⚠ This site uses a different layout — parser not implemented yet.';
+  hint.style.color = ok ? '' : 'var(--amber)';
+}
+
+function setRunning(on){
+  document.getElementById('startBtn').disabled = on;
+  document.getElementById('stopBtn').disabled = !on;
+  document.getElementById('region').disabled = on;
+}
+
+async function start(){
+  const search = document.getElementById('search').value.trim();
+  const location = document.getElementById('location').value.trim();
+  const region = document.getElementById('region').value;
+  const limRaw = document.getElementById('limit').value.trim();
+  const limit = limRaw ? parseInt(limRaw, 10) : null;
+  if(!search || !location){ alert('Search and Location are required.'); return; }
+
+  const r = await fetch('/api/scrape',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({search,location,region,limit})});
+  const {job_id} = await r.json();
+  currentJob = job_id;
+
+  document.getElementById('download').style.display='none';
+  document.getElementById('results').innerHTML='';
+  document.getElementById('pager').innerHTML='';
+  document.getElementById('count').textContent='';
+  document.getElementById('bar').style.display = limit ? 'block' : 'none';
+  document.querySelector('#bar>i').style.width = '0';
+  setRunning(true);
+
+  if(timer) clearInterval(timer);
+  timer = setInterval(()=>poll(job_id), 1500);
+  poll(job_id);
+}
+
+async function stop(){
+  if(!currentJob) return;
+  document.getElementById('stopBtn').disabled = true;
+  await fetch('/api/stop/'+currentJob, {method:'POST'});
+}
+
+async function poll(job_id){
+  const s = await (await fetch('/api/status/'+job_id)).json();
+  const el = document.getElementById('status');
+  const got = s.total_scraped || 0;
+  const cap = s.limit || s.total_available;
+  if(cap){
+    const pct = Math.min(100, Math.round(got/cap*100));
+    document.querySelector('#bar>i').style.width = pct+'%';
+  }
+
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML = '<span class="spin"></span> Scraping… '+got+' records'+(cap?(' / '+cap):'');
+  } else {
+    clearInterval(timer);
+    setRunning(false);
+    document.getElementById('bar').style.display='none';
+    if(s.status==='done' || s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent = (s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' records scraped';
+      const dl=document.getElementById('download');
+      dl.href='/api/export/'+job_id; dl.style.display='inline-block';
+      showResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error';
+      el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function starStr(r){const v=parseFloat(r)||0,full=Math.floor(v),half=(v-full)>=0.5;
+  return '★'.repeat(full)+(half?'½':'')+'☆'.repeat(Math.max(0,5-full-(half?1:0)));}
+
+const PAGE_SIZE = 20;
+let _rows = [], _page = 0;
+
+function cardEl(x, i){
+  const addr=[x.area,[x.city,x.pincode].filter(Boolean).join(' ')].filter(Boolean);
+  const mapsQ=encodeURIComponent([x.name,x.area,x.city].filter(Boolean).join(' '));
+  const directions=x.directions||('https://www.google.com/maps/search/?api=1&query='+mapsQ);
+  const links=[];
+  if(x.website) links.push(`<a href="${esc(x.website)}" target="_blank" rel="noopener">Website</a>`);
+  links.push(`<a href="${esc(directions)}" target="_blank" rel="noopener">Directions</a>`);
+  if(x.source_url) links.push(`<a href="${esc(x.source_url)}" target="_blank" rel="noopener">More Info</a>`);
+
+  const stars=x.rating?`<span class="stars" title="${esc(x.rating)}">${starStr(x.rating)}</span>${x.reviews_count?(' ('+esc(x.reviews_count)+')'):''}`:'';
+  const open=x.open_status?`<span class="${/open/i.test(x.open_status)?'open':'closed'}">${esc(x.open_status.toUpperCase())}</span>`:'';
+  const years=x.years_in_business?`<span>🏛 ${esc(x.years_in_business)} Years in Business</span>`:'';
+  const badges=[years,open,stars].filter(Boolean).join('');
+  const thumb=x.image?`<img src="${esc(x.image)}" alt="" onerror="this.remove()">`:'<span class="ph">🏢</span>';
+
+  const card=document.createElement('div'); card.className='yp-card';
+  card.innerHTML=`
+    <div class="yp-thumb">${thumb}</div>
+    <div class="yp-main">
+      <a class="yp-name" href="${esc(x.source_url||'#')}" target="_blank" rel="noopener"><span class="rank">${i+1}.</span> ${esc(x.name)}</a>
+      ${x.category?`<div class="yp-cats">${esc(x.category)}</div>`:''}
+      <div class="yp-links">${links.join('<span class="sep">|</span>')}</div>
+      ${badges?`<div class="yp-badges">${badges}</div>`:''}
+      ${x.description?`<div class="yp-snippet"><b>From Business:</b> ${esc(x.description)}</div>`:''}
+    </div>
+    <div class="yp-side">
+      ${x.phone?`<div class="yp-phone">${esc(x.phone)}</div>`:''}
+      ${addr.length?`<div class="yp-addr">${addr.map(esc).join('<br>')}</div>`:''}
+    </div>`;
+  return card;
+}
+
+function pinfo(t){const s=document.createElement('span');s.className='pinfo';s.textContent=t;return s;}
+
+function renderPager(){
+  const pg=document.getElementById('pager'); pg.innerHTML='';
+  const pages=Math.ceil(_rows.length/PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{const b=document.createElement('button');b.textContent=label;
+    if(o.active)b.className='active'; if(o.disabled)b.disabled=true;
+    b.onclick=()=>{_page=page;renderPage();}; return b;};
+  pg.appendChild(mk('‹ Prev',_page-1,{disabled:_page===0}));
+  let s=Math.max(0,_page-2), e=Math.min(pages-1,_page+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_page===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_page}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_page===pages-1}));}
+  pg.appendChild(mk('Next ›',_page+1,{disabled:_page>=pages-1}));
+  pg.appendChild(pinfo('Page '+(_page+1)+' of '+pages));
+}
+
+function renderPage(){
+  const box=document.getElementById('results'); box.innerHTML='';
+  const start=_page*PAGE_SIZE;
+  _rows.slice(start,start+PAGE_SIZE).forEach((x,j)=>box.appendChild(cardEl(x,start+j)));
+  renderPager();
+}
+
+async function showResults(job_id){
+  _rows = await (await fetch('/api/results/'+job_id+'?limit=1000')).json();
+  _page = 0;
+  const cnt=document.getElementById('count');
+  document.getElementById('pager').innerHTML='';
+  if(!_rows.length){
+    document.getElementById('results').innerHTML='';
+    cnt.innerHTML='<span class="empty">No listings found for this search/location.</span>';
+    return;
+  }
+  cnt.textContent='Showing '+_rows.length+' records ('+PAGE_SIZE+' per page · download JSON for all).';
+  renderPage();
+}
+
+document.getElementById('region').addEventListener('change', updateRegionHint);
+loadRegions();
+</script>
+</body>
+</html>
