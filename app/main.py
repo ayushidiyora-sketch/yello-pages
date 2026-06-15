@@ -8,7 +8,8 @@ from fastapi.responses import FileResponse, HTMLResponse
 
 from .db import jobs, businesses, ensure_indexes
 from .models import ScrapeRequest
-from .scraper import run_scrape, request_stop, REGIONS, SUPPORTED_REGIONS
+from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
+from . import yp_us
 
 
 @asynccontextmanager
@@ -42,6 +43,15 @@ async def regions():
     ]
 
 
+@app.get("/api/filters")
+async def filters(search: str, location: str, region: str = "us"):
+    """YP's own filter options (Category / Features / Neighborhoods) for this search,
+    used to populate the All Filters modal. Live fetch — may take a few seconds."""
+    if region not in SUPPORTED_REGIONS:
+        raise HTTPException(400, "Filters are only available for the US region.")
+    return await yp_us.get_filters(search, location)
+
+
 @app.post("/api/scrape")
 async def start_scrape(req: ScrapeRequest):
     job_id = uuid.uuid4().hex
@@ -51,6 +61,8 @@ async def start_scrape(req: ScrapeRequest):
         "location": req.location,
         "region": req.region,
         "limit": req.limit,
+        "sort": req.sort,
+        "categories": req.categories,
         "status": "running",
         "total_scraped": 0,
         "started_at": datetime.utcnow(),
@@ -81,8 +93,12 @@ async def status(job_id: str):
 
 @app.get("/api/results/{job_id}")
 async def results(job_id: str, limit: int = 200):
-    cur = businesses.find({"job_id": job_id}, {"_id": 0}).limit(limit)
-    return [d async for d in cur]
+    job = await jobs.find_one({"job_id": job_id}, {"_id": 0, "sort": 1, "categories": 1}) or {}
+    # fetch all, then apply the job's Category filter + Sort, then cap (sort/filter need the
+    # full set before slicing — a DB-level .limit() would truncate before the view applies)
+    rows = [d async for d in businesses.find({"job_id": job_id}, {"_id": 0})]
+    rows = apply_view(rows, job.get("sort"), job.get("categories"))
+    return rows[:limit]
 
 
 @app.get("/api/export/{job_id}")

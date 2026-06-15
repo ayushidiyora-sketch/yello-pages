@@ -10,6 +10,7 @@ curl_cffi is synchronous; callers wrap fetch_us_page() with asyncio.to_thread so
 FastAPI event loop is never blocked.
 """
 import asyncio
+import json
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -48,8 +49,15 @@ def _impersonated_get(url: str, params: dict, proxy: str | None, timeout: int | 
                     timeout=timeout or settings.REQUEST_TIMEOUT, verify=False)
 
 
-def _looks_like_results(text: str) -> bool:
-    return "business-name" in text and "you have been blocked" not in text
+def _is_valid_yp_page(text: str) -> bool:
+    """True for a real yellowpages.com response — INCLUDING a valid page with zero listings
+    or YP's HTTP-404 "Invalid Search" page (returned for an unrecognized location, e.g. a
+    Canadian city). All of these render the search form (`search_terms`); a Cloudflare block
+    page does not. We deliberately do NOT require `business-name` or HTTP 200 here: an empty
+    or invalid-search result is a *successful* fetch, not a blocked proxy. Requiring listings
+    made 0-result searches misread every working proxy as "blocked", exhausting the whole
+    pool and hanging the job at "running / 0 records" while the UI polled forever."""
+    return "search_terms" in text and "you have been blocked" not in text
 
 
 _IPPORT = re.compile(r"(\d{1,3}(?:\.\d{1,3}){3}:\d{2,5})")
@@ -94,7 +102,9 @@ def _probe(px: str, params: dict):
     error — likely just slow/overloaded, worth retrying later)."""
     try:
         r = _impersonated_get(SEARCH, params, px, timeout=PROBE_TIMEOUT)
-        if r.status_code == 200 and _looks_like_results(r.text):
+        # A real YP response — results, an empty SERP, or a 404 "Invalid Search" page — is a
+        # successful fetch. Only a block/garbage page (no search form) is "blocked".
+        if _is_valid_yp_page(r.text):
             return px, r.text, "good"
         return px, None, "blocked"   # reachable proxy but YP refused it
     except Exception:
@@ -160,7 +170,7 @@ def _fetch_sync(params: dict) -> str:
     # A paid US proxy from .env is reliable — use it directly, no pool.
     if settings.PROXY_URL.strip():
         r = _impersonated_get(SEARCH, params, settings.PROXY_URL.strip())
-        if r.status_code == 200 and _looks_like_results(r.text):
+        if _is_valid_yp_page(r.text):
             return r.text
         raise RuntimeError(
             f"PROXY_URL reached yellowpages.com but got status {r.status_code} / blocked. "
@@ -209,6 +219,73 @@ def parse_us_total(html: str) -> int | None:
     return int(m.group(1).replace(",", "")) if m else None
 
 
+# Group label (as YP renders it) -> our normalized key for the UI tabs.
+_FILTER_GROUPS = {"Category": "categories", "Features": "features", "Neighborhoods": "neighborhoods"}
+
+
+def parse_us_filters(html: str) -> dict:
+    """Extract YP's own filter options, embedded in the page as
+    `"filters":{"Filters":[{"Label":"Category","Options":[{"Label","Key","Value","Count"}]},...]}`.
+
+    Returns the three tabs YP shows, e.g.::
+
+        {"categories":   [{"label","value","count"}, ...],   # Key=headingtext, value=label
+         "features":     [{"label","value","count"}, ...],   # e.g. Coupons -> COUPON
+         "neighborhoods":[{"label","value","count"}, ...]}
+
+    YP applies these client-side via AJAX (not URL params), so we use them only to mirror
+    YP's option list in the UI; the actual filtering is done on the scraped data.
+    """
+    empty = {v: [] for v in _FILTER_GROUPS.values()}
+    i = html.find('"filters":{"Filters":')
+    if i == -1:
+        return empty
+    start = html.find("[", i)
+    if start == -1:
+        return empty
+    # balanced-bracket scan (option labels can contain '[' ']' so we can't regex this)
+    depth = 0
+    end = -1
+    for j in range(start, len(html)):
+        ch = html[j]
+        if ch == "[":
+            depth += 1
+        elif ch == "]":
+            depth -= 1
+            if depth == 0:
+                end = j + 1
+                break
+    if end == -1:
+        return empty
+    try:
+        groups = json.loads(html[start:end])
+    except (ValueError, json.JSONDecodeError):
+        return empty
+
+    out = {v: [] for v in _FILTER_GROUPS.values()}
+    for g in groups:
+        key = _FILTER_GROUPS.get(g.get("Label"))
+        if not key:
+            continue
+        for o in g.get("Options", []):
+            label = o.get("Label")
+            if not label:
+                continue
+            out[key].append({
+                "label": label,
+                "value": o.get("Value", label),
+                "count": o.get("Count"),
+            })
+    return out
+
+
+async def get_filters(search: str, location: str) -> dict:
+    """Fetch page 1 of a search and return YP's filter options for the modal."""
+    params = {"search_terms": search, "geo_location_terms": location, "page": "1"}
+    html = await asyncio.to_thread(_fetch_sync, params)
+    return parse_us_filters(html)
+
+
 def _txt(node):
     return node.get_text(" ", strip=True) if node else None
 
@@ -237,7 +314,8 @@ def parse_us_cards(html: str) -> list[dict]:
                 city = locality
 
         cats = [a.get_text(strip=True) for a in c.select(".categories a")]
-        category = ", ".join(dict.fromkeys([x for x in cats if x])) or None
+        cat_list = list(dict.fromkeys([x for x in cats if x]))  # deduped, order-preserving
+        category = ", ".join(cat_list) or None
 
         reviews = _txt(c.select_one(".ratings .count"))  # "(1)"
         if reviews:
@@ -278,7 +356,9 @@ def parse_us_cards(html: str) -> list[dict]:
         out.append({
             "name": name,
             "phone": phone,
-            "category": category,
+            "category": category,        # joined, for display
+            "categories": cat_list,      # list, for exact category-filter matching
+
             "area": street,
             "city": city,
             "pincode": pincode,

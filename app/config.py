@@ -16,5 +16,11 @@ class Settings(BaseSettings):
     MAX_DELAY: float = 3.0
     REQUEST_TIMEOUT: int = 30
 
+    # Website enrichment: visit each business's site to pull socials / website meta / emails
+    # (the extra Outscraper-style columns). Set ENRICH=false to skip it (faster scrapes).
+    ENRICH: bool = True
+    ENRICH_TIMEOUT: int = 10       # per-site fetch timeout (seconds)
+    ENRICH_CONCURRENCY: int = 8    # how many sites to crawl at once
+
 
 settings = Settings()

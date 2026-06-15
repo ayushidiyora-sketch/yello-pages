@@ -87,6 +87,44 @@
       .yp-thumb{flex-basis:64px;width:64px;height:64px}
     }
 
+    /* filters modal */
+    .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;
+      align-items:center;justify-content:center;z-index:50;padding:16px}
+    .modal-back.open{display:flex}
+    .modal{background:#fff;border-radius:12px;width:min(720px,100%);max-height:86vh;
+      display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;
+      padding:16px 20px;border-bottom:1px solid var(--line)}
+    .modal-head h3{margin:0;font-size:18px}
+    .modal-head .x{background:none;border:0;font-size:22px;cursor:pointer;color:var(--muted);padding:0 4px}
+    .modal-sel{padding:8px 20px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
+    .modal-sel b{color:var(--ink)}
+    .tabs{display:flex;gap:4px;padding:10px 16px 0;border-bottom:1px solid var(--line)}
+    .tab{padding:8px 14px;font-size:14px;font-weight:600;border:0;background:none;cursor:pointer;
+      color:var(--muted);border-bottom:2px solid transparent}
+    .tab.active{color:var(--ink);border-bottom-color:var(--yp)}
+    .tab:disabled{opacity:.5;cursor:not-allowed}
+    .tabpane{display:none;padding:16px 20px;overflow:auto}
+    .tabpane.active{display:block}
+    .optgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 18px}
+    .opt{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:3px 0;cursor:pointer}
+    .opt input{width:auto;margin-top:3px}
+    .opt .cnt{color:var(--muted);font-size:12px}
+    .opt.disabled{cursor:not-allowed;color:var(--muted)}
+    .pane-note{font-size:12.5px;color:var(--amber);background:#fff8e6;border:1px solid #f3e2a8;
+      border-radius:7px;padding:8px 10px;margin-bottom:12px}
+    .pane-empty{color:var(--muted);font-style:italic;font-size:13px}
+    .pane-load{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px}
+    .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
+
+    /* results toolbar (filter + sort applied to scraped data) */
+    .resbar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+      flex-wrap:wrap;margin:14px 0 6px}
+    .resbar .count{margin:0}
+    .resbar-controls{display:flex;align-items:center;gap:8px}
+    .resbar-controls select{width:auto;padding:8px 10px;font-size:14px}
+    .resbar-controls .btn-ghost{padding:8px 14px;font-size:14px;font-weight:600}
+
     /* pagination */
     #pager{display:flex;align-items:center;justify-content:center;gap:6px;
       flex-wrap:wrap;margin:18px 0 4px}
@@ -112,11 +150,11 @@
       </div>
       <div class="field">
         <label>Search <span class="req">*</span></label>
-        <input id="search" placeholder="e.g. Dentists" value="Dentists">
+        <input id="search" placeholder="e.g. Dentists">
       </div>
       <div class="field">
         <label>Location <span class="req">*</span></label>
-        <input id="location" placeholder="e.g. New York, NY" value="New York, NY">
+        <input id="location" placeholder="e.g. New York, NY">
       </div>
       <div class="field">
         <label>Limit (records)</label>
@@ -127,19 +165,226 @@
     <div class="actions">
       <button class="btn-primary" id="startBtn" onclick="start()">▶ Start scraping</button>
       <button class="btn-stop" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
-      <a id="download" style="display:none" href="#"><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <a id="download" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
     </div>
   </div>
 
   <div class="status" id="status"></div>
   <div class="bar" id="bar"><i></i></div>
-  <div class="count" id="count"></div>
+
+  <div class="resbar" id="resbar" style="display:none">
+    <div class="count" id="count"></div>
+    <div class="resbar-controls">
+      <button class="btn-ghost" id="filtersBtn" type="button" onclick="openFilters()">⚙ All Filters <span id="filtersCount"></span></button>
+      <select id="sort" onchange="applyClientView()" title="Sort results">
+        <option value="">Sort: Default</option>
+        <option value="name">Sort: Name (A - Z)</option>
+        <option value="average_rating">Sort: Rating</option>
+      </select>
+    </div>
+  </div>
+
   <div id="results"></div>
   <div id="pager"></div>
 </div>
 
+<div class="modal-back" id="filtersModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>All Filters</h3>
+      <button class="x" type="button" onclick="closeFilters()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-sel">Selected: <b id="selSummary">None</b></div>
+    <div class="tabs">
+      <button class="tab active" data-tab="categories" onclick="showTab('categories')">Category</button>
+      <button class="tab" data-tab="features" onclick="showTab('features')">Features</button>
+      <button class="tab" data-tab="neighborhoods" onclick="showTab('neighborhoods')">Neighborhoods</button>
+    </div>
+    <div class="tabpane active" id="pane-categories"></div>
+    <div class="tabpane" id="pane-features"></div>
+    <div class="tabpane" id="pane-neighborhoods"></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" type="button" onclick="clearFilters()">Clear</button>
+      <button class="btn-primary" type="button" onclick="applyFilters()">Apply Filters</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let timer = null, currentJob = null;
+
+/* ---------- Filters + Sort (applied to scraped data, client-side) ----------
+   YP filters/sorts client-side only, so we do the same on the rows we scraped.
+   The Category options are DERIVED from the scraped results (so they always match
+   what was scraped, with live counts). Features/Neighborhoods aren't captured per
+   listing, so those tabs show an explanatory note. Changing a filter/sort re-renders
+   instantly — no re-scrape needed. */
+let selectedCategories = new Set();
+const DISABLED_NOTE = 'Not available from scraped data — listings don’t expose this per record.';
+
+// {label,count}[] built from the scraped rows, most common first
+function deriveCategories(rows){
+  const counts = new Map();
+  (rows||[]).forEach(r => (r.categories||[]).forEach(c=>{
+    if(c) counts.set(c, (counts.get(c)||0)+1);
+  }));
+  return [...counts.entries()]
+    .sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]))
+    .map(([label,count])=>({label,count}));
+}
+
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  ['categories','features','neighborhoods'].forEach(n=>
+    document.getElementById('pane-'+n).classList.toggle('active', n===name));
+}
+
+function renderCategoryPane(){
+  const opts = deriveCategories(_rows);
+  const pane = document.getElementById('pane-categories'); pane.innerHTML='';
+  if(!opts.length){ pane.innerHTML='<div class="pane-empty">No categories in the scraped results.</div>'; return; }
+  const grid=document.createElement('div'); grid.className='optgrid';
+  opts.forEach(o=>{
+    const lab=document.createElement('label'); lab.className='opt';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=o.label;
+    cb.checked=selectedCategories.has(o.label);
+    cb.onchange=()=>{ cb.checked?selectedCategories.add(o.label):selectedCategories.delete(o.label); updateSelSummary(); };
+    lab.appendChild(cb);
+    lab.insertAdjacentHTML('beforeend',
+      ` <span>${esc(o.label)} <span class="cnt">(${o.count})</span></span>`);
+    grid.appendChild(lab);
+  });
+  pane.appendChild(grid);
+}
+
+function renderNotePane(name){
+  document.getElementById('pane-'+name).innerHTML = `<div class="pane-note">⚠ ${DISABLED_NOTE}</div>`;
+}
+
+function openFilters(){
+  if(!_rows.length){ alert('Scrape some results first, then filter them.'); return; }
+  renderCategoryPane();
+  renderNotePane('features');
+  renderNotePane('neighborhoods');
+  updateSelSummary();
+  showTab('categories');
+  document.getElementById('filtersModal').classList.add('open');
+}
+
+function closeFilters(){ document.getElementById('filtersModal').classList.remove('open'); }
+function clearFilters(){
+  selectedCategories.clear();
+  document.querySelectorAll('#pane-categories input').forEach(cb=>cb.checked=false);
+  updateSelSummary();
+}
+function applyFilters(){ updateFiltersCount(); closeFilters(); applyClientView(); }
+
+function updateSelSummary(){
+  const el=document.getElementById('selSummary');
+  el.textContent = selectedCategories.size ? [...selectedCategories].join(', ') : 'None';
+}
+function updateFiltersCount(){
+  document.getElementById('filtersCount').textContent = selectedCategories.size ? '('+selectedCategories.size+')' : '';
+}
+
+// Filter + sort the scraped rows into _view and re-render (instant, no re-scrape).
+function applyClientView(){
+  const sort = document.getElementById('sort').value;
+  let v = _rows.slice();
+  if(selectedCategories.size)
+    v = v.filter(r => (r.categories||[]).some(c=>selectedCategories.has(c)));
+  if(sort==='name')
+    v.sort((a,b)=> (a.name||'').toLowerCase().localeCompare((b.name||'').toLowerCase()));
+  else if(sort==='average_rating')
+    v.sort((a,b)=> ((parseFloat(b.rating)||-1) - (parseFloat(a.rating)||-1)));
+  _view = v; _page = 0;
+  renderPage();
+  updateResultCount();
+  updateDownload();
+}
+
+function updateResultCount(){
+  const cnt=document.getElementById('count');
+  const total=_rows.length, shown=_view.length;
+  const filtered = selectedCategories.size>0;
+  cnt.textContent = filtered
+    ? `Showing ${shown} of ${total} records (filtered · ${PAGE_SIZE} per page).`
+    : `Showing ${shown} records (${PAGE_SIZE} per page · download JSON for the current view).`;
+}
+
+// Full Outscraper column set. Columns we can source are filled from the scraped row +
+// website enrichment; the rest (paid-API-only: email validation, whitepages, company
+// insights, amenities/range) are present but empty so the file matches Outscraper's shape.
+const OUTSCRAPER_COLUMNS = ["query","name","categories","position","amenities","phone",
+ "phone.whitepages_phones.name","phone.whitepages_phones.phone_type","phone.whitepages_phones.address",
+ "street","locality","website","snippet","thumbnail","range","business_link",
+ "email_1","email_1.emails_validator.status","email_1.emails_validator.status_details","email_1_full_name","email_1_first_name","email_1_last_name","email_1_title","email_1_phone",
+ "email_2","email_2.emails_validator.status","email_2.emails_validator.status_details","email_2_full_name","email_2_first_name","email_2_last_name","email_2_title","email_2_phone",
+ "email_3","email_3.emails_validator.status","email_3.emails_validator.status_details","email_3_full_name","email_3_first_name","email_3_last_name","email_3_title","email_3_phone",
+ "phone_1","phone_1.whitepages_phones.name","phone_1.whitepages_phones.phone_type","phone_1.whitepages_phones.address",
+ "phone_2","phone_2.whitepages_phones.name","phone_2.whitepages_phones.phone_type","phone_2.whitepages_phones.address",
+ "phone_3","phone_3.whitepages_phones.name","phone_3.whitepages_phones.phone_type","phone_3.whitepages_phones.address",
+ "facebook","instagram","linkedin","tiktok","medium","reddit","skype","snapchat","telegram","whatsapp","twitter","vimeo","youtube","github","crunchbase",
+ "website_title","website_generator","website_description","website_keywords","website_has_fb_pixel","website_has_google_tag",
+ "company_insights.employees","company_insights.revenue","company_insights.founded_year","company_insights.industry","company_insights.is_public",
+ "company_insights.name","company_insights.country","company_insights.state","company_insights.city","company_insights.zip","company_insights.address"];
+
+const COUNTRY = {us:'United States', au:'Australia', ca:'Canada'};
+
+function toOutscraperRow(x, i){
+  const region = document.getElementById('region').value;
+  const search = document.getElementById('search').value.trim();
+  const location = document.getElementById('location').value.trim();
+  const em = x.emails || [];
+  const locality = [x.city, x.state, x.pincode].filter(Boolean).join(' ');
+  const row = {};
+  for(const col of OUTSCRAPER_COLUMNS) row[col] = '';   // default empty so every column exists
+  Object.assign(row, {
+    query: [search, location].filter(Boolean).join(', '),
+    name: x.name || '',
+    categories: x.category || (x.categories||[]).join(', '),
+    position: i + 1,
+    phone: x.phone || '',
+    street: x.area || '',
+    locality,
+    website: x.website || '',
+    snippet: x.description || '',
+    thumbnail: x.image || '',
+    business_link: x.source_url || '',
+    email_1: em[0] || '', email_2: em[1] || '', email_3: em[2] || '',
+    facebook:x.facebook||'', instagram:x.instagram||'', linkedin:x.linkedin||'', tiktok:x.tiktok||'',
+    medium:x.medium||'', reddit:x.reddit||'', skype:x.skype||'', snapchat:x.snapchat||'',
+    telegram:x.telegram||'', whatsapp:x.whatsapp||'', twitter:x.twitter||'', vimeo:x.vimeo||'',
+    youtube:x.youtube||'', github:x.github||'', crunchbase:x.crunchbase||'',
+    website_title:x.website_title||'', website_generator:x.website_generator||'',
+    website_description:x.website_description||'', website_keywords:x.website_keywords||'',
+    website_has_fb_pixel: !!x.website_has_fb_pixel, website_has_google_tag: !!x.website_has_google_tag,
+    'company_insights.name': x.name || '',
+    'company_insights.country': COUNTRY[region] || '',
+    'company_insights.state': x.state || '',
+    'company_insights.city': x.city || '',
+    'company_insights.zip': x.pincode || '',
+    'company_insights.address': x.area || '',
+  });
+  return row;
+}
+
+// Build the Download JSON from the CURRENT view, shaped to the full Outscraper column set.
+let _dlUrl = null;
+function updateDownload(){
+  const dl=document.getElementById('download');
+  if(!_view.length){ dl.style.display='none'; return; }
+  if(_dlUrl) URL.revokeObjectURL(_dlUrl);
+  const rows=_view.map((x,i)=>toOutscraperRow(x,i));
+  const blob=new Blob([JSON.stringify(rows, null, 2)], {type:'application/json'});
+  _dlUrl=URL.createObjectURL(blob);
+  const safe=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  dl.href=_dlUrl;
+  dl.setAttribute('download',
+    `${safe(document.getElementById('search').value)}_${safe(document.getElementById('location').value)}.json`);
+  dl.style.display='inline-block';
+}
+/* ---------- end filters + sort ---------- */
 
 async function loadRegions(){
   const sel = document.getElementById('region');
@@ -178,7 +423,8 @@ async function start(){
   const location = document.getElementById('location').value.trim();
   const region = document.getElementById('region').value;
   const limRaw = document.getElementById('limit').value.trim();
-  const limit = limRaw ? parseInt(limRaw, 10) : null;
+  const limParsed = parseInt(limRaw, 10);
+  const limit = (limRaw && Number.isFinite(limParsed) && limParsed > 0) ? limParsed : null;  // 0/blank/invalid = all
   if(!search || !location){ alert('Search and Location are required.'); return; }
 
   const r = await fetch('/api/scrape',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -186,6 +432,11 @@ async function start(){
   const {job_id} = await r.json();
   currentJob = job_id;
 
+  // reset the view + filter/sort state for the new run
+  _rows = []; _view = [];
+  selectedCategories.clear(); updateFiltersCount();
+  document.getElementById('sort').value = '';
+  document.getElementById('resbar').style.display='none';
   document.getElementById('download').style.display='none';
   document.getElementById('results').innerHTML='';
   document.getElementById('pager').innerHTML='';
@@ -225,8 +476,6 @@ async function poll(job_id){
     if(s.status==='done' || s.status==='stopped'){
       el.className='status '+s.status;
       el.textContent = (s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' records scraped';
-      const dl=document.getElementById('download');
-      dl.href='/api/export/'+job_id; dl.style.display='inline-block';
       showResults(job_id);
     } else if(s.status==='error'){
       el.className='status error';
@@ -240,7 +489,7 @@ function starStr(r){const v=parseFloat(r)||0,full=Math.floor(v),half=(v-full)>=0
   return '★'.repeat(full)+(half?'½':'')+'☆'.repeat(Math.max(0,5-full-(half?1:0)));}
 
 const PAGE_SIZE = 20;
-let _rows = [], _page = 0;
+let _rows = [], _view = [], _page = 0;   // _rows = all scraped, _view = filtered+sorted
 
 function cardEl(x, i){
   const addr=[x.area,[x.city,x.pincode].filter(Boolean).join(' ')].filter(Boolean);
@@ -278,7 +527,7 @@ function pinfo(t){const s=document.createElement('span');s.className='pinfo';s.t
 
 function renderPager(){
   const pg=document.getElementById('pager'); pg.innerHTML='';
-  const pages=Math.ceil(_rows.length/PAGE_SIZE);
+  const pages=Math.ceil(_view.length/PAGE_SIZE);
   if(pages<=1) return;
   const mk=(label,page,o={})=>{const b=document.createElement('button');b.textContent=label;
     if(o.active)b.className='active'; if(o.disabled)b.disabled=true;
@@ -295,25 +544,31 @@ function renderPager(){
 function renderPage(){
   const box=document.getElementById('results'); box.innerHTML='';
   const start=_page*PAGE_SIZE;
-  _rows.slice(start,start+PAGE_SIZE).forEach((x,j)=>box.appendChild(cardEl(x,start+j)));
+  _view.slice(start,start+PAGE_SIZE).forEach((x,j)=>box.appendChild(cardEl(x,start+j)));
   renderPager();
 }
 
 async function showResults(job_id){
   _rows = await (await fetch('/api/results/'+job_id+'?limit=1000')).json();
   _page = 0;
-  const cnt=document.getElementById('count');
   document.getElementById('pager').innerHTML='';
+  const resbar=document.getElementById('resbar');
   if(!_rows.length){
+    _view=[];
+    resbar.style.display='none';
     document.getElementById('results').innerHTML='';
-    cnt.innerHTML='<span class="empty">No listings found for this search/location.</span>';
+    document.getElementById('count').innerHTML='<span class="empty">No listings found for this search/location.</span>';
     return;
   }
-  cnt.textContent='Showing '+_rows.length+' records ('+PAGE_SIZE+' per page · download JSON for all).';
-  renderPage();
+  resbar.style.display='flex';        // reveal the filter + sort toolbar
+  applyClientView();                  // builds _view, renders, sets count + download
 }
 
 document.getElementById('region').addEventListener('change', updateRegionHint);
+// close the filters modal when clicking the dark backdrop (but not the dialog itself)
+document.getElementById('filtersModal').addEventListener('click', e=>{
+  if(e.target.id==='filtersModal') closeFilters();
+});
 loadRegions();
 </script>
 </body>

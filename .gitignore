@@ -11,6 +11,7 @@ venv/
 
 # Scraped output (data, not code)
 exports/
+*.xlsx
 
 # OS / editor
 .DS_Store
