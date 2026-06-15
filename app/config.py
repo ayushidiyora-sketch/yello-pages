@@ -19,8 +19,12 @@ class Settings(BaseSettings):
     # Website enrichment: visit each business's site to pull socials / website meta / emails
     # (the extra Outscraper-style columns). Set ENRICH=false to skip it (faster scrapes).
     ENRICH: bool = True
-    ENRICH_TIMEOUT: int = 10       # per-site fetch timeout (seconds)
-    ENRICH_CONCURRENCY: int = 8    # how many sites to crawl at once
+    ENRICH_TIMEOUT: int = 8        # per-site fetch timeout (seconds)
+    ENRICH_CONCURRENCY: int = 12   # how many sites to crawl at once
+
+    # Amenities live on each business's YP detail page, so capturing them needs one extra
+    # fetch per business (slow on the US free-proxy pool). Set ENRICH_AMENITIES=false to skip.
+    ENRICH_AMENITIES: bool = True
 
 
 settings = Settings()

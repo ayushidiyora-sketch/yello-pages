@@ -74,6 +74,19 @@ async def fetch_au_page(search: str, location: str, page: int) -> str:
     return await asyncio.to_thread(_fetch_sync, search, location, page)
 
 
+def fetch_detail_sync(url: str) -> str | None:
+    """Fetch a yellowpages.com.au detail page directly (best-effort, for amenities)."""
+    if not url:
+        return None
+    try:
+        r = _get(url)
+        if r.status_code == 200 and len(r.text) > 5000 and not _is_block(r.text):
+            return r.text
+    except Exception:
+        pass
+    return None
+
+
 def parse_au_total(html: str) -> int | None:
     """Reuse the US 'Showing 1-30 of N' parser — the AU page uses the same markup."""
     return yp_us.parse_us_total(html)

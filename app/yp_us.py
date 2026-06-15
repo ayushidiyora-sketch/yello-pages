@@ -210,6 +210,37 @@ async def fetch_us_page(search: str, location: str, page: int) -> str:
     return await asyncio.to_thread(_fetch_sync, params)
 
 
+def fetch_detail_sync(url: str) -> str | None:
+    """Fetch a yellowpages.com detail page (for amenities) through a US proxy — FAST and
+    best-effort. Uses only the paid proxy or the already-warm pool (a few proxies, short
+    timeout); it does NOT download fresh proxy lists or probe dozens of candidates per
+    business (that made enrichment crawl). If no warm proxy delivers it, amenities is empty."""
+    if not url:
+        return None
+
+    def ok(r):
+        return r.status_code == 200 and len(r.text) > 10000 and "you have been blocked" not in r.text
+
+    if settings.PROXY_URL.strip():
+        try:
+            r = _impersonated_get(url, {}, settings.PROXY_URL.strip())
+            return r.text if ok(r) else None
+        except Exception:
+            return None
+
+    with _LOCK:
+        candidates = list(_GOOD)[:4]   # warm pool only, capped — no candidate probing
+    for px in candidates:
+        try:
+            r = _impersonated_get(url, {}, px, timeout=8)
+            if ok(r):
+                _mark_good(px)
+                return r.text
+        except Exception:
+            pass
+    return None
+
+
 def parse_us_total(html: str) -> int | None:
     """'Showing 1-30 of 3000' -> 3000 (read from the pagination/showing-count line)."""
     soup = BeautifulSoup(html, "lxml")

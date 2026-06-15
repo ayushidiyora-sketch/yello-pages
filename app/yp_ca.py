@@ -55,6 +55,19 @@ async def fetch_ca_page(search: str, location: str, page: int) -> str:
     return await asyncio.to_thread(_fetch_sync, search, location, page)
 
 
+def fetch_detail_sync(url: str) -> str | None:
+    """Fetch a yellowpages.ca detail page directly (best-effort, for amenities)."""
+    if not url:
+        return None
+    try:
+        r = _get(url)
+        if r.status_code == 200 and len(r.text) > 5000 and not _is_block(r.text):
+            return r.text
+    except Exception:
+        pass
+    return None
+
+
 def parse_ca_total(html: str) -> int | None:
     """'1,569 results' -> 1569."""
     m = re.search(r"([\d,]+)\s+results?", html, re.I)

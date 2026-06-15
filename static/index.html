@@ -335,7 +335,7 @@ function toOutscraperRow(x, i){
   const region = document.getElementById('region').value;
   const search = document.getElementById('search').value.trim();
   const location = document.getElementById('location').value.trim();
-  const em = x.emails || [];
+  const em = x.emails || [], es = x.emails_status || [], ph = x.phones_extra || [], pt = x.phones_extra_types || [];
   const locality = [x.city, x.state, x.pincode].filter(Boolean).join(' ');
   const row = {};
   for(const col of OUTSCRAPER_COLUMNS) row[col] = '';   // default empty so every column exists
@@ -344,7 +344,9 @@ function toOutscraperRow(x, i){
     name: x.name || '',
     categories: x.category || (x.categories||[]).join(', '),
     position: i + 1,
+    amenities: x.amenities || '',
     phone: x.phone || '',
+    'phone.whitepages_phones.phone_type': x.phone_type || '',
     street: x.area || '',
     locality,
     website: x.website || '',
@@ -352,6 +354,14 @@ function toOutscraperRow(x, i){
     thumbnail: x.image || '',
     business_link: x.source_url || '',
     email_1: em[0] || '', email_2: em[1] || '', email_3: em[2] || '',
+    'email_1.emails_validator.status': (es[0]||[])[0] || '', 'email_1.emails_validator.status_details': (es[0]||[])[1] || '',
+    'email_2.emails_validator.status': (es[1]||[])[0] || '', 'email_2.emails_validator.status_details': (es[1]||[])[1] || '',
+    'email_3.emails_validator.status': (es[2]||[])[0] || '', 'email_3.emails_validator.status_details': (es[2]||[])[1] || '',
+    email_1_full_name: x.contact_name || '', email_1_title: x.contact_title || '',
+    phone_1: ph[0] || '', phone_2: ph[1] || '', phone_3: ph[2] || '',
+    'phone_1.whitepages_phones.phone_type': pt[0] || '',
+    'phone_2.whitepages_phones.phone_type': pt[1] || '',
+    'phone_3.whitepages_phones.phone_type': pt[2] || '',
     facebook:x.facebook||'', instagram:x.instagram||'', linkedin:x.linkedin||'', tiktok:x.tiktok||'',
     medium:x.medium||'', reddit:x.reddit||'', skype:x.skype||'', snapchat:x.snapchat||'',
     telegram:x.telegram||'', whatsapp:x.whatsapp||'', twitter:x.twitter||'', vimeo:x.vimeo||'',
@@ -359,6 +369,8 @@ function toOutscraperRow(x, i){
     website_title:x.website_title||'', website_generator:x.website_generator||'',
     website_description:x.website_description||'', website_keywords:x.website_keywords||'',
     website_has_fb_pixel: !!x.website_has_fb_pixel, website_has_google_tag: !!x.website_has_google_tag,
+    'company_insights.founded_year': x.founded_year || '',
+    'company_insights.industry': x.industry || '',
     'company_insights.name': x.name || '',
     'company_insights.country': COUNTRY[region] || '',
     'company_insights.state': x.state || '',

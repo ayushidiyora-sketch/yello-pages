@@ -9,7 +9,10 @@ empty — there is no free source for them.
 """
 import asyncio
 import re
+import threading
 
+import dns.resolver
+import phonenumbers
 from bs4 import BeautifulSoup
 from curl_cffi import requests as cffi
 
@@ -36,19 +39,84 @@ SOCIAL_DOMAINS = {
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 _BAD_EMAIL_EXT = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".wixpress.com")
+# a phone with 7+ digits, optional country code / separators (kept loose; validated later)
+PHONE_RE = re.compile(r"\+?\d[\d().\-\s]{6,}\d")
+_ROLE_LOCALS = {"info", "sales", "support", "admin", "contact", "office", "help",
+                "team", "hello", "enquiries", "inquiries", "noreply", "no-reply", "mail"}
+_DISPOSABLE = {"mailinator.com", "guerrillamail.com", "10minutemail.com", "tempmail.com",
+               "trashmail.com", "yopmail.com", "throwawaymail.com", "getnada.com"}
+_REGION_CC = {"us": "US", "au": "AU", "ca": "CA"}
 
 # the keys this module contributes to each business record (always present, even if empty)
 ENRICH_KEYS = list(SOCIAL_DOMAINS) + [
-    "emails", "website_title", "website_description", "website_keywords",
+    "emails", "emails_status", "website_title", "website_description", "website_keywords",
     "website_generator", "website_has_fb_pixel", "website_has_google_tag",
+    "phones_extra", "phones_extra_types", "phone_type", "contact_name", "contact_title",
 ]
 
 
 def empty() -> dict:
     d = {k: None for k in SOCIAL_DOMAINS}
-    d.update(emails=[], website_title=None, website_description=None, website_keywords=None,
-             website_generator=None, website_has_fb_pixel=False, website_has_google_tag=False)
+    d.update(emails=[], emails_status=[], website_title=None, website_description=None,
+             website_keywords=None, website_generator=None, website_has_fb_pixel=False,
+             website_has_google_tag=False, phones_extra=[], phones_extra_types=[],
+             phone_type=None, contact_name=None, contact_title=None)
     return d
+
+
+# ---- free email validation: domain-level (MX) + role/disposable flags (NOT per-mailbox) ----
+_mx_cache: dict[str, bool] = {}
+_mx_lock = threading.Lock()
+
+
+def _has_mx(domain: str) -> bool:
+    with _mx_lock:
+        if domain in _mx_cache:
+            return _mx_cache[domain]
+    try:
+        ok = len(dns.resolver.resolve(domain, "MX", lifetime=5)) > 0
+    except Exception:
+        ok = False
+    with _mx_lock:
+        _mx_cache[domain] = ok
+    return ok
+
+
+def validate_email(addr: str) -> tuple[str, str]:
+    """Return (status, details). status: invalid_format | disposable | no_mx |
+    deliverable_domain. Checks the domain can receive mail + flags role/disposable; does NOT
+    confirm the mailbox exists (per-mailbox SMTP probing is unreliable and can blacklist us)."""
+    if not addr or not EMAIL_RE.fullmatch(addr):
+        return ("invalid_format", "")
+    local, _, domain = addr.partition("@")
+    domain = domain.lower()
+    if domain in _DISPOSABLE:
+        return ("disposable", domain)
+    if not _has_mx(domain):
+        return ("no_mx", domain)
+    return ("deliverable_domain", "role_account" if local.lower() in _ROLE_LOCALS else "personal")
+
+
+_PHONE_TYPES = {
+    phonenumbers.PhoneNumberType.FIXED_LINE: "fixed_line",
+    phonenumbers.PhoneNumberType.MOBILE: "mobile",
+    phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE: "fixed_line_or_mobile",
+    phonenumbers.PhoneNumberType.TOLL_FREE: "toll_free",
+    phonenumbers.PhoneNumberType.VOIP: "voip",
+}
+
+
+def _phone_type(num: str, region: str | None) -> str | None:
+    """Line type (mobile / fixed_line / voip / ...) via libphonenumber, best-effort."""
+    if not num:
+        return None
+    try:
+        p = phonenumbers.parse(num, _REGION_CC.get(region or ""))
+        if not phonenumbers.is_valid_number(p):
+            return None
+        return _PHONE_TYPES.get(phonenumbers.number_type(p))
+    except Exception:
+        return None
 
 
 def _meta(soup, name=None, prop=None):
@@ -94,6 +162,26 @@ def _extract(html: str) -> dict:
         if e not in emails and not el.endswith(_BAD_EMAIL_EXT):
             emails.append(e)
     out["emails"] = emails[:3]
+    out["emails_status"] = [list(validate_email(e)) for e in out["emails"]]  # domain-level (MX)
+
+    # extra phone numbers: tel: links first, then plausible numbers in the text
+    phones: list[str] = []
+    for h in hrefs:
+        if h.lower().startswith("tel:"):
+            t = re.sub(r"[^\d+]", "", h[4:])
+            if len(re.sub(r"\D", "", t)) >= 7 and t not in phones:
+                phones.append(t)
+    for m in PHONE_RE.findall(soup.get_text(" ", strip=True)):
+        t = m.strip()
+        if 7 <= len(re.sub(r"\D", "", t)) <= 15 and t not in phones:
+            phones.append(t)
+    out["phones_extra"] = phones[:3]
+
+    # best-effort contact person from the homepage (schema.org Person / author meta)
+    person = soup.select_one("[itemtype$='Person'] [itemprop='name'], [itemprop='name'][itemscope]")
+    out["contact_name"] = (person.get_text(" ", strip=True) if person else _meta(soup, name="author")) or None
+    title_el = soup.select_one("[itemprop='jobTitle']")
+    out["contact_title"] = title_el.get_text(" ", strip=True) if title_el else None
     return out
 
 
@@ -110,7 +198,56 @@ def _fetch_sync(url: str) -> dict:
     return empty()
 
 
-async def enrich_cards(cards: list[dict]) -> list[dict]:
+def parse_amenities(html: str | None) -> str | None:
+    """Pull the Amenities from a YP detail page. US markup is a `.amenities` section with
+    `.amenities-info` labels (e.g. 'Wheelchair accessible'); fall back to the section text."""
+    if not html:
+        return None
+    soup = BeautifulSoup(html, "lxml")
+    vals = []
+    for el in soup.select(".amenities-info"):
+        t = el.get_text(" ", strip=True)
+        if t and t not in vals:
+            vals.append(t)
+    if not vals:
+        sec = soup.select_one(".amenities")
+        if sec:
+            t = re.sub(r"^\s*Amenities\s*:?\s*", "", sec.get_text(" ", strip=True)).strip()
+            if t:
+                vals.append(t)
+    return ", ".join(vals) or None
+
+
+async def enrich_amenities(cards: list[dict], fetch_detail) -> list[dict]:
+    """Set each card's `amenities` by fetching its YP detail page (source_url) and parsing
+    the amenities section. `fetch_detail` is the region's async detail fetcher. Best-effort
+    and bounded; disabled via ENRICH_AMENITIES."""
+    for c in cards:
+        c.setdefault("amenities", None)
+    if not cards or not fetch_detail or not settings.ENRICH_AMENITIES:
+        return cards
+
+    sem = asyncio.Semaphore(settings.ENRICH_CONCURRENCY)
+
+    async def one(card: dict):
+        url = card.get("source_url")
+        if not url:
+            return
+        async with sem:
+            html = await fetch_detail(url)
+        card["amenities"] = parse_amenities(html)
+
+    await asyncio.gather(*[one(c) for c in cards])
+    return cards
+
+
+def _type_phones(card: dict, region: str | None):
+    """Set line-type for the main phone and each extra phone (libphonenumber)."""
+    card["phone_type"] = _phone_type(card.get("phone") or "", region)
+    card["phones_extra_types"] = [_phone_type(p, region) for p in (card.get("phones_extra") or [])]
+
+
+async def enrich_cards(cards: list[dict], region: str | None = None) -> list[dict]:
     """Merge website-enrichment fields into each card in place (concurrently, bounded).
     Cards with no website still get the (empty) keys so every record has the same columns."""
     if not cards:
@@ -118,6 +255,7 @@ async def enrich_cards(cards: list[dict]) -> list[dict]:
     if not settings.ENRICH:
         for c in cards:
             c.update(empty())
+            _type_phones(c, region)
         return cards
 
     sem = asyncio.Semaphore(settings.ENRICH_CONCURRENCY)
@@ -126,6 +264,7 @@ async def enrich_cards(cards: list[dict]) -> list[dict]:
         async with sem:
             data = await asyncio.to_thread(_fetch_sync, card.get("website") or "")
         card.update(data)
+        _type_phones(card, region)
 
     await asyncio.gather(*[one(c) for c in cards])
     return cards

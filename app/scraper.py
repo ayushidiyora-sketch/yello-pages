@@ -72,9 +72,12 @@ async def export_json(job_id: str, search: str, location: str) -> str:
     return path
 
 
-async def _save(job_id: str, items: list[dict], seen: set, remaining: int | None = None) -> int:
+async def _save(job_id: str, items: list[dict], seen: set, remaining: int | None = None,
+                query: str = "", position_start: int = 0) -> int:
     """Insert new (deduped) items live; return how many were added. If `remaining` is
-    given, stop once that many have been added (respects the record limit)."""
+    given, stop once that many have been added (respects the record limit). Also persists
+    the derived columns (query, 1-based position, split email_1/2/3, founded_year, industry)
+    onto each document so the database row matches the exported record."""
     added = 0
     for it in items:
         if remaining is not None and added >= remaining:
@@ -85,6 +88,22 @@ async def _save(job_id: str, items: list[dict], seen: set, remaining: int | None
         seen.add(key)
         it["job_id"] = job_id
         it["scraped_at"] = datetime.utcnow()
+        it["query"] = query
+        it["position"] = position_start + added + 1
+        emails = it.get("emails") or []
+        it["email_1"] = emails[0] if len(emails) > 0 else None
+        it["email_2"] = emails[1] if len(emails) > 1 else None
+        it["email_3"] = emails[2] if len(emails) > 2 else None
+        # free company-insights derivations from data we already scraped
+        it["industry"] = (it.get("categories") or [None])[0] or (
+            (it.get("category") or "").split(",")[0].strip() or None)
+        it["founded_year"] = None
+        yrs = it.get("years_in_business")
+        if yrs:
+            try:
+                it["founded_year"] = datetime.utcnow().year - int(re.sub(r"\D", "", str(yrs)))
+            except (ValueError, TypeError):
+                pass
         try:
             await businesses.insert_one(it)
             added += 1
@@ -100,6 +119,7 @@ async def run_scrape(job_id: str, search: str, location: str,
     total = 0
     seen: set = set()
     hard_cap = limit if (limit and limit > 0) else None
+    query = ", ".join(p for p in (search, location) if p)  # stored on each record
 
     def stopped() -> bool:
         return job_id in STOP_REQUESTS
@@ -127,21 +147,36 @@ async def run_scrape(job_id: str, search: str, location: str,
             from . import yp_au
             fetch, parse_total, parse_cards = (
                 yp_au.fetch_au_page, yp_au.parse_au_total, yp_au.parse_au_cards)
+            detail_sync = yp_au.fetch_detail_sync
             proxy_mode = "au-paid-proxy" if paid else "au-direct"
             warm_pool = False  # AU is reachable directly — no free-proxy pool needed
         elif region == "ca":
             from . import yp_ca
             fetch, parse_total, parse_cards = (
                 yp_ca.fetch_ca_page, yp_ca.parse_ca_total, yp_ca.parse_ca_cards)
+            detail_sync = yp_ca.fetch_detail_sync
             proxy_mode = "ca-paid-proxy" if paid else "ca-direct"
             warm_pool = False  # CA is reachable directly too
         else:  # us
             fetch, parse_total, parse_cards = (
                 yp_us.fetch_us_page, yp_us.parse_us_total, yp_us.parse_us_cards)
+            detail_sync = yp_us.fetch_detail_sync
             proxy_mode = "us-paid-proxy" if paid else "us-free-pool"
             warm_pool = not paid
         await jobs.update_one({"job_id": job_id}, {"$set": {"proxy_mode": proxy_mode}})
         BATCH = 4  # pages fetched concurrently per round
+
+        async def detail_fetch(url):
+            return await asyncio.to_thread(detail_sync, url)
+
+        async def collect(html_cards):
+            """Website-enrichment + amenities (detail page) for a page's cards — run in
+            parallel (independent fields) to cut wall-clock time."""
+            await asyncio.gather(
+                enrich.enrich_cards(html_cards, region),
+                enrich.enrich_amenities(html_cards, detail_fetch),
+            )
+            return html_cards
 
         # Page 1 first: gives the grand total and (US free pool) warms _GOOD.
         if stopped():
@@ -153,9 +188,10 @@ async def run_scrape(job_id: str, search: str, location: str,
             max_records = min(max_records, hard_cap)
         await jobs.update_one({"job_id": job_id}, {"$set": {"total_available": page_total}})
 
-        first_cards = await enrich.enrich_cards(parse_cards(first_html))
+        first_cards = await collect(parse_cards(first_html))
         total += await _save(job_id, first_cards, seen,
-                             remaining=(hard_cap - total) if hard_cap else None)
+                             remaining=(hard_cap - total) if hard_cap else None,
+                             query=query, position_start=total)
         await jobs.update_one({"job_id": job_id}, {"$set": {"total_scraped": total}})
 
         # No results: page 1 is a valid SERP but has zero listings. Finish immediately as
@@ -193,9 +229,10 @@ async def run_scrape(job_id: str, search: str, location: str,
                 if not cards:
                     empty = True
                     continue
-                cards = await enrich.enrich_cards(cards)
+                cards = await collect(cards)
                 total += await _save(job_id, cards, seen,
-                                     remaining=(hard_cap - total) if hard_cap else None)
+                                     remaining=(hard_cap - total) if hard_cap else None,
+                                     query=query, position_start=total)
                 if hard_cap and total >= hard_cap:
                     break
             await jobs.update_one({"job_id": job_id}, {"$set": {"total_scraped": total}})
