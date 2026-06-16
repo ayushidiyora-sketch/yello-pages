@@ -340,17 +340,22 @@ def _extract(html: str, base_url: str = "") -> dict:
     out["emails"] = _emails_from(html, hrefs)[:3]
     out["emails_status"] = [list(validate_email(e)) for e in out["emails"]]  # domain-level (MX)
 
-    # extra phone numbers: tel: links first, then plausible numbers in the text
+    # extra phone numbers: tel: links first, then plausible numbers in the text.
+    # Deduped by DIGITS so "(212)-475-9540" and "12124759540" aren't kept as two entries.
     phones: list[str] = []
+    seen_digits: set[str] = set()
+
+    def _add_phone(raw: str):
+        d = re.sub(r"\D", "", raw or "")
+        if 7 <= len(d) <= 15 and d not in seen_digits:
+            seen_digits.add(d)
+            phones.append(raw.strip())
+
     for h in hrefs:
         if h.lower().startswith("tel:"):
-            t = re.sub(r"[^\d+]", "", h[4:])
-            if len(re.sub(r"\D", "", t)) >= 7 and t not in phones:
-                phones.append(t)
+            _add_phone(re.sub(r"[^\d+]", "", h[4:]))
     for m in PHONE_RE.findall(soup.get_text(" ", strip=True)):
-        t = m.strip()
-        if 7 <= len(re.sub(r"\D", "", t)) <= 15 and t not in phones:
-            phones.append(t)
+        _add_phone(m)
     out["phones_extra"] = phones[:3]
 
     # best-effort contact person from the homepage (schema.org Person / author meta)
@@ -427,10 +432,32 @@ async def enrich_amenities(cards: list[dict], fetch_detail) -> list[dict]:
     return cards
 
 
+def _clean_phones(raws: list, region: str | None) -> list:
+    """Validate website-scraped numbers with libphonenumber: drop junk (e.g. '50.000 100'),
+    normalize, and dedupe by E.164 (so +1-prefixed and bare forms collapse). Returns up to 3
+    nicely-formatted national numbers."""
+    out, seen = [], set()
+    cc = _REGION_CC.get(region or "")
+    for raw in raws:
+        try:
+            p = phonenumbers.parse(raw, cc)
+            if not phonenumbers.is_valid_number(p):
+                continue
+            key = phonenumbers.format_number(p, phonenumbers.PhoneNumberFormat.E164)
+        except Exception:
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(phonenumbers.format_number(p, phonenumbers.PhoneNumberFormat.NATIONAL))
+    return out[:3]
+
+
 def _type_phones(card: dict, region: str | None):
-    """Set line-type for the main phone and each extra phone (libphonenumber)."""
+    """Clean/validate the extra phones, then set line-type for the main + each extra phone."""
+    card["phones_extra"] = _clean_phones(card.get("phones_extra") or [], region)
     card["phone_type"] = _phone_type(card.get("phone") or "", region)
-    card["phones_extra_types"] = [_phone_type(p, region) for p in (card.get("phones_extra") or [])]
+    card["phones_extra_types"] = [_phone_type(p, region) for p in card["phones_extra"]]
 
 
 async def _phone_owner(card: dict):

@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     # Reverse-phone owner name + address (free, via thatsthem.com). One extra fetch per phone.
     ENRICH_PHONE_OWNER: bool = True   # look up the main phone's owner
-    PHONE_OWNER_ALL: bool = False     # also look up phone_1/2/3 (4x the fetches)
+    PHONE_OWNER_ALL: bool = True      # also look up phone_1/2/3 owners (dupes are cached/free)
 
     # Fetch each site's about/team/contact page for contact title, phone, and employee count
     # (best-effort, low fill). Adds up to 2 extra fetches per site; set false to skip.
