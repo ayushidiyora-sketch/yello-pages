@@ -52,6 +52,7 @@ ENRICH_KEYS = list(SOCIAL_DOMAINS) + [
     "emails", "emails_status", "website_title", "website_description", "website_keywords",
     "website_generator", "website_has_fb_pixel", "website_has_google_tag",
     "phones_extra", "phones_extra_types", "phone_type", "contact_name", "contact_title",
+    "is_public",
 ]
 
 
@@ -60,7 +61,7 @@ def empty() -> dict:
     d.update(emails=[], emails_status=[], website_title=None, website_description=None,
              website_keywords=None, website_generator=None, website_has_fb_pixel=False,
              website_has_google_tag=False, phones_extra=[], phones_extra_types=[],
-             phone_type=None, contact_name=None, contact_title=None)
+             phone_type=None, contact_name=None, contact_title=None, is_public=False)
     return d
 
 
@@ -117,6 +118,55 @@ def _phone_type(num: str, region: str | None) -> str | None:
         return _PHONE_TYPES.get(phonenumbers.number_type(p))
     except Exception:
         return None
+
+
+# ---- is_public via SEC EDGAR's free public-company list (cached once per process) ----
+_PUBLIC_TITLES: set[str] | None = None
+_PUBLIC_LOCK = threading.Lock()
+_CO_SUFFIX = re.compile(
+    r"\b(inc|incorporated|corp|corporation|co|company|llc|llp|lp|ltd|plc|holdings|group|"
+    r"the|sa|nv|ag|se|trust)\b\.?", re.I)
+
+
+def _norm_company(name: str | None) -> str:
+    n = _CO_SUFFIX.sub(" ", (name or "").lower())
+    return re.sub(r"[^a-z0-9]+", " ", n).strip()
+
+
+def _load_public_titles() -> set[str]:
+    """Download SEC's full list of public companies once (normalized titles). SEC requires a
+    User-Agent header — without it the request 403s. Any failure leaves the set empty."""
+    global _PUBLIC_TITLES
+    with _PUBLIC_LOCK:
+        if _PUBLIC_TITLES is not None:
+            return _PUBLIC_TITLES
+    titles: set[str] = set()
+    try:
+        r = cffi.get("https://www.sec.gov/files/company_tickers.json",
+                     headers={"User-Agent": "yellowpages-scraper contact@example.com"},
+                     timeout=15, verify=False)
+        if r.status_code == 200:
+            for v in r.json().values():
+                t = _norm_company(v.get("title"))
+                if t:
+                    titles.add(t)
+    except Exception:
+        pass
+    with _PUBLIC_LOCK:
+        _PUBLIC_TITLES = titles
+    return titles
+
+
+def is_public_company(name: str | None) -> bool:
+    """True if the business name matches a SEC-registered public company (best-effort; most
+    scraped small businesses are not public). Matches the full normalized name or a leading
+    whole-word prefix of it (so "Starbucks Coffee" matches the SEC title "Starbucks")."""
+    norm = _norm_company(name)
+    if not norm:
+        return False
+    titles = _load_public_titles()
+    words = norm.split()
+    return any(" ".join(words[:k]) in titles for k in range(len(words), 0, -1))
 
 
 def _meta(soup, name=None, prop=None):
@@ -252,10 +302,12 @@ async def enrich_cards(cards: list[dict], region: str | None = None) -> list[dic
     Cards with no website still get the (empty) keys so every record has the same columns."""
     if not cards:
         return cards
+    await asyncio.to_thread(_load_public_titles)  # warm the SEC list once (cached process-wide)
     if not settings.ENRICH:
         for c in cards:
             c.update(empty())
             _type_phones(c, region)
+            c["is_public"] = is_public_company(c.get("name"))
         return cards
 
     sem = asyncio.Semaphore(settings.ENRICH_CONCURRENCY)
@@ -265,6 +317,7 @@ async def enrich_cards(cards: list[dict], region: str | None = None) -> list[dic
             data = await asyncio.to_thread(_fetch_sync, card.get("website") or "")
         card.update(data)
         _type_phones(card, region)
+        card["is_public"] = is_public_company(card.get("name"))
 
     await asyncio.gather(*[one(c) for c in cards])
     return cards

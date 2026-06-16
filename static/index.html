@@ -337,6 +337,7 @@ function toOutscraperRow(x, i){
   const location = document.getElementById('location').value.trim();
   const em = x.emails || [], es = x.emails_status || [], ph = x.phones_extra || [], pt = x.phones_extra_types || [];
   const locality = [x.city, x.state, x.pincode].filter(Boolean).join(' ');
+  const cn = (x.contact_name || '').trim().split(/\s+/);   // contact full name -> first/last
   const row = {};
   for(const col of OUTSCRAPER_COLUMNS) row[col] = '';   // default empty so every column exists
   Object.assign(row, {
@@ -358,6 +359,7 @@ function toOutscraperRow(x, i){
     'email_2.emails_validator.status': (es[1]||[])[0] || '', 'email_2.emails_validator.status_details': (es[1]||[])[1] || '',
     'email_3.emails_validator.status': (es[2]||[])[0] || '', 'email_3.emails_validator.status_details': (es[2]||[])[1] || '',
     email_1_full_name: x.contact_name || '', email_1_title: x.contact_title || '',
+    email_1_first_name: cn[0] || '', email_1_last_name: cn.slice(1).join(' ') || '',
     phone_1: ph[0] || '', phone_2: ph[1] || '', phone_3: ph[2] || '',
     'phone_1.whitepages_phones.phone_type': pt[0] || '',
     'phone_2.whitepages_phones.phone_type': pt[1] || '',
@@ -371,6 +373,7 @@ function toOutscraperRow(x, i){
     website_has_fb_pixel: !!x.website_has_fb_pixel, website_has_google_tag: !!x.website_has_google_tag,
     'company_insights.founded_year': x.founded_year || '',
     'company_insights.industry': x.industry || '',
+    'company_insights.is_public': !!x.is_public,
     'company_insights.name': x.name || '',
     'company_insights.country': COUNTRY[region] || '',
     'company_insights.state': x.state || '',
