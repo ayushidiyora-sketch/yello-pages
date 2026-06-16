@@ -335,14 +335,23 @@ def parse_us_cards(html: str) -> list[dict]:
 
         street = _txt(c.select_one(".street-address"))
         locality = _txt(c.select_one(".locality"))  # "New York, NY 10016"
-        city = pincode = None
+        city = state = pincode = None
         if locality:
-            m = re.search(r"(\d{5})(?:-\d{4})?$", locality)
+            loc = locality.strip()
+            # canonical US form: "City, ST 10016" — split into city / state / zip
+            m = re.match(r"^(.*?),\s*([A-Za-z]{2})\s+(\d{5})(?:-\d{4})?$", loc)
             if m:
-                pincode = m.group(1)
-                city = locality[:m.start()].strip().rstrip(",").strip()
+                city, state, pincode = m.group(1).strip(), m.group(2).upper(), m.group(3)
             else:
-                city = locality
+                zm = re.search(r"(\d{5})(?:-\d{4})?$", loc)
+                if zm:
+                    pincode = zm.group(1)
+                    loc = loc[:zm.start()].strip().rstrip(",").strip()
+                sm = re.match(r"^(.*?),\s*([A-Za-z]{2})$", loc)
+                if sm:
+                    city, state = sm.group(1).strip(), sm.group(2).upper()
+                else:
+                    city = loc or None
 
         cats = [a.get_text(strip=True) for a in c.select(".categories a")]
         cat_list = list(dict.fromkeys([x for x in cats if x]))  # deduped, order-preserving
@@ -392,6 +401,7 @@ def parse_us_cards(html: str) -> list[dict]:
 
             "area": street,
             "city": city,
+            "state": state,
             "pincode": pincode,
             "rating": rating,
             "reviews_count": reviews,
