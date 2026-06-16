@@ -316,17 +316,17 @@ function updateResultCount(){
 // website enrichment; the rest (paid-API-only: email validation, whitepages, company
 // insights, amenities/range) are present but empty so the file matches Outscraper's shape.
 const OUTSCRAPER_COLUMNS = ["query","name","categories","position","amenities","phone",
- "phone.whitepages_phones.name","phone.whitepages_phones.phone_type","phone.whitepages_phones.address",
+ "phone.whitepages_phones.phone_type",
  "street","locality","website","snippet","thumbnail","range","business_link",
- "email_1","email_1.emails_validator.status","email_1.emails_validator.status_details","email_1_full_name","email_1_first_name","email_1_last_name","email_1_title","email_1_phone",
- "email_2","email_2.emails_validator.status","email_2.emails_validator.status_details","email_2_full_name","email_2_first_name","email_2_last_name","email_2_title","email_2_phone",
- "email_3","email_3.emails_validator.status","email_3.emails_validator.status_details","email_3_full_name","email_3_first_name","email_3_last_name","email_3_title","email_3_phone",
- "phone_1","phone_1.whitepages_phones.name","phone_1.whitepages_phones.phone_type","phone_1.whitepages_phones.address",
- "phone_2","phone_2.whitepages_phones.name","phone_2.whitepages_phones.phone_type","phone_2.whitepages_phones.address",
- "phone_3","phone_3.whitepages_phones.name","phone_3.whitepages_phones.phone_type","phone_3.whitepages_phones.address",
+ "email_1","email_1.emails_validator.status","email_1.emails_validator.status_details","email_1_full_name","email_1_first_name","email_1_last_name","email_1_title",
+ "email_2","email_2.emails_validator.status","email_2.emails_validator.status_details",
+ "email_3","email_3.emails_validator.status","email_3.emails_validator.status_details",
+ "phone_1","phone_1.whitepages_phones.phone_type",
+ "phone_2","phone_2.whitepages_phones.phone_type",
+ "phone_3","phone_3.whitepages_phones.phone_type",
  "facebook","instagram","linkedin","tiktok","medium","reddit","skype","snapchat","telegram","whatsapp","twitter","vimeo","youtube","github","crunchbase",
  "website_title","website_generator","website_description","website_keywords","website_has_fb_pixel","website_has_google_tag",
- "company_insights.employees","company_insights.revenue","company_insights.founded_year","company_insights.industry","company_insights.is_public",
+ "company_insights.founded_year","company_insights.industry","company_insights.is_public",
  "company_insights.name","company_insights.country","company_insights.state","company_insights.city","company_insights.zip","company_insights.address"];
 
 const COUNTRY = {us:'United States', au:'Australia', ca:'Canada'};
@@ -336,8 +336,7 @@ function toOutscraperRow(x, i){
   const search = document.getElementById('search').value.trim();
   const location = document.getElementById('location').value.trim();
   const em = x.emails || [], es = x.emails_status || [], ph = x.phones_extra || [], pt = x.phones_extra_types || [];
-  const pw = x.phones_extra_wp || [];   // reverse-phone owner for extra phones
-  const ep = x.emails_persons || [];    // {full_name,first_name,last_name,title,phone} per email
+  const ep = x.emails_persons || [];    // {full_name,first_name,last_name,title} per email
   const locality = (x.city || '') + (x.state ? ', ' + x.state : '') + (x.pincode ? ' ' + x.pincode : '');
   const row = {};
   for(const col of OUTSCRAPER_COLUMNS) row[col] = '';   // default empty so every column exists
@@ -349,9 +348,7 @@ function toOutscraperRow(x, i){
     amenities: x.amenities || '',
     range: x.range || '',
     phone: x.phone || '',
-    'phone.whitepages_phones.name': x.wp_name || '',
     'phone.whitepages_phones.phone_type': x.phone_type || '',
-    'phone.whitepages_phones.address': x.wp_address || '',
     street: x.area || '',
     locality,
     website: x.website || '',
@@ -362,13 +359,11 @@ function toOutscraperRow(x, i){
     'email_1.emails_validator.status': (es[0]||[])[0] || '', 'email_1.emails_validator.status_details': (es[0]||[])[1] || '',
     'email_2.emails_validator.status': (es[1]||[])[0] || '', 'email_2.emails_validator.status_details': (es[1]||[])[1] || '',
     'email_3.emails_validator.status': (es[2]||[])[0] || '', 'email_3.emails_validator.status_details': (es[2]||[])[1] || '',
-    email_1_full_name:(ep[0]||{}).full_name||'', email_1_first_name:(ep[0]||{}).first_name||'', email_1_last_name:(ep[0]||{}).last_name||'', email_1_title:(ep[0]||{}).title||'', email_1_phone:(ep[0]||{}).phone||'',
-    email_2_full_name:(ep[1]||{}).full_name||'', email_2_first_name:(ep[1]||{}).first_name||'', email_2_last_name:(ep[1]||{}).last_name||'', email_2_title:(ep[1]||{}).title||'', email_2_phone:(ep[1]||{}).phone||'',
-    email_3_full_name:(ep[2]||{}).full_name||'', email_3_first_name:(ep[2]||{}).first_name||'', email_3_last_name:(ep[2]||{}).last_name||'', email_3_title:(ep[2]||{}).title||'', email_3_phone:(ep[2]||{}).phone||'',
+    email_1_full_name:(ep[0]||{}).full_name||'', email_1_first_name:(ep[0]||{}).first_name||'', email_1_last_name:(ep[0]||{}).last_name||'', email_1_title:(ep[0]||{}).title||'',
     phone_1: ph[0] || '', phone_2: ph[1] || '', phone_3: ph[2] || '',
-    'phone_1.whitepages_phones.phone_type': pt[0] || '', 'phone_1.whitepages_phones.name': (pw[0]||{}).name || '', 'phone_1.whitepages_phones.address': (pw[0]||{}).address || '',
-    'phone_2.whitepages_phones.phone_type': pt[1] || '', 'phone_2.whitepages_phones.name': (pw[1]||{}).name || '', 'phone_2.whitepages_phones.address': (pw[1]||{}).address || '',
-    'phone_3.whitepages_phones.phone_type': pt[2] || '', 'phone_3.whitepages_phones.name': (pw[2]||{}).name || '', 'phone_3.whitepages_phones.address': (pw[2]||{}).address || '',
+    'phone_1.whitepages_phones.phone_type': pt[0] || '',
+    'phone_2.whitepages_phones.phone_type': pt[1] || '',
+    'phone_3.whitepages_phones.phone_type': pt[2] || '',
     facebook:x.facebook||'', instagram:x.instagram||'', linkedin:x.linkedin||'', tiktok:x.tiktok||'',
     medium:x.medium||'', reddit:x.reddit||'', skype:x.skype||'', snapchat:x.snapchat||'',
     telegram:x.telegram||'', whatsapp:x.whatsapp||'', twitter:x.twitter||'', vimeo:x.vimeo||'',
@@ -376,7 +371,6 @@ function toOutscraperRow(x, i){
     website_title:x.website_title||'', website_generator:x.website_generator||'',
     website_description:x.website_description||'', website_keywords:x.website_keywords||'',
     website_has_fb_pixel: !!x.website_has_fb_pixel, website_has_google_tag: !!x.website_has_google_tag,
-    'company_insights.employees': x.employees || '',
     'company_insights.founded_year': x.founded_year || '',
     'company_insights.industry': x.industry || '',
     'company_insights.is_public': !!x.is_public,
