@@ -346,6 +346,7 @@ function toOutscraperRow(x, i){
     categories: x.category || (x.categories||[]).join(', '),
     position: i + 1,
     amenities: x.amenities || '',
+    range: x.range || '',
     phone: x.phone || '',
     'phone.whitepages_phones.phone_type': x.phone_type || '',
     street: x.area || '',

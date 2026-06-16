@@ -332,6 +332,7 @@ def parse_us_cards(html: str) -> list[dict]:
             continue
 
         phone = _txt(c.select_one(".phones.phone.primary")) or _txt(c.select_one(".phone"))
+        price_range = _txt(c.select_one(".price-range"))  # "$", "$$", "$$$", "$$$$"
 
         street = _txt(c.select_one(".street-address"))
         locality = _txt(c.select_one(".locality"))  # "New York, NY 10016"
@@ -403,6 +404,7 @@ def parse_us_cards(html: str) -> list[dict]:
             "city": city,
             "state": state,
             "pincode": pincode,
+            "range": price_range,        # price level: $ / $$ / $$$ / $$$$
             "rating": rating,
             "reviews_count": reviews,
             "open_status": _txt(c.select_one(".open-status")),

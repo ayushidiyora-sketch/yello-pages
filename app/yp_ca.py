@@ -117,6 +117,7 @@ def parse_ca_cards(html: str) -> list[dict]:
             "city": city,
             "state": region,
             "pincode": postal,
+            "range": _txt(c.select_one(".price-range")),  # best-effort; usually absent on yp.ca
             "rating": None,
             "reviews_count": None,
             "open_status": None,
