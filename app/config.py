@@ -30,5 +30,9 @@ class Settings(BaseSettings):
     ENRICH_PHONE_OWNER: bool = True   # look up the main phone's owner
     PHONE_OWNER_ALL: bool = False     # also look up phone_1/2/3 (4x the fetches)
 
+    # Fetch each site's about/team/contact page for contact title, phone, and employee count
+    # (best-effort, low fill). Adds up to 2 extra fetches per site; set false to skip.
+    ENRICH_TEAM: bool = True
+
 
 settings = Settings()

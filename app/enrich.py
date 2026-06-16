@@ -10,6 +10,7 @@ empty — there is no free source for them.
 import asyncio
 import re
 import threading
+from urllib.parse import urljoin
 
 import dns.resolver
 import phonenumbers
@@ -40,10 +41,52 @@ SOCIAL_DOMAINS = {
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 _BAD_EMAIL_EXT = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".wixpress.com")
+_PLACEHOLDER_DOMAINS = {"example.com", "example.org", "example.net", "domain.com",
+                        "email.com", "yourdomain.com", "yourcompany.com", "sentry.io",
+                        "sentry-next.wixpress.com", "test.com", "company.com"}
+
+
+def _real_email(e: str) -> bool:
+    el = e.lower()
+    if el.endswith(_BAD_EMAIL_EXT):
+        return False
+    dom = el.split("@")[-1]
+    return dom not in _PLACEHOLDER_DOMAINS and not el.startswith(("your", "name@", "email@"))
+
+
+def _emails_from(html: str, hrefs: list) -> list:
+    """mailto: links first (most reliable), then plausible addresses in the HTML; placeholders
+    and asset filenames filtered out."""
+    out = []
+    for h in hrefs:
+        if h.lower().startswith("mailto:"):
+            e = h[7:].split("?")[0].strip()
+            if EMAIL_RE.fullmatch(e) and _real_email(e) and e not in out:
+                out.append(e)
+    for e in EMAIL_RE.findall(html):
+        if e not in out and _real_email(e):
+            out.append(e)
+    return out
 # a phone with 7+ digits, optional country code / separators (kept loose; validated later)
 PHONE_RE = re.compile(r"\+?\d[\d().\-\s]{6,}\d")
 _ROLE_LOCALS = {"info", "sales", "support", "admin", "contact", "office", "help",
-                "team", "hello", "enquiries", "inquiries", "noreply", "no-reply", "mail"}
+                "team", "hello", "enquiries", "inquiries", "noreply", "no-reply", "mail",
+                "booking", "bookings", "reservations", "events", "billing", "accounts",
+                "jobs", "careers", "hr", "marketing", "press", "media", "webmaster", "service"}
+# job titles to look for near a person's name on about/team pages
+_TITLES = ["Executive Chef", "Chef", "Owner", "Co-Owner", "Founder", "Co-Founder",
+           "President", "Vice President", "CEO", "CFO", "COO", "CTO", "Managing Director",
+           "Director", "General Manager", "Manager", "Partner", "Principal", "Proprietor",
+           "Head Chef", "Sommelier"]
+_TITLE_RE = re.compile(r"\b(" + "|".join(re.escape(t) for t in _TITLES) + r")\b", re.I)
+# employee count: "team of 20", "50 employees", "over 100 staff", "25 team members"
+_EMP_RE = re.compile(
+    r"(?:team of|staff of|over|more than|about|approximately|employs|employing)?\s*"
+    r"([\d,]{1,7})\+?\s*(?:full-time\s+)?(?:employees|staff members|staff|team members|"
+    r"people on (?:our|the) team)", re.I)
+# pages likely to list staff + contact details
+_TEAM_HINTS = ("about", "team", "staff", "our-people", "our-team", "leadership", "contact",
+               "meet", "people", "management")
 _DISPOSABLE = {"mailinator.com", "guerrillamail.com", "10minutemail.com", "tempmail.com",
                "trashmail.com", "yopmail.com", "throwawaymail.com", "getnada.com"}
 _REGION_CC = {"us": "US", "au": "AU", "ca": "CA"}
@@ -53,7 +96,7 @@ ENRICH_KEYS = list(SOCIAL_DOMAINS) + [
     "emails", "emails_status", "website_title", "website_description", "website_keywords",
     "website_generator", "website_has_fb_pixel", "website_has_google_tag",
     "phones_extra", "phones_extra_types", "phone_type", "contact_name", "contact_title",
-    "is_public", "wp_name", "wp_address", "phones_extra_wp",
+    "is_public", "wp_name", "wp_address", "phones_extra_wp", "emails_persons", "employees",
 ]
 
 
@@ -63,7 +106,7 @@ def empty() -> dict:
              website_keywords=None, website_generator=None, website_has_fb_pixel=False,
              website_has_google_tag=False, phones_extra=[], phones_extra_types=[],
              phone_type=None, contact_name=None, contact_title=None, is_public=False,
-             wp_name=None, wp_address=None, phones_extra_wp=[])
+             wp_name=None, wp_address=None, phones_extra_wp=[], emails_persons=[], employees=None)
     return d
 
 
@@ -171,13 +214,104 @@ def is_public_company(name: str | None) -> bool:
     return any(" ".join(words[:k]) in titles for k in range(len(words), 0, -1))
 
 
+def _name_from_email(email: str) -> tuple:
+    """Derive (full, first, last) from an email's local-part. 'greg.azzollini@x' ->
+    ('Greg Azzollini','Greg','Azzollini'); role accounts (info/sales/...) -> (None,None,None)."""
+    local = (email or "").split("@")[0]
+    if not local or local.lower() in _ROLE_LOCALS:
+        return (None, None, None)
+    parts = [p for p in re.split(r"[._\-]+", local) if p and not p.isdigit() and p.isalpha()]
+    if len(parts) >= 2:
+        first, last = parts[0].title(), " ".join(p.title() for p in parts[1:])
+        return (f"{first} {last}", first, last)
+    if len(parts) == 1 and len(parts[0]) >= 3:
+        return (parts[0].title(), parts[0].title(), None)  # first name only
+    return (None, None, None)
+
+
+def _persons_from_emails(emails: list, contact_name, contact_title) -> list:
+    """One person dict per email (aligned). Name from the email local-part; for email_1 fall
+    back to the homepage schema.org contact when the address itself has no name."""
+    persons = []
+    for i, e in enumerate(emails):
+        full, first, last = _name_from_email(e)
+        if i == 0 and not full and contact_name:
+            full = contact_name
+            bits = contact_name.split()
+            first, last = bits[0], " ".join(bits[1:]) or None
+        persons.append({"full_name": full, "first_name": first, "last_name": last,
+                        "title": (contact_title if i == 0 else None), "phone": None})
+    return persons
+
+
+def _deep_team(soup, base_url: str, data: dict):
+    """Fetch up to 2 about/team/contact pages; fill employee count + per-person title/phone."""
+    links, seen = [], set()
+    for a in soup.find_all("a", href=True):
+        h = a["href"]
+        blob = (h + " " + a.get_text(" ", strip=True)).lower()
+        if any(k in blob for k in _TEAM_HINTS):
+            full = urljoin(base_url, h)
+            if full.startswith("http") and full not in seen:
+                seen.add(full); links.append(full)
+        if len(links) >= 2:
+            break
+
+    text = ""
+    for url in links:
+        try:
+            r = cffi.get(url, impersonate="chrome", timeout=settings.ENRICH_TIMEOUT,
+                         verify=False, allow_redirects=True)
+            if r.status_code == 200 and r.text:
+                psoup = BeautifulSoup(r.text, "lxml")
+                text += " " + psoup.get_text(" ", strip=True)
+                # contact/about pages often hold the personal emails -> add new ones (cap 3)
+                phrefs = [a.get("href", "") for a in psoup.find_all("a", href=True)]
+                for e in _emails_from(r.text, phrefs):
+                    if e not in data["emails"] and len(data["emails"]) < 3:
+                        data["emails"].append(e)
+        except Exception:
+            pass
+    if not text:
+        return
+
+    # refresh validation + per-email persons now that we may have found more emails
+    data["emails_status"] = [list(validate_email(e)) for e in data["emails"]]
+    data["emails_persons"] = _persons_from_emails(
+        data["emails"], data.get("contact_name"), data.get("contact_title"))
+
+    m = _EMP_RE.search(text)
+    if m:
+        try:
+            data["employees"] = int(m.group(1).replace(",", ""))
+        except ValueError:
+            pass
+
+    low = text.lower()
+    for person in data.get("emails_persons", []):
+        nm = person.get("full_name")
+        if not nm:
+            continue
+        idx = low.find(nm.lower())
+        if idx >= 0:
+            window = text[max(0, idx - 60): idx + len(nm) + 80]
+            if not person.get("title"):
+                tm = _TITLE_RE.search(window)
+                if tm:
+                    person["title"] = tm.group(1).title()
+            if not person.get("phone"):
+                pm = PHONE_RE.search(window)
+                if pm and 7 <= len(re.sub(r"\D", "", pm.group(0))) <= 15:
+                    person["phone"] = pm.group(0).strip()
+
+
 def _meta(soup, name=None, prop=None):
     el = soup.find("meta", attrs={"name": name}) if name else soup.find("meta", attrs={"property": prop})
     c = el.get("content") if el else None
     return c.strip() if c else None
 
 
-def _extract(html: str) -> dict:
+def _extract(html: str, base_url: str = "") -> dict:
     soup = BeautifulSoup(html, "lxml")
     out = empty()
 
@@ -203,17 +337,7 @@ def _extract(html: str) -> dict:
                 break
 
     # emails: mailto: links first (most reliable), then any plausible address in the HTML
-    emails: list[str] = []
-    for h in hrefs:
-        if h.lower().startswith("mailto:"):
-            e = h[7:].split("?")[0].strip()
-            if EMAIL_RE.fullmatch(e) and e not in emails:
-                emails.append(e)
-    for e in EMAIL_RE.findall(html):
-        el = e.lower()
-        if e not in emails and not el.endswith(_BAD_EMAIL_EXT):
-            emails.append(e)
-    out["emails"] = emails[:3]
+    out["emails"] = _emails_from(html, hrefs)[:3]
     out["emails_status"] = [list(validate_email(e)) for e in out["emails"]]  # domain-level (MX)
 
     # extra phone numbers: tel: links first, then plausible numbers in the text
@@ -234,6 +358,16 @@ def _extract(html: str) -> dict:
     out["contact_name"] = (person.get_text(" ", strip=True) if person else _meta(soup, name="author")) or None
     title_el = soup.select_one("[itemprop='jobTitle']")
     out["contact_title"] = title_el.get_text(" ", strip=True) if title_el else None
+
+    # one person per email (name derived from the email's local-part)
+    out["emails_persons"] = _persons_from_emails(out["emails"], out["contact_name"], out["contact_title"])
+
+    # deep pass: about/team/contact pages -> employee count + per-person title/phone
+    if settings.ENRICH_TEAM and base_url:
+        try:
+            _deep_team(soup, base_url, out)
+        except Exception:
+            pass
     return out
 
 
@@ -244,7 +378,7 @@ def _fetch_sync(url: str) -> dict:
         r = cffi.get(url, impersonate="chrome", timeout=settings.ENRICH_TIMEOUT,
                      verify=False, allow_redirects=True)
         if r.status_code == 200 and r.text:
-            return _extract(r.text)
+            return _extract(r.text, str(getattr(r, "url", "") or url))
     except Exception:
         pass
     return empty()
