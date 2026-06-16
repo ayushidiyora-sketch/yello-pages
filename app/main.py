@@ -27,6 +27,14 @@ async def index():
         return f.read()
 
 
+@app.get("/api/services")
+async def services():
+    """The Live Scraper service catalog (from the source sheet) for the sidebar."""
+    import json
+    with open("static/services.json", encoding="utf-8") as f:
+        return json.load(f)
+
+
 @app.get("/api/regions")
 async def regions():
     """Region options for the dropdown. `supported` = parser implemented today."""

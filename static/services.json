@@ -1,0 +1,1886 @@
+[
+ {
+  "no": "1",
+  "name": "Emails & Contacts Scraper",
+  "brand": "Multi-source",
+  "description": "Finds emails, social links, phones, and other contacts from websites",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "2",
+  "name": "Leads & Contacts Enrichment",
+  "brand": "Multi-source",
+  "description": "Finds emails, social links, phones, and other contacts from websites",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "3",
+  "name": "Email Address Verifier",
+  "brand": "Multi-source",
+  "description": "Validates emails, checks deliverability, filters out blacklists, spam traps, and complainers, while significantly reducing your bounce rate",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "4",
+  "name": "Company Insights",
+  "brand": "Multi-source",
+  "description": "Finds company details such as revenue, size, founding year, public status, etc",
+  "tags": [
+   "Businesses & POI",
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "5",
+  "name": "Phone Numbers Enricher",
+  "brand": "Multi-source",
+  "description": "Returns phones carrier data (name/type), validates phones, ensures messages deliverability",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "6",
+  "name": "Phone Identity Finder",
+  "brand": "Whitepages",
+  "description": "Returns insights about phone number owners (name, address, etc.)",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "7",
+  "name": "SimilarWeb Scraper",
+  "brand": "Multi-source",
+  "description": "Provides web data for domains including traffic statistics, engagement metrics, and audience insights",
+  "tags": [
+   "Businesses & POI",
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "8",
+  "name": "Chain Info",
+  "brand": "Multi-source",
+  "description": "Identifies if a business is part of a chain, adding a true/false indication to your data for smarter targeting",
+  "tags": [
+   "Businesses & POI",
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "9",
+  "name": "BuiltWith Scraper",
+  "brand": "Builtwith",
+  "description": "Returns detailed information about a website’s tech stack",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "10",
+  "name": "Fastbackgroundcheck Addresses Scraper",
+  "brand": "Fastbackgroundcheck",
+  "description": "Returns insights about addresses and their residents",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "11",
+  "name": "Linkedin Companies Scraper",
+  "brand": "Linkedin",
+  "description": "Returns data from a list of businesses",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "12",
+  "name": "Linkedin Profiles Scraper",
+  "brand": "Linkedin",
+  "description": "Returns data from a list of profiles",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "13",
+  "name": "Linkedin Posts Scraper",
+  "brand": "Linkedin",
+  "description": "Returns posts from a list of profiles",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "14",
+  "name": "Trustpilot Scraper",
+  "brand": "Trustpilot",
+  "description": "Returns data from a list of businesses",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "15",
+  "name": "Trustpilot Search Scraper",
+  "brand": "Trustpilot",
+  "description": "Returns search results",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "16",
+  "name": "Trustpilot Reviews Sentiment Analysis",
+  "brand": "Trustpilot",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "17",
+  "name": "Trustpilot Reviews Summary",
+  "brand": "Trustpilot",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "18",
+  "name": "Whitepages Addresses Scraper",
+  "brand": "Whitepages",
+  "description": "Returns insights about addresses and their residents",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "19",
+  "name": "YouTube Channels Scraper",
+  "brand": "Youtube",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "20",
+  "name": "Geocoding",
+  "brand": "Multi-source",
+  "description": "Translates human-readable addresses into locations on the map (latitude, longitude)",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "21",
+  "name": "Reverse Geocoding",
+  "brand": "Multi-source",
+  "description": "Translates locations on the map into human-readable addresses",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "22",
+  "name": "WebPage Screenshoter",
+  "brand": "Multi-source",
+  "description": "Captures high-quality screenshots of any webpage simply by providing its URL",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "23",
+  "name": "Zoominfo by Domains",
+  "brand": "Zoom",
+  "description": "Enriches places with legal names, phones, NAICS, SIC, employees number, sales volume, etc",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "24",
+  "name": "Domain Information",
+  "brand": "DomainInfo",
+  "description": "Enriches domains with WHOIS data, including registrar, registration dates, expiration date, nameservers, and ownership details when available.",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "25",
+  "name": "Google Search Flights Scraper",
+  "brand": "Google",
+  "description": "Returns flight search results from Google Flights",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "26",
+  "name": "Google Maps Autocomplete",
+  "brand": "Google",
+  "description": "Returns autocomplete suggestions for Google Maps search queries",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "27",
+  "name": "Google Search Autocomplete",
+  "brand": "Google",
+  "description": "Returns autocomplete suggestions from Google Search",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "28",
+  "name": "Yahoo Search Scraper",
+  "brand": "Yahoo",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "29",
+  "name": "Eventbrite Scraper",
+  "brand": "Eventbrite",
+  "description": "Returns event listings from Eventbrite",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "30",
+  "name": "Meetup Scraper",
+  "brand": "Meetup",
+  "description": "Returns event listings from Meetup.com",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "31",
+  "name": "Glassdoor Company Search",
+  "brand": "Glassdoor",
+  "description": "Returns company search results from Glassdoor",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "32",
+  "name": "TikTok Hashtags Scraper",
+  "brand": "TikTok",
+  "description": "Returns data from TikTok hashtag pages",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "33",
+  "name": "TikTok Search Scraper",
+  "brand": "TikTok",
+  "description": "Returns search results from TikTok",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "34",
+  "name": "TikTok Videos Scraper",
+  "brand": "TikTok",
+  "description": "Returns data from TikTok video URLs",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "35",
+  "name": "TikTok Comments Scraper",
+  "brand": "TikTok",
+  "description": "Returns comments from TikTok videos",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "36",
+  "name": "Amazon Products Scraper",
+  "brand": "Amazon",
+  "description": "يرجع قوائم المنتجات",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "37",
+  "name": "Amazon Reviews Scraper",
+  "brand": "Amazon",
+  "description": "Returns reviews from a list of products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "38",
+  "name": "Asos Products Scraper",
+  "brand": "Asos",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "39",
+  "name": "AppStore Reviews Scraper",
+  "brand": "Apple",
+  "description": "Returns reviews from a list of apps/podcasts",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "40",
+  "name": "Airbnb Search Scraper",
+  "brand": "Airbnb",
+  "description": "Returns search results",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "41",
+  "name": "AppStore Search Scraper",
+  "brand": "Apple",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "42",
+  "name": "Airbnb Reviews Scraper",
+  "brand": "Airbnb",
+  "description": "Returns reviews from accommodations",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "43",
+  "name": "BiggestBook Products Scraper",
+  "brand": "BiggestBook",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "44",
+  "name": "Vistaprint Products Scraper",
+  "brand": "Vistaprint",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "45",
+  "name": "Waxie Products Scraper",
+  "brand": "Waxie",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "46",
+  "name": "Otto Products Scraper",
+  "brand": "Otto",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "47",
+  "name": "Home Depot Products Scraper",
+  "brand": "Home Depot",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "48",
+  "name": "Newegg Products Scraper",
+  "brand": "Newegg",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "49",
+  "name": "CDW Products Scraper",
+  "brand": "CDW",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "50",
+  "name": "BestBuy Products Scraper",
+  "brand": "BestBuy",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "51",
+  "name": "Decathlon Products Scraper",
+  "brand": "Decathlon",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "52",
+  "name": "Uline Products Scraper",
+  "brand": "Uline",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "53",
+  "name": "Menards Products Scraper",
+  "brand": "Menards",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "54",
+  "name": "Target Products Scraper",
+  "brand": "Target",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "55",
+  "name": "NapaOnline Products Scraper",
+  "brand": "NapaOnline",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "56",
+  "name": "Groupon Products Scraper",
+  "brand": "Groupon",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "57",
+  "name": "IPInfo Scraper",
+  "brand": "IPInfo",
+  "description": "",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "58",
+  "name": "Gemplers Products Scraper",
+  "brand": "Gemplers",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "59",
+  "name": "AutoZone Products Scraper",
+  "brand": "AutoZone",
+  "description": "Returns product listings",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "60",
+  "name": "Ferguson Products Scraper",
+  "brand": "Ferguson",
+  "description": "Returns product listings",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "61",
+  "name": "GlobalIndustrial Products Scraper",
+  "brand": "GlobalIndustrial",
+  "description": "Returns product listings",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "62",
+  "name": "Northerntool Products Scraper",
+  "brand": "Northern Tool",
+  "description": "Returns product listings",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "63",
+  "name": "Wbmason Products Scraper",
+  "brand": "Wbmason",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "64",
+  "name": "Booking Search Scraper",
+  "brand": "Booking",
+  "description": "Returns search results",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "65",
+  "name": "Booking Reviews Scraper",
+  "brand": "Booking",
+  "description": "Returns reviews from a list of hotels",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "66",
+  "name": "Booking Reviews Monitoring",
+  "brand": "Booking",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "67",
+  "name": "BestBuy Reviews Scraper",
+  "brand": "BestBuy",
+  "description": "Returns reviews from a list of Bestbuy products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "68",
+  "name": "BBB Business Scraper",
+  "brand": "BBB Business",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "69",
+  "name": "BBB Business Reviews Scraper",
+  "brand": "BBB Business",
+  "description": "Returns reviews from a list of businesses",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "70",
+  "name": "Booking Prices Scraper",
+  "brand": "Booking",
+  "description": "Returns prices from a list of hotels",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "71",
+  "name": "Brady Industries Products Scraper",
+  "brand": "Brady Industries",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "72",
+  "name": "Reddit Search Scraper",
+  "brand": "Reddit",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "73",
+  "name": "Reddit Comments Scraper",
+  "brand": "Reddit",
+  "description": "Returns comments",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "74",
+  "name": "Capterra Reviews Scraper",
+  "brand": "Capterra",
+  "description": "Returns reviews from a list of pages",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "75",
+  "name": "eBay Products Scraper",
+  "brand": "eBay",
+  "description": "يرجع قوائم المنتجات",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "76",
+  "name": "Expedia Search Scraper",
+  "brand": "Expedia",
+  "description": "Returns search results",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "77",
+  "name": "Expedia Reviews Scraper",
+  "brand": "Expedia",
+  "description": "Returns reviews from a list of hotels",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "78",
+  "name": "G2 Reviews Scraper",
+  "brand": "G2",
+  "description": "Returns reviews from a list of products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "79",
+  "name": "GetApp Reviews Scraper",
+  "brand": "GetApp",
+  "description": "Returns reviews from a list of apps",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "80",
+  "name": "Google Maps Data Scraper",
+  "brand": "Google",
+  "description": "Returns places data from Google Maps",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "81",
+  "name": "Google Maps Reviews Scraper",
+  "brand": "Google",
+  "description": "Returns reviews from places on Google Maps",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "82",
+  "name": "Google Maps Reviews Monitoring",
+  "brand": "Google",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "83",
+  "name": "Google Search Scraper",
+  "brand": "Google",
+  "description": "Returns search results",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "84",
+  "name": "Google Maps Search by Domains",
+  "brand": "Google",
+  "description": "Finds places by domains",
+  "tags": [
+   "Businesses & POI",
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "85",
+  "name": "Google Maps Contributor Reviews Scraper",
+  "brand": "Google",
+  "description": "Returns reviews from a list of profiles",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "86",
+  "name": "Google Maps Photos Scraper",
+  "brand": "Google",
+  "description": "Returns photos from places on Google Maps",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "87",
+  "name": "Google Maps Traffic Scraper",
+  "brand": "Google",
+  "description": "Returns directions between two points",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "88",
+  "name": "Google Maps Directory Places",
+  "brand": "Google",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "89",
+  "name": "Google Search News Scraper",
+  "brand": "Google",
+  "description": "Returns news",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "90",
+  "name": "Google Search Images Scraper",
+  "brand": "Google",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "91",
+  "name": "Google Search Videos Scraper",
+  "brand": "Google",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "92",
+  "name": "Google Search Events Scraper",
+  "brand": "Google",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "93",
+  "name": "Google Search Jobs",
+  "brand": "Google",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "94",
+  "name": "Google Search Careers",
+  "brand": "Google",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "95",
+  "name": "Google Search Shopping Scraper",
+  "brand": "Google",
+  "description": "يرجع نتائج البحث",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "96",
+  "name": "Google Trends Scraper",
+  "brand": "Google",
+  "description": "Returns data from a list of businesses",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "97",
+  "name": "Google Play Reviews Scraper",
+  "brand": "Google",
+  "description": "Returns reviews from a list of apps",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "98",
+  "name": "Google Play Reviews Monitoring",
+  "brand": "Google",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "99",
+  "name": "Google Shopping Reviews Scraper",
+  "brand": "Google",
+  "description": "Returns reviews from a list of products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "100",
+  "name": "Glassdoor Job Scraper",
+  "brand": "Glassdoor",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "101",
+  "name": "Glassdoor Reviews Scraper",
+  "brand": "Glassdoor",
+  "description": "Returns reviews from a list of companies",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "102",
+  "name": "Home Depot Reviews Scraper",
+  "brand": "Home Depot",
+  "description": "Returns reviews from a list of products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "103",
+  "name": "Hotels Search Scraper",
+  "brand": "Hotels",
+  "description": "Returns search results",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "104",
+  "name": "Hotels Reviews Scraper",
+  "brand": "Hotels",
+  "description": "Returns reviews from a list of hotels",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "105",
+  "name": "Etsy Reviews Scraper",
+  "brand": "Etsy",
+  "description": "Returns reviews from a list of Etsy products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "106",
+  "name": "Etsy Products Scraper",
+  "brand": "Etsy",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "107",
+  "name": "Indeed Job Scraper",
+  "brand": "Indeed",
+  "description": "Returns search results",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "108",
+  "name": "Indeed Reviews Scraper",
+  "brand": "Indeed",
+  "description": "Returns reviews from a list of companies",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "109",
+  "name": "Doordash Scraper",
+  "brand": "Doordash",
+  "description": "Returns restaurant data from Doordash",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "110",
+  "name": "Macys Products Scraper",
+  "brand": "Macys",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "111",
+  "name": "Office Depot Products Scraper",
+  "brand": "Office Depot",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "112",
+  "name": "Staples Products Scraper",
+  "brand": "Staples",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "113",
+  "name": "Costco Products Scraper",
+  "brand": "Costco",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "114",
+  "name": "Webstaurantstore Products Scraper",
+  "brand": "Webstaurantstore",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "115",
+  "name": "Product Hunt Reviews Scraper",
+  "brand": "Product Hunt",
+  "description": "Returns reviews from a list of pages",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "116",
+  "name": "Pinterest Board Scraper",
+  "brand": "Pinterest",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "117",
+  "name": "Sams Club Products Scraper",
+  "brand": "Sams Club",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "118",
+  "name": "Shopee Reviews Scraper",
+  "brand": "Shopee",
+  "description": "Returns reviews from a list of products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "119",
+  "name": "Shopify Products Scraper",
+  "brand": "Shopify",
+  "description": "Returns products from Shopify websites",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "120",
+  "name": "Shopify Apps Scraper",
+  "brand": "Shopify",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "121",
+  "name": "Target Reviews Scraper",
+  "brand": "Target",
+  "description": "Returns reviews from a list of products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "122",
+  "name": "Boots Products Scraper",
+  "brand": "Boots",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "123",
+  "name": "Tesco Products Scraper",
+  "brand": "Tesco",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "124",
+  "name": "Walmart Products Scraper",
+  "brand": "Walmart",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "125",
+  "name": "TikTok Products Scraper",
+  "brand": "TikTok",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "126",
+  "name": "Zoro Products Scraper",
+  "brand": "Zoro",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "127",
+  "name": "Lowes Products Scraper",
+  "brand": "Lowes",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "128",
+  "name": "Zalando Products Scraper",
+  "brand": "Zalando",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "129",
+  "name": "Grainger Products Scraper",
+  "brand": "Grainger",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "130",
+  "name": "TikTok Profiles Scraper",
+  "brand": "TikTok",
+  "description": "Returns data from a list of profiles",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "131",
+  "name": "Tripadvisor Search Scraper",
+  "brand": "Tripadvisor",
+  "description": "Returns data from Tripadvisor",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "132",
+  "name": "Tripadvisor Reviews Scraper",
+  "brand": "Tripadvisor",
+  "description": "Returns reviews from a list of businesses",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "133",
+  "name": "Tripadvisor Reviews Monitoring",
+  "brand": "Tripadvisor",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "134",
+  "name": "Trustpilot Reviews Scraper",
+  "brand": "Trustpilot",
+  "description": "Returns reviews from a list of businesses",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "135",
+  "name": "Trustpilot Reviews Monitoring",
+  "brand": "Trustpilot",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "136",
+  "name": "Twitter Profiles Scraper",
+  "brand": "Twitter",
+  "description": "Returns data from a list of profiles",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "137",
+  "name": "Walmart Reviews Scraper",
+  "brand": "Walmart",
+  "description": "Returns reviews from a list of products",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "138",
+  "name": "YouTube Comments Scraper",
+  "brand": "Youtube",
+  "description": "Returns comments",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "139",
+  "name": "Quill Products Scraper",
+  "brand": "Quill",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "140",
+  "name": "Lyreco Products Scraper",
+  "brand": "Lyreco",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "141",
+  "name": "Customink Products Scraper",
+  "brand": "Customink",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "142",
+  "name": "ItemInfo Products Scraper",
+  "brand": "ItemInfo",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "143",
+  "name": "Fastenal Products Scraper",
+  "brand": "Fastenal",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "144",
+  "name": "YouTube Search Scraper",
+  "brand": "Youtube",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "145",
+  "name": "YouTube Video Scraper",
+  "brand": "Youtube",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "146",
+  "name": "Vrbo Search Scraper",
+  "brand": "Vrbo",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "147",
+  "name": "Yellow Pages Search Scraper",
+  "brand": "Yellow Pages",
+  "description": "Returns data from a list of businesses",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": true
+ },
+ {
+  "no": "148",
+  "name": "Baidu Maps Scraper",
+  "brand": "Baidu",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "149",
+  "name": "Y.E.L.P Businesses Scraper",
+  "brand": "Y.E.L.P",
+  "description": "Returns data from a list of businesses",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "150",
+  "name": "Y.E.L.P Reviews Scraper",
+  "brand": "Y.E.L.P",
+  "description": "Returns reviews from a list of businesses",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "151",
+  "name": "Y.E.L.P Photos Scraper",
+  "brand": "Y.E.L.P",
+  "description": "Returns photos from a list of businesses",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "152",
+  "name": "Zillow Search Scraper",
+  "brand": "Zillow",
+  "description": "Returns data from Zillow",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "153",
+  "name": "Zillow Reviews Scraper",
+  "brand": "Zillow",
+  "description": "Returns reviews from Zillow agent profiles",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "154",
+  "name": "Zillow Agents Scraper",
+  "brand": "Zillow",
+  "description": "Returns data from Zillow agent profiles",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "155",
+  "name": "Zillow Transactions Scraper",
+  "brand": "Zillow",
+  "description": "Returns transaction data from Zillow agent profiles",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "156",
+  "name": "Email Addresses Finder",
+  "brand": "Multi-source",
+  "description": "Finds professional emails by names",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "157",
+  "name": "HubSpot Contact Emails Finder",
+  "brand": "Multi-source",
+  "description": "Enrich contacts with their email addresses",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "158",
+  "name": "HubSpot Company Contacts Finder",
+  "brand": "Multi-source",
+  "description": "Find company contacts",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "159",
+  "name": "Universal AI-Powered Scraper",
+  "brand": "Multi-source",
+  "description": "Returns the data you need from any web page by using AI",
+  "tags": [
+   "Domain & Web"
+  ],
+  "live": false
+ },
+ {
+  "no": "160",
+  "name": "WhatsApp Checker",
+  "brand": "Bing",
+  "description": "",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": false
+ },
+ {
+  "no": "161",
+  "name": "Bing Maps Scraper",
+  "brand": "Bing",
+  "description": "Returns search results",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "162",
+  "name": "StreetEasy Scraper",
+  "brand": "StreetEasy",
+  "description": "Returns real estate listings from StreetEasy.com",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "163",
+  "name": "Uber Eats Scraper",
+  "brand": "Uber",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "164",
+  "name": "Deliveroo Scraper",
+  "brand": "Deliveroo",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "165",
+  "name": "Deliveroo Reviews Scraper",
+  "brand": "Deliveroo",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "166",
+  "name": "Zoominfo Scraper",
+  "brand": "Zoom",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "167",
+  "name": "Crunchbase Search Scraper",
+  "brand": "Crunchbase",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "168",
+  "name": "Crunchbase Scraper",
+  "brand": "Crunchbase",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "169",
+  "name": "OLX Scraper",
+  "brand": "OLX",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "170",
+  "name": "Apollo Scraper",
+  "brand": "Apollo",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "171",
+  "name": "Feedback Company Scraper",
+  "brand": "Feedback Company",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "172",
+  "name": "Feedback Company Reviews Scraper",
+  "brand": "Feedback Company",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "173",
+  "name": "YouTube Transcripts Scraper",
+  "brand": "Youtube",
+  "description": "Returns full text transcripts from any YouTube video",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "174",
+  "name": "Willhaben Scraper",
+  "brand": "Willhaben",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "175",
+  "name": "Mobilede Scraper",
+  "brand": "Mobilede",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "176",
+  "name": "Immowelt Scraper",
+  "brand": "Immowelt",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "177",
+  "name": "Allegro Scraper",
+  "brand": "Allegro",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "178",
+  "name": "Craigslist Scraper",
+  "brand": "Craigslist",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "179",
+  "name": "1688 Search Scraper",
+  "brand": "1688 Search",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "180",
+  "name": "Glassdoor Company Jobs",
+  "brand": "Glassdoor",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "181",
+  "name": "Upwork Jobs",
+  "brand": "Upwork",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "182",
+  "name": "Offerup Scraper",
+  "brand": "Offerup",
+  "description": "",
+  "tags": [
+   "Products"
+  ],
+  "live": false
+ },
+ {
+  "no": "183",
+  "name": "Angi Scraper",
+  "brand": "Angi",
+  "description": "",
+  "tags": [
+   "Businesses & POI"
+  ],
+  "live": false
+ },
+ {
+  "no": "184",
+  "name": "Feefo Reviews Scraper",
+  "brand": "Feefo",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "185",
+  "name": "Thuisbezorgd Reviews Scraper",
+  "brand": "Thuisbezorgd",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "186",
+  "name": "Product Hunt Profiles Scraper",
+  "brand": "Product Hunt",
+  "description": "",
+  "tags": [
+   "Social & Search"
+  ],
+  "live": false
+ },
+ {
+  "no": "187",
+  "name": "Kununu Reviews Scraper",
+  "brand": "Kununu",
+  "description": "",
+  "tags": [
+   "Reviews & Comments"
+  ],
+  "live": false
+ },
+ {
+  "no": "188",
+  "name": "AI Scraper",
+  "brand": "AI",
+  "description": "",
+  "tags": [
+   "Other"
+  ],
+  "live": false
+ }
+]

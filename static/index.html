@@ -3,20 +3,60 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YellowPages Scraper</title>
+  <title>Live Scraper</title>
   <style>
     :root{
-      --yp:#f5c518; --yp-dark:#e0b200; --ink:#1f2328; --muted:#6b7280;
-      --line:#e5e7eb; --bg:#f7f8fa; --card:#fff;
-      --green:#1a7f37; --amber:#c47f00; --red:#b00020; --blue:#0a66c2;
+      --yp:#2563eb; --yp-dark:#1d4ed8; --ink:#0f172a; --muted:#64748b;
+      --line:#e6e9ef; --bg:#f4f6fb; --card:#fff; --sidebar:#0b1736;
+      --green:#1a7f37; --amber:#c47f00; --red:#b00020; --blue:#2563eb;
     }
     *{box-sizing:border-box}
-    body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:var(--ink);
-      background:var(--bg);margin:0;padding:32px 16px;line-height:1.5}
-    .wrap{max-width:1000px;margin:0 auto}
-    h1{font-size:24px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
-    h1 .dot{width:26px;height:26px;border-radius:6px;background:var(--yp);display:inline-block}
-    .sub{color:var(--muted);margin:0 0 20px;font-size:14px}
+    body{font-family:'Inter',system-ui,Segoe UI,Arial,sans-serif;color:var(--ink);
+      background:var(--bg);margin:0;line-height:1.5}
+
+    /* ---- dashboard layout: dark sidebar + scrollable main ---- */
+    .app{display:flex;min-height:100vh}
+    .sidebar{flex:0 0 290px;background:var(--sidebar);color:#cdd5e6;height:100vh;position:sticky;top:0;
+      display:flex;flex-direction:column;overflow:hidden}
+    .sb-brand{display:flex;align-items:center;gap:10px;padding:18px 20px;font-size:18px;font-weight:800;color:#fff;
+      border-bottom:1px solid rgba(255,255,255,.08)}
+    .sb-brand .dot{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#06b6d4)}
+    .sb-search{padding:12px 14px}
+    .sb-search input{width:100%;padding:9px 12px;font-size:13px;border:1px solid rgba(255,255,255,.12);
+      border-radius:8px;background:rgba(255,255,255,.06);color:#fff;outline:none}
+    .sb-search input::placeholder{color:#8794ad}
+    .sb-list{flex:1;overflow-y:auto;padding:4px 8px 24px}
+    .sb-list::-webkit-scrollbar{width:8px}
+    .sb-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:8px}
+    .sb-group{margin:12px 6px 2px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7c89a8}
+    .sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13.5px;
+      color:#cdd5e6;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sb-item:hover{background:rgba(255,255,255,.07);color:#fff}
+    .sb-item.active{background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;font-weight:600}
+    .sb-item .live{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.04em;
+      background:#16a34a;color:#fff;padding:2px 6px;border-radius:20px;flex:0 0 auto}
+    .sb-empty{color:#7c89a8;font-size:13px;padding:14px 12px}
+
+    .main{flex:1;min-width:0;padding:28px 32px;overflow-x:hidden}
+    .wrap{max-width:1040px;margin:0 auto}
+    h1{font-size:22px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+    h1 .dot{width:26px;height:26px;border-radius:7px;background:var(--yp);display:inline-block}
+    .sub{color:var(--muted);margin:0 0 18px;font-size:14px}
+
+    /* service header (above each page) + catalog page for non-live services */
+    .svc-head{margin:0 0 18px}
+    .svc-head h1{font-size:26px}
+    .tagrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .pill{font-size:12px;font-weight:600;color:#1d4ed8;background:#e8efff;border:1px solid #d6e2ff;
+      padding:4px 12px;border-radius:20px}
+    .catalog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:36px 28px;
+      box-shadow:0 1px 3px rgba(13,38,76,.05);text-align:center}
+    .catalog .big{font-size:42px;margin-bottom:6px}
+    .catalog h2{margin:.2em 0;font-size:20px}
+    .catalog p{color:var(--muted);max-width:580px;margin:8px auto;font-size:14.5px}
+    .catalog .soon{display:inline-block;margin-top:16px;background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;
+      font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px}
+    @media(max-width:760px){.sidebar{flex-basis:230px}.main{padding:20px 16px}}
 
     .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
       padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
@@ -26,13 +66,13 @@
     label .req{color:var(--red)}
     input,select{padding:10px 12px;font-size:15px;border:1px solid var(--line);
       border-radius:8px;background:#fff;width:100%;outline:none}
-    input:focus,select:focus{border-color:var(--yp);box-shadow:0 0 0 3px rgba(245,197,24,.25)}
+    input:focus,select:focus{border-color:var(--yp);box-shadow:0 0 0 3px rgba(37,99,235,.16)}
     .hint{font-size:11px;color:var(--muted)}
 
     .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
     button{padding:11px 20px;font-size:15px;font-weight:600;border:0;border-radius:8px;cursor:pointer}
     button:disabled{opacity:.5;cursor:not-allowed}
-    .btn-primary{background:var(--yp);color:#1f2328}
+    .btn-primary{background:var(--yp);color:#fff}
     .btn-primary:hover:not(:disabled){background:var(--yp-dark)}
     .btn-stop{background:#fff;color:var(--red);border:1px solid var(--red)}
     .btn-stop:hover:not(:disabled){background:#fdecef}
@@ -131,16 +171,27 @@
     #pager button{padding:7px 12px;font-size:14px;font-weight:600;border:1px solid var(--line);
       background:#fff;color:var(--ink);border-radius:7px;cursor:pointer;min-width:38px}
     #pager button:hover:not(:disabled){border-color:var(--yp);background:#fffdf5}
-    #pager button.active{background:var(--yp);border-color:var(--yp)}
+    #pager button.active{background:var(--yp);border-color:var(--yp);color:#fff}
     #pager button:disabled{opacity:.45;cursor:not-allowed}
     #pager .pinfo{color:var(--muted);font-size:13px;margin:0 8px}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <h1><span class="dot"></span> YellowPages Scraper</h1>
-  <p class="sub">Search a category in a location, scrape business listings, and export to JSON.</p>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-brand"><span class="dot"></span> Live Scraper</div>
+    <div class="sb-search"><input id="svcSearch" placeholder="Search services…" oninput="renderSidebar()" autocomplete="off"></div>
+    <div class="sb-list" id="serviceList"></div>
+  </aside>
+  <main class="main">
+   <div class="wrap">
+    <div class="svc-head">
+      <h1><span class="dot"></span> <span id="svcName">Yellow Pages Search Scraper</span></h1>
+      <p class="sub" id="svcDesc">Search a category in a location, scrape business listings, and export to JSON.</p>
+      <div class="tagrow" id="svcTags"></div>
+    </div>
 
+  <div id="scraperView">
   <div class="panel">
     <div class="grid">
       <div class="field">
@@ -186,7 +237,19 @@
 
   <div id="results"></div>
   <div id="pager"></div>
-</div>
+  </div><!-- /scraperView -->
+
+  <div id="catalogView" style="display:none">
+    <div class="catalog">
+      <div class="big">🧩</div>
+      <h2 id="catName"></h2>
+      <p id="catDesc"></p>
+      <div class="soon">⚡ Live scraping for this service is coming soon — Yellow Pages Search Scraper is available now.</div>
+    </div>
+  </div>
+   </div><!-- /wrap -->
+  </main>
+</div><!-- /app -->
 
 <div class="modal-back" id="filtersModal">
   <div class="modal">
@@ -579,12 +642,70 @@ async function showResults(job_id){
   applyClientView();                  // builds _view, renders, sets count + download
 }
 
+/* ---------- Live Scraper service catalog (left sidebar) ---------- */
+let SERVICES = [], activeSvc = null;
+const TAG_ORDER = ["Leads & Contacts","Businesses & POI","Domain & Web","Social & Search",
+                   "Reviews & Comments","Products","Other"];
+
+async function loadServices(){
+  try{ SERVICES = await (await fetch('/api/services')).json(); }
+  catch(e){ SERVICES = []; }
+  activeSvc = SERVICES.find(s=>s.live) || SERVICES[0] || null;   // default = live Yellow Pages
+  renderSidebar();
+  if(activeSvc) selectService(activeSvc, true);
+}
+
+function primaryTag(s){
+  const t = (s.tags && s.tags[0]) || 'Other';
+  return TAG_ORDER.includes(t) ? t : (t || 'Other');
+}
+
+function renderSidebar(){
+  const box = document.getElementById('serviceList');
+  const q = (document.getElementById('svcSearch').value || '').toLowerCase().trim();
+  const list = SERVICES.filter(s => !q || s.name.toLowerCase().includes(q) || (s.description||'').toLowerCase().includes(q));
+  box.innerHTML = '';
+  if(!list.length){ box.innerHTML = '<div class="sb-empty">No services match.</div>'; return; }
+  const groups = {};
+  list.forEach(s => { const g = primaryTag(s); (groups[g] = groups[g] || []).push(s); });
+  const order = [...TAG_ORDER.filter(t=>groups[t]), ...Object.keys(groups).filter(t=>!TAG_ORDER.includes(t))];
+  order.forEach(g => {
+    const h = document.createElement('div'); h.className = 'sb-group'; h.textContent = g; box.appendChild(h);
+    groups[g].forEach(s => {
+      const it = document.createElement('div');
+      it.className = 'sb-item' + (activeSvc && s.name === activeSvc.name ? ' active' : '');
+      it.innerHTML = esc(s.name) + (s.live ? '<span class="live">LIVE</span>' : '');
+      it.title = s.name;
+      it.onclick = () => selectService(s);
+      box.appendChild(it);
+    });
+  });
+}
+
+function selectService(s, keep){
+  activeSvc = s;
+  document.getElementById('svcName').textContent = s.name;
+  document.getElementById('svcDesc').textContent = s.description || '';
+  const tr = document.getElementById('svcTags'); tr.innerHTML = '';
+  (s.tags || []).forEach(t => { const p = document.createElement('span'); p.className = 'pill'; p.textContent = t; tr.appendChild(p); });
+  const live = !!s.live;
+  document.getElementById('scraperView').style.display = live ? '' : 'none';
+  document.getElementById('catalogView').style.display = live ? 'none' : '';
+  if(!live){
+    document.getElementById('catName').textContent = s.name;
+    document.getElementById('catDesc').textContent = s.description || '';
+  }
+  if(!keep){ renderSidebar(); window.scrollTo({top:0, behavior:'smooth'}); }
+}
+/* ---------- end services ---------- */
+
 document.getElementById('region').addEventListener('change', updateRegionHint);
 // close the filters modal when clicking the dark backdrop (but not the dialog itself)
 document.getElementById('filtersModal').addEventListener('click', e=>{
   if(e.target.id==='filtersModal') closeFilters();
 });
 loadRegions();
+loadServices();
 </script>
 </body>
 </html>
