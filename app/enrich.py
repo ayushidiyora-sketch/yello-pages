@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 from curl_cffi import requests as cffi
 
 from .config import settings
+from . import whitepages
 
 # social platform -> a domain fragment that identifies its profile links
 SOCIAL_DOMAINS = {
@@ -52,7 +53,7 @@ ENRICH_KEYS = list(SOCIAL_DOMAINS) + [
     "emails", "emails_status", "website_title", "website_description", "website_keywords",
     "website_generator", "website_has_fb_pixel", "website_has_google_tag",
     "phones_extra", "phones_extra_types", "phone_type", "contact_name", "contact_title",
-    "is_public",
+    "is_public", "wp_name", "wp_address", "phones_extra_wp",
 ]
 
 
@@ -61,7 +62,8 @@ def empty() -> dict:
     d.update(emails=[], emails_status=[], website_title=None, website_description=None,
              website_keywords=None, website_generator=None, website_has_fb_pixel=False,
              website_has_google_tag=False, phones_extra=[], phones_extra_types=[],
-             phone_type=None, contact_name=None, contact_title=None, is_public=False)
+             phone_type=None, contact_name=None, contact_title=None, is_public=False,
+             wp_name=None, wp_address=None, phones_extra_wp=[])
     return d
 
 
@@ -297,6 +299,18 @@ def _type_phones(card: dict, region: str | None):
     card["phones_extra_types"] = [_phone_type(p, region) for p in (card.get("phones_extra") or [])]
 
 
+async def _phone_owner(card: dict):
+    """Fill reverse-phone owner name/address (free, thatsthem) for the main phone, and — if
+    PHONE_OWNER_ALL — each extra phone. Best-effort; only US-style numbers resolve."""
+    if not settings.ENRICH_PHONE_OWNER:
+        return
+    if card.get("phone"):
+        wp = await whitepages.lookup(card["phone"])
+        card["wp_name"], card["wp_address"] = wp.get("name"), wp.get("address")
+    if settings.PHONE_OWNER_ALL and card.get("phones_extra"):
+        card["phones_extra_wp"] = [await whitepages.lookup(p) for p in card["phones_extra"]]
+
+
 async def enrich_cards(cards: list[dict], region: str | None = None) -> list[dict]:
     """Merge website-enrichment fields into each card in place (concurrently, bounded).
     Cards with no website still get the (empty) keys so every record has the same columns."""
@@ -304,10 +318,12 @@ async def enrich_cards(cards: list[dict], region: str | None = None) -> list[dic
         return cards
     await asyncio.to_thread(_load_public_titles)  # warm the SEC list once (cached process-wide)
     if not settings.ENRICH:
-        for c in cards:
-            c.update(empty())
-            _type_phones(c, region)
-            c["is_public"] = is_public_company(c.get("name"))
+        async def bare(card):
+            card.update(empty())
+            _type_phones(card, region)
+            card["is_public"] = is_public_company(card.get("name"))
+            await _phone_owner(card)
+        await asyncio.gather(*[bare(c) for c in cards])
         return cards
 
     sem = asyncio.Semaphore(settings.ENRICH_CONCURRENCY)
@@ -315,9 +331,10 @@ async def enrich_cards(cards: list[dict], region: str | None = None) -> list[dic
     async def one(card: dict):
         async with sem:
             data = await asyncio.to_thread(_fetch_sync, card.get("website") or "")
-        card.update(data)
-        _type_phones(card, region)
-        card["is_public"] = is_public_company(card.get("name"))
+            card.update(data)
+            _type_phones(card, region)
+            card["is_public"] = is_public_company(card.get("name"))
+            await _phone_owner(card)
 
     await asyncio.gather(*[one(c) for c in cards])
     return cards

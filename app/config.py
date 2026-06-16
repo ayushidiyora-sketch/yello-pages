@@ -26,5 +26,9 @@ class Settings(BaseSettings):
     # fetch per business (slow on the US free-proxy pool). Set ENRICH_AMENITIES=false to skip.
     ENRICH_AMENITIES: bool = True
 
+    # Reverse-phone owner name + address (free, via thatsthem.com). One extra fetch per phone.
+    ENRICH_PHONE_OWNER: bool = True   # look up the main phone's owner
+    PHONE_OWNER_ALL: bool = False     # also look up phone_1/2/3 (4x the fetches)
+
 
 settings = Settings()
