@@ -49,15 +49,22 @@ def _impersonated_get(url: str, params: dict, proxy: str | None, timeout: int | 
                     timeout=timeout or settings.REQUEST_TIMEOUT, verify=False)
 
 
+# Markers YP shows when a query genuinely returns nothing (incl. the HTTP-404 "Invalid Search"
+# page for an unrecognized location). Used to tell a real empty result from a junk proxy page.
+_NO_RESULTS_MARKERS = ("invalid search", "did not match", "we couldn't find", "we could not find",
+                       "no results found", "0 results", "didn't return any", "no listings found")
+
+
 def _is_valid_yp_page(text: str) -> bool:
-    """True for a real yellowpages.com response — INCLUDING a valid page with zero listings
-    or YP's HTTP-404 "Invalid Search" page (returned for an unrecognized location, e.g. a
-    Canadian city). All of these render the search form (`search_terms`); a Cloudflare block
-    page does not. We deliberately do NOT require `business-name` or HTTP 200 here: an empty
-    or invalid-search result is a *successful* fetch, not a blocked proxy. Requiring listings
-    made 0-result searches misread every working proxy as "blocked", exhausting the whole
-    pool and hanging the job at "running / 0 records" while the UI polled forever."""
-    return "search_terms" in text and "you have been blocked" not in text
+    """True only for a USABLE yellowpages.com response: a real results page (has listing cards)
+    OR a genuine no-results / "Invalid Search" page. NOT merely a page that renders the search
+    form — a flaky free proxy often returns a soft-blocked / error page that still contains the
+    form but has zero listings; accepting those caused false "Done — 0 records". Rejecting them
+    makes the pool keep probing other proxies until one returns real listings."""
+    low = text.lower()
+    if "you have been blocked" in low:
+        return False
+    return "business-name" in text or any(m in low for m in _NO_RESULTS_MARKERS)
 
 
 _IPPORT = re.compile(r"(\d{1,3}(?:\.\d{1,3}){3}:\d{2,5})")
