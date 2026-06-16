@@ -69,10 +69,10 @@ def lookup_sync(number: str) -> dict:
             return _cache[d]
     res = {"name": None, "address": None}
     try:
+        from . import yp_us
         url = f"{BASE}{d[:3]}-{d[3:6]}-{d[6:]}"
-        r = cffi.get(url, impersonate="chrome", timeout=settings.ENRICH_TIMEOUT,
-                     verify=False, allow_redirects=True)
-        if r.status_code == 200 and "ld+json" in r.text.lower():
+        r = yp_us.pooled_get(url, timeout=settings.ENRICH_TIMEOUT)  # proxy, never real IP
+        if r is not None and r.status_code == 200 and "ld+json" in r.text.lower():
             res = _first_person(r.text)
     except Exception:
         pass

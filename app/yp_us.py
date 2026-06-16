@@ -241,6 +241,32 @@ def fetch_detail_sync(url: str) -> str | None:
     return None
 
 
+def pooled_get(url: str, params: dict | None = None, timeout: int | None = None):
+    """Fetch ANY url through a proxy — the paid PROXY_URL if set, else a warm free-pool proxy.
+    Used to keep ALL traffic (enrichment, AU/CA, SEC, DoH-DNS) off the real IP. Best-effort:
+    returns the response object, or None if no proxy delivered one."""
+    if settings.PROXY_URL.strip():
+        try:
+            return _impersonated_get(url, params or {}, settings.PROXY_URL.strip(), timeout)
+        except Exception:
+            return None
+    with _LOCK:
+        warm = list(_GOOD)
+    if not warm:                       # nothing warm yet — probe a small batch to seed the pool
+        ensure_pool({"search_terms": "Dentists", "geo_location_terms": "New York, NY", "page": "1"}, 4)
+        with _LOCK:
+            warm = list(_GOOD)
+    for px in warm[:6]:
+        try:
+            r = _impersonated_get(url, params or {}, px, timeout or PROBE_TIMEOUT)
+            if r.status_code < 500:
+                _mark_good(px)
+                return r
+        except Exception:
+            pass
+    return None
+
+
 def parse_us_total(html: str) -> int | None:
     """'Showing 1-30 of 3000' -> 3000 (read from the pagination/showing-count line)."""
     soup = BeautifulSoup(html, "lxml")

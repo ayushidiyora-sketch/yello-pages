@@ -12,13 +12,11 @@ import re
 import threading
 from urllib.parse import urljoin
 
-import dns.resolver
 import phonenumbers
 from bs4 import BeautifulSoup
-from curl_cffi import requests as cffi
 
 from .config import settings
-from . import whitepages
+from . import whitepages, yp_us
 
 # social platform -> a domain fragment that identifies its profile links
 SOCIAL_DOMAINS = {
@@ -119,8 +117,12 @@ def _has_mx(domain: str) -> bool:
     with _mx_lock:
         if domain in _mx_cache:
             return _mx_cache[domain]
+    ok = False
     try:
-        ok = len(dns.resolver.resolve(domain, "MX", lifetime=5)) > 0
+        # DNS-over-HTTPS through the proxy, so the lookup never uses the real IP
+        r = yp_us.pooled_get(f"https://dns.google/resolve?name={domain}&type=MX", timeout=8)
+        if r is not None and r.status_code == 200:
+            ok = any(a.get("type") == 15 for a in (r.json().get("Answer") or []))  # 15 = MX
     except Exception:
         ok = False
     with _mx_lock:
@@ -187,10 +189,8 @@ def _load_public_titles() -> set[str]:
             return _PUBLIC_TITLES
     titles: set[str] = set()
     try:
-        r = cffi.get("https://www.sec.gov/files/company_tickers.json",
-                     headers={"User-Agent": "yellowpages-scraper contact@example.com"},
-                     timeout=15, verify=False)
-        if r.status_code == 200:
+        r = yp_us.pooled_get("https://www.sec.gov/files/company_tickers.json", timeout=15)
+        if r is not None and r.status_code == 200:
             for v in r.json().values():
                 t = _norm_company(v.get("title"))
                 if t:
@@ -260,9 +260,8 @@ def _deep_team(soup, base_url: str, data: dict):
     text = ""
     for url in links:
         try:
-            r = cffi.get(url, impersonate="chrome", timeout=settings.ENRICH_TIMEOUT,
-                         verify=False, allow_redirects=True)
-            if r.status_code == 200 and r.text:
+            r = yp_us.pooled_get(url, timeout=settings.ENRICH_TIMEOUT)
+            if r is not None and r.status_code == 200 and r.text:
                 psoup = BeautifulSoup(r.text, "lxml")
                 text += " " + psoup.get_text(" ", strip=True)
                 # contact/about pages often hold the personal emails -> add new ones (cap 3)
@@ -380,9 +379,8 @@ def _fetch_sync(url: str) -> dict:
     if not url or not url.startswith("http"):
         return empty()
     try:
-        r = cffi.get(url, impersonate="chrome", timeout=settings.ENRICH_TIMEOUT,
-                     verify=False, allow_redirects=True)
-        if r.status_code == 200 and r.text:
+        r = yp_us.pooled_get(url, timeout=settings.ENRICH_TIMEOUT)
+        if r is not None and r.status_code == 200 and r.text:
             return _extract(r.text, str(getattr(r, "url", "") or url))
     except Exception:
         pass

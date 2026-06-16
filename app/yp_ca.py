@@ -23,10 +23,16 @@ BASE_CA = "https://www.yellowpages.ca"
 
 
 def _get(url: str):
-    proxy = settings.PROXY_URL.strip() or None
-    proxies = {"http": proxy, "https": proxy} if proxy else None
-    return cffi.get(url, impersonate="chrome", proxies=proxies,
-                    timeout=settings.REQUEST_TIMEOUT, verify=False, allow_redirects=True)
+    proxy = settings.PROXY_URL.strip()
+    if proxy:
+        return cffi.get(url, impersonate="chrome", proxies={"http": proxy, "https": proxy},
+                        timeout=settings.REQUEST_TIMEOUT, verify=False, allow_redirects=True)
+    # no paid proxy -> route through the free pool so CA traffic never uses the real IP
+    from . import yp_us
+    r = yp_us.pooled_get(url, timeout=settings.REQUEST_TIMEOUT)
+    if r is None:
+        raise RuntimeError(f"no free proxy delivered {url}")
+    return r
 
 
 def _is_block(text: str) -> bool:

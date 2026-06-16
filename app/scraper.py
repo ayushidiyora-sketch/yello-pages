@@ -148,15 +148,15 @@ async def run_scrape(job_id: str, search: str, location: str,
             fetch, parse_total, parse_cards = (
                 yp_au.fetch_au_page, yp_au.parse_au_total, yp_au.parse_au_cards)
             detail_sync = yp_au.fetch_detail_sync
-            proxy_mode = "au-paid-proxy" if paid else "au-direct"
-            warm_pool = False  # AU is reachable directly — no free-proxy pool needed
+            proxy_mode = "au-paid-proxy" if paid else "au-free-pool"
+            warm_pool = not paid  # route AU through the free pool so no real IP is used
         elif region == "ca":
             from . import yp_ca
             fetch, parse_total, parse_cards = (
                 yp_ca.fetch_ca_page, yp_ca.parse_ca_total, yp_ca.parse_ca_cards)
             detail_sync = yp_ca.fetch_detail_sync
-            proxy_mode = "ca-paid-proxy" if paid else "ca-direct"
-            warm_pool = False  # CA is reachable directly too
+            proxy_mode = "ca-paid-proxy" if paid else "ca-free-pool"
+            warm_pool = not paid  # route CA through the free pool so no real IP is used
         else:  # us
             fetch, parse_total, parse_cards = (
                 yp_us.fetch_us_page, yp_us.parse_us_total, yp_us.parse_us_cards)
