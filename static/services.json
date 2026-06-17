@@ -356,11 +356,12 @@
   "no": "36",
   "name": "Amazon Products Scraper",
   "brand": "Amazon",
-  "description": "يرجع قوائم المنتجات",
+  "description": "Returns the list of products",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "amazon"
  },
  {
   "no": "37",

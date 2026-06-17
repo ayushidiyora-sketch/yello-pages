@@ -5,7 +5,8 @@ client = AsyncIOMotorClient(settings.MONGO_URI)
 db = client[settings.MONGO_DB]
 
 jobs = db["jobs"]              # one doc per scrape run
-businesses = db["businesses"]  # one doc per scraped listing
+businesses = db["businesses"]  # one doc per scraped listing (Yellow Pages)
+products = db["products"]      # one doc per scraped Amazon product
 
 
 async def ensure_indexes():
@@ -15,3 +16,6 @@ async def ensure_indexes():
         [("job_id", 1), ("name", 1), ("phone", 1)], unique=True
     )
     await jobs.create_index("job_id", unique=True)
+    # Amazon products: fetch-by-job + de-dupe the same ASIN within one job
+    await products.create_index("job_id")
+    await products.create_index([("job_id", 1), ("asin", 1)])

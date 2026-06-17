@@ -3,13 +3,13 @@ import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse, HTMLResponse, Response
 
-from .db import jobs, businesses, ensure_indexes
-from .models import ScrapeRequest
+from .db import jobs, businesses, products, ensure_indexes
+from .models import ScrapeRequest, AmazonScrapeRequest
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us
+from . import yp_us, amazon
 
 
 @asynccontextmanager
@@ -79,6 +79,93 @@ async def start_scrape(req: ScrapeRequest):
     # launch background scraping (returns immediately)
     asyncio.create_task(run_scrape(job_id, req.search, req.location, req.region, req.limit))
     return {"job_id": job_id}
+
+
+@app.post("/api/amazon/scrape")
+async def start_amazon_scrape(req: AmazonScrapeRequest):
+    queries = [q.strip() for q in (req.queries or []) if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "Provide at least one ASIN, product URL, or search.")
+    job_id = uuid.uuid4().hex
+    # Expected total for the progress bar: a direct ASIN/product URL yields 1 product;
+    # a search query yields up to `limit`. (So 3 product URLs => 3, not 3 x limit.)
+    expected = 0
+    for q in queries:
+        spec = amazon.classify(q, req.domain)
+        if not spec:
+            continue
+        expected += 1 if spec[0] in ("asin", "product", "product_url") else max(1, req.limit)
+    await jobs.insert_one({
+        "job_id": job_id,
+        "kind": "amazon",
+        "domain": req.domain,
+        "postcode": req.postcode,
+        "language": req.language,
+        "currency": req.currency,
+        "limit": req.limit,
+        "queries": queries,
+        "status": "running",
+        "total_scraped": 0,
+        "total_available": expected or len(queries),
+        "started_at": datetime.utcnow(),
+        "finished_at": None,
+    })
+    asyncio.create_task(amazon.run_amazon_scrape(
+        job_id, queries, req.domain, req.postcode, req.language, req.currency, req.limit))
+    return {"job_id": job_id}
+
+
+@app.post("/api/amazon/parse-file")
+async def amazon_parse_file(file: UploadFile = File(...)):
+    """Extract Amazon product URLs / ASINs from an uploaded CSV/XLSX/TXT/Parquet file
+    so the UI can drop them into the Product ASINs/URLs box."""
+    data = await file.read()
+    try:
+        lines = amazon.parse_upload(file.filename or "", data)
+    except Exception as e:
+        raise HTTPException(400, f"Could not parse '{file.filename}': {e}")
+    return {"lines": lines, "count": len(lines)}
+
+
+@app.get("/api/amazon/results/{job_id}")
+async def amazon_results(job_id: str, limit: int = 1000):
+    rows = [amazon.to_export(d) async for d in products.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows[:limit]
+
+
+@app.get("/api/amazon/export-excel/{job_id}")
+async def amazon_export_excel(job_id: str):
+    """Download all scraped products as an .xlsx with the full 95-column schema."""
+    import io
+    import openpyxl
+
+    rows = [amazon.to_export(d) async for d in products.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Products"
+    ws.append(amazon.EXPORT_COLUMNS)            # header row = all 95 columns
+    for r in rows:
+        ws.append([_xlsx_cell(r.get(c, "")) for c in amazon.EXPORT_COLUMNS])
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return Response(
+        buf.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="amazon_products_{job_id[:8]}.xlsx"'},
+    )
+
+
+def _xlsx_cell(v):
+    """Excel-safe cell value: scalars pass through, anything else becomes a string."""
+    if v is None or isinstance(v, (str, int, float, bool)):
+        return v
+    if isinstance(v, (list, tuple)):
+        return ", ".join(str(x) for x in v)
+    return str(v)
 
 
 @app.post("/api/stop/{job_id}")

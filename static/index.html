@@ -69,6 +69,18 @@
     input:focus,select:focus{border-color:var(--yp);box-shadow:0 0 0 3px rgba(37,99,235,.16)}
     .hint{font-size:11px;color:var(--muted)}
 
+    /* amazon products scraper form */
+    textarea{padding:11px 12px;font-size:14px;border:1px solid var(--line);border-radius:8px;
+      background:#fff;width:100%;outline:none;font-family:inherit;line-height:1.5;resize:vertical;min-height:120px}
+    textarea:focus{border-color:var(--yp);box-shadow:0 0 0 3px rgba(37,99,235,.16)}
+    .field.full{grid-column:1 / -1}
+    label .help{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+      border-radius:50%;border:1px solid var(--muted);color:var(--muted);font-size:9px;font-weight:700;cursor:help;vertical-align:middle}
+    .upload-row{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+    .btn-upload{background:#fff;color:var(--blue);border:1px solid var(--line);padding:9px 16px;font-size:14px;
+      font-weight:600;border-radius:8px;cursor:pointer}
+    .btn-upload:hover{border-color:var(--yp);background:#fbfdff}
+
     .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
     button{padding:11px 20px;font-size:15px;font-weight:600;border:0;border-radius:8px;cursor:pointer}
     button:disabled{opacity:.5;cursor:not-allowed}
@@ -247,6 +259,107 @@
       <div class="soon">⚡ Live scraping for this service is coming soon — Yellow Pages Search Scraper is available now.</div>
     </div>
   </div>
+
+  <!-- Amazon Products Scraper form (same layout/style as the Yellow Pages page, Amazon fields) -->
+  <div id="amazonView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field">
+        <label>Domain</label>
+        <select id="amzDomain">
+          <option value="amazon.com" selected>amazon.com</option>
+          <option value="amazon.co.uk">amazon.co.uk</option>
+          <option value="amazon.ca">amazon.ca</option>
+          <option value="amazon.de">amazon.de</option>
+          <option value="amazon.es">amazon.es</option>
+          <option value="amazon.fr">amazon.fr</option>
+          <option value="amazon.it">amazon.it</option>
+          <option value="amazon.in">amazon.in</option>
+          <option value="amazon.nl">amazon.nl</option>
+          <option value="amazon.se">amazon.se</option>
+          <option value="amazon.sa">amazon.sa</option>
+          <option value="amazon.com.mx">amazon.com.mx</option>
+          <option value="amazon.com.br">amazon.com.br</option>
+          <option value="amazon.co.jp">amazon.co.jp</option>
+          <option value="amazon.pl">amazon.pl</option>
+          <option value="amazon.com.au">amazon.com.au</option>
+          <option value="amazon.ae">amazon.ae</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Delivery postcode</label>
+        <input id="amzPostcode" placeholder="11201">
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="amzLanguage">
+          <option value="" selected>—</option>
+          <option value="en_US">English (US)</option>
+          <option value="en_GB">English (UK)</option>
+          <option value="es_ES">Spanish</option>
+          <option value="de_DE">German</option>
+          <option value="fr_FR">French</option>
+          <option value="it_IT">Italian</option>
+          <option value="nl_NL">Dutch</option>
+          <option value="pt_BR">Portuguese</option>
+          <option value="ja_JP">Japanese</option>
+          <option value="pl_PL">Polish</option>
+          <option value="sv_SE">Swedish</option>
+          <option value="ar_AE">Arabic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Currency</label>
+        <select id="amzCurrency">
+          <option value="" selected>—</option>
+          <option value="USD">USD</option>
+          <option value="GBP">GBP</option>
+          <option value="EUR">EUR</option>
+          <option value="CAD">CAD</option>
+          <option value="INR">INR</option>
+          <option value="JPY">JPY</option>
+          <option value="BRL">BRL</option>
+          <option value="MXN">MXN</option>
+          <option value="AUD">AUD</option>
+          <option value="AED">AED</option>
+          <option value="SAR">SAR</option>
+          <option value="SEK">SEK</option>
+          <option value="PLN">PLN</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field full" style="margin-top:14px">
+      <label>Product ASINs or URLs <span class="req">*</span></label>
+      <textarea id="amzInput" wrap="off" placeholder="B00K0QKBM6&#10;https://www.amazon.com/s?k=golf+clubs&ref=nb_sb_noss_1"></textarea>
+      <div class="upload-row">
+        <span>or select a CSV/XLSX/TXT/Parquet file</span>
+        <button class="btn-upload" type="button" onclick="document.getElementById('amzFile').click()">⬆ Upload file</button>
+        <input id="amzFile" type="file" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="amzFilePicked()">
+        <span id="amzFileName" class="hint"></span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="amzStartBtn" onclick="amzStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="amzStopBtn" onclick="amzStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="amzStatus"></div>
+  <div class="bar" id="amzBar"><i></i></div>
+
+  <div class="resbar" id="amzResbar" style="display:none">
+    <div class="count" id="amzCount"></div>
+    <div class="resbar-controls">
+      <a id="amzDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <a id="amzExcel" style="display:none" href="#"><button class="btn-ghost" type="button">⬇ Download Excel</button></a>
+    </div>
+  </div>
+
+  <div id="amzResults"></div>
+  <div id="amzPager"></div>
+  </div><!-- /amazonView -->
    </div><!-- /wrap -->
   </main>
 </div><!-- /app -->
@@ -650,7 +763,8 @@ const TAG_ORDER = ["Leads & Contacts","Businesses & POI","Domain & Web","Social 
 async function loadServices(){
   try{ SERVICES = await (await fetch('/api/services')).json(); }
   catch(e){ SERVICES = []; }
-  activeSvc = SERVICES.find(s=>s.live) || SERVICES[0] || null;   // default = live Yellow Pages
+  // default = plain live scraper (Yellow Pages); services with a custom `ui` (e.g. Amazon) aren't the landing page
+  activeSvc = SERVICES.find(s=>s.live && !s.ui) || SERVICES.find(s=>s.live) || SERVICES[0] || null;
   renderSidebar();
   if(activeSvc) selectService(activeSvc, true);
 }
@@ -688,15 +802,229 @@ function selectService(s, keep){
   document.getElementById('svcDesc').textContent = s.description || '';
   const tr = document.getElementById('svcTags'); tr.innerHTML = '';
   (s.tags || []).forEach(t => { const p = document.createElement('span'); p.className = 'pill'; p.textContent = t; tr.appendChild(p); });
-  const live = !!s.live;
-  document.getElementById('scraperView').style.display = live ? '' : 'none';
-  document.getElementById('catalogView').style.display = live ? 'none' : '';
-  if(!live){
+  const vt = viewType(s);
+  document.getElementById('scraperView').style.display = vt==='yellowpages' ? '' : 'none';
+  document.getElementById('amazonView').style.display  = vt==='amazon' ? '' : 'none';
+  document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
+  if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
     document.getElementById('catDesc').textContent = s.description || '';
   }
   if(!keep){ renderSidebar(); window.scrollTo({top:0, behavior:'smooth'}); }
 }
+
+// which form a service renders: a dedicated Amazon form, the live Yellow Pages form, or the "coming soon" catalog
+function viewType(s){
+  if(s.ui === 'amazon') return 'amazon';
+  if(s.live) return 'yellowpages';
+  return 'catalog';
+}
+
+/* ---------- Amazon Products Scraper (live, same flow as Yellow Pages) ---------- */
+let amzTimer = null, amzJob = null;
+let _amzRows = [], _amzPage = 0, _amzDlUrl = null;
+
+async function amzFilePicked(){
+  const f = document.getElementById('amzFile').files[0];
+  const nameEl = document.getElementById('amzFileName');
+  if(!f){ nameEl.textContent = ''; return; }
+  // CSV / XLSX / TXT / Parquet are parsed on the server; the extracted links/ASINs are
+  // dropped straight into the Product ASINs/URLs box so they're visible and editable.
+  nameEl.textContent = 'Reading ' + f.name + '…';
+  const fd = new FormData(); fd.append('file', f);
+  try{
+    const r = await fetch('/api/amazon/parse-file', {method:'POST', body:fd});
+    if(!r.ok){ nameEl.textContent = 'Could not read file: ' + (await r.text()); return; }
+    const {lines, count} = await r.json();
+    if(!count){ nameEl.textContent = 'No links/ASINs found in ' + f.name; return; }
+    const ta = document.getElementById('amzInput');
+    // merge with anything already typed, de-duplicating (so re-uploading the same file
+    // or a double change-event doesn't repeat lines)
+    const merged = (ta.value ? ta.value.split(/\r?\n/) : []).concat(lines)
+      .map(s=>s.trim()).filter(Boolean);
+    ta.value = [...new Set(merged)].join('\n');
+    nameEl.textContent = 'Loaded ' + count + ' link' + (count===1?'':'s') + ' from ' + f.name;
+  }catch(e){
+    nameEl.textContent = 'Upload failed — is the server running?';
+  }
+}
+
+function amzSetRunning(on){
+  document.getElementById('amzStartBtn').disabled = on;
+  document.getElementById('amzStopBtn').disabled = !on;
+  ['amzDomain','amzPostcode','amzLanguage','amzCurrency','amzInput'].forEach(id=>{
+    document.getElementById(id).disabled = on;
+  });
+}
+
+async function amzStart(){
+  const typed = document.getElementById('amzInput').value.trim();
+  const queries = typed ? typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean) : [];
+  if(!queries.length){ alert('Enter Product ASINs or URLs (one per line), or upload a CSV/XLSX/TXT/Parquet file.'); return; }
+
+  const body = {
+    queries,
+    domain: document.getElementById('amzDomain').value,
+    postcode: document.getElementById('amzPostcode').value.trim() || null,
+    language: document.getElementById('amzLanguage').value || null,
+    currency: document.getElementById('amzCurrency').value || null,
+    limit: 20,   // default results per SEARCH query (the Limit field was removed from the UI)
+  };
+
+  let r;
+  try{
+    r = await fetch('/api/amazon/scrape',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)});
+  }catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: ' + (await r.text())); return; }
+  const {job_id} = await r.json();
+  amzJob = job_id;
+
+  // reset the view for the new run
+  _amzRows = []; _amzPage = 0;
+  document.getElementById('amzResbar').style.display = 'none';
+  document.getElementById('amzDownload').style.display = 'none';
+  document.getElementById('amzResults').innerHTML = '';
+  document.getElementById('amzPager').innerHTML = '';
+  document.getElementById('amzCount').textContent = '';
+  document.getElementById('amzBar').style.display = 'block';
+  document.querySelector('#amzBar>i').style.width = '0';
+  amzSetRunning(true);
+
+  if(amzTimer) clearInterval(amzTimer);
+  amzTimer = setInterval(()=>amzPoll(job_id), 1500);
+  amzPoll(job_id);
+}
+
+async function amzStop(){
+  if(!amzJob) return;
+  document.getElementById('amzStopBtn').disabled = true;
+  await fetch('/api/stop/'+amzJob, {method:'POST'});
+}
+
+async function amzPoll(job_id){
+  const s = await (await fetch('/api/status/'+job_id)).json();
+  const el = document.getElementById('amzStatus');
+  const got = s.total_scraped || 0;
+  const cap = s.total_available;
+  if(cap){
+    const pct = Math.min(100, Math.round(got/cap*100));
+    document.querySelector('#amzBar>i').style.width = pct+'%';
+  }
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML = '<span class="spin"></span> Scraping… '+got+' products'+(cap?(' / '+cap):'');
+  } else {
+    clearInterval(amzTimer);
+    amzSetRunning(false);
+    document.getElementById('amzBar').style.display='none';
+    if(s.status==='done' || s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent = (s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' products scraped';
+      amzShowResults(job_id, s.status);
+    } else if(s.status==='error'){
+      el.className='status error';
+      el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function amzShowResults(job_id, status){
+  _amzRows = await (await fetch('/api/amazon/results/'+job_id+'?limit=1000')).json();
+  _amzPage = 0;
+  const resbar = document.getElementById('amzResbar');
+  const excel = document.getElementById('amzExcel');
+  if(!_amzRows.length){
+    excel.style.display='none';
+    document.getElementById('amzResults').innerHTML='';
+    // a manual Stop with 0 results isn't a proxy failure — show a neutral message
+    const msg = status==='stopped'
+      ? 'Stopped before any product was scraped.'
+      : 'No products found — proxies may have been blocked by Amazon. Try again, or set a paid PROXY_URL in .env.';
+    document.getElementById('amzCount').innerHTML='<span class="empty">'+msg+'</span>';
+    resbar.style.display='flex';
+    return;
+  }
+  resbar.style.display='flex';
+  amzRenderPage();
+  document.getElementById('amzCount').textContent =
+    'Showing '+_amzRows.length+' products ('+PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  amzUpdateDownload();
+  excel.href = '/api/amazon/export-excel/' + job_id;   // server builds the 95-column .xlsx
+  excel.style.display='inline-block';
+}
+
+function amzCardEl(x, i){
+  const link = x.ref_url || x.url || '#';
+  const thumb = x.image_1 ? `<img src="${esc(x.image_1)}" alt="" onerror="this.remove()">` : '<span class="ph">📦</span>';
+  const stars = x.rating ? `<span class="stars" title="${esc(x.rating)}">${starStr(x.rating)}</span>${x.reviews?(' ('+esc(x.reviews)+')'):''}` : '';
+  const flags = [x.bage||'', x.summary_bage||'', x.prime?'Prime':''].filter(Boolean).map(t=>`<span>${esc(t)}</span>`).join('');
+  const avail = x.availability ? `<span class="${/in stock/i.test(x.availability)?'open':'closed'}">${esc(x.availability)}</span>` : '';
+  const badges = [stars, avail, flags].filter(Boolean).join('');
+  const about = (x.about || x.description || '').split('\n').slice(0,3).join(' · ');
+  const cats = x.categories || x.store_title || '';
+  const priceLine = [
+    x.price ? `<span class="yp-phone">${esc(x.price)}</span>` : '',
+    x.old_price ? `<span style="text-decoration:line-through;color:#888;font-size:13px;font-weight:400"> ${esc(x.old_price)}</span>` : '',
+    x.price_saving ? `<span style="color:#b00020;font-size:13px"> ${esc(x.price_saving)}</span>` : '',
+  ].filter(Boolean).join(' ');
+  const meta = [
+    x.coupon_save ? `🏷 ${esc(x.coupon_save)}` : '',
+    x.merchant_info ? esc(x.merchant_info) : '',
+    x.details_item_model_number ? `Model: ${esc(x.details_item_model_number)}` : '',
+  ].filter(Boolean).join('<br>');
+  const card = document.createElement('div'); card.className='yp-card';
+  card.innerHTML = `
+    <div class="yp-thumb">${thumb}</div>
+    <div class="yp-main">
+      <a class="yp-name" href="${esc(link)}" target="_blank" rel="noopener"><span class="rank">${i+1}.</span> ${esc(x.name||'(untitled)')}</a>
+      ${cats?`<div class="yp-cats">${esc(cats)}</div>`:''}
+      <div class="yp-links"><a href="${esc(link)}" target="_blank" rel="noopener">View on Amazon</a></div>
+      ${badges?`<div class="yp-badges">${badges}</div>`:''}
+      ${about?`<div class="yp-snippet">${esc(about)}</div>`:''}
+    </div>
+    <div class="yp-side">
+      ${priceLine?`<div>${priceLine}</div>`:''}
+      ${x.asin?`<div class="yp-addr">ASIN: ${esc(x.asin)}</div>`:''}
+      ${meta?`<div class="yp-addr">${meta}</div>`:''}
+    </div>`;
+  return card;
+}
+
+function amzRenderPager(){
+  const pg=document.getElementById('amzPager'); pg.innerHTML='';
+  const pages=Math.ceil(_amzRows.length/PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{const b=document.createElement('button');b.textContent=label;
+    if(o.active)b.className='active'; if(o.disabled)b.disabled=true;
+    b.onclick=()=>{_amzPage=page;amzRenderPage();}; return b;};
+  pg.appendChild(mk('‹ Prev',_amzPage-1,{disabled:_amzPage===0}));
+  let s=Math.max(0,_amzPage-2), e=Math.min(pages-1,_amzPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_amzPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_amzPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_amzPage===pages-1}));}
+  pg.appendChild(mk('Next ›',_amzPage+1,{disabled:_amzPage>=pages-1}));
+  pg.appendChild(pinfo('Page '+(_amzPage+1)+' of '+pages));
+}
+
+function amzRenderPage(){
+  const box=document.getElementById('amzResults'); box.innerHTML='';
+  const start=_amzPage*PAGE_SIZE;
+  _amzRows.slice(start,start+PAGE_SIZE).forEach((x,j)=>box.appendChild(amzCardEl(x,start+j)));
+  amzRenderPager();
+}
+
+function amzUpdateDownload(){
+  const dl=document.getElementById('amzDownload');
+  if(!_amzRows.length){ dl.style.display='none'; return; }
+  if(_amzDlUrl) URL.revokeObjectURL(_amzDlUrl);
+  const blob=new Blob([JSON.stringify(_amzRows, null, 2)], {type:'application/json'});
+  _amzDlUrl=URL.createObjectURL(blob);
+  dl.href=_amzDlUrl;
+  dl.setAttribute('download', 'amazon_'+document.getElementById('amzDomain').value+'.json');
+  dl.style.display='inline-block';
+}
+/* ---------- end Amazon ---------- */
 /* ---------- end services ---------- */
 
 document.getElementById('region').addEventListener('change', updateRegionHint);

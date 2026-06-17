@@ -13,6 +13,17 @@ class ScrapeRequest(BaseModel):
     categories: Optional[list[str]] = Field(None, examples=[["Plumbers"]])  # YP category labels
 
 
+class AmazonScrapeRequest(BaseModel):
+    # one line each: a raw ASIN ("B00K0QKBM6"), a product URL (.../dp/ASIN),
+    # a search URL (.../s?k=...), or a plain search keyword.
+    queries: list[str] = Field(default_factory=list, examples=[["B00K0QKBM6", "golf clubs"]])
+    domain: str = Field("amazon.com", examples=["amazon.com"])
+    postcode: Optional[str] = Field(None, examples=["11201"])
+    language: Optional[str] = Field(None, examples=["en_US"])
+    currency: Optional[str] = Field(None, examples=["USD"])
+    limit: int = Field(1, ge=1, le=1000, examples=[10])  # max results per one query
+
+
 class Business(BaseModel):
     job_id: str
     name: str
