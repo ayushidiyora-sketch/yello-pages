@@ -266,7 +266,7 @@
     <div class="grid">
       <div class="field">
         <label>Domain</label>
-        <select id="amzDomain">
+        <select id="amzDomain" onchange="amzCheckDomain()">
           <option value="amazon.com" selected>amazon.com</option>
           <option value="amazon.co.uk">amazon.co.uk</option>
           <option value="amazon.ca">amazon.ca</option>
@@ -331,7 +331,8 @@
 
     <div class="field full" style="margin-top:14px">
       <label>Product ASINs or URLs <span class="req">*</span></label>
-      <textarea id="amzInput" wrap="off" placeholder="B00K0QKBM6&#10;https://www.amazon.com/s?k=golf+clubs&ref=nb_sb_noss_1"></textarea>
+      <textarea id="amzInput" wrap="off" oninput="amzCheckDomain()" placeholder="B00K0QKBM6&#10;https://www.amazon.com/s?k=golf+clubs&ref=nb_sb_noss_1"></textarea>
+      <div class="hint" id="amzDomainNote" style="display:none;color:var(--amber);margin-top:6px"></div>
       <div class="upload-row">
         <span>or select a CSV/XLSX/TXT/Parquet file</span>
         <button class="btn-upload" type="button" onclick="document.getElementById('amzFile').click()">⬆ Upload file</button>
@@ -843,9 +844,30 @@ async function amzFilePicked(){
     const merged = (ta.value ? ta.value.split(/\r?\n/) : []).concat(lines)
       .map(s=>s.trim()).filter(Boolean);
     ta.value = [...new Set(merged)].join('\n');
+    amzCheckDomain();
     nameEl.textContent = 'Loaded ' + count + ' link' + (count===1?'':'s') + ' from ' + f.name;
   }catch(e){
     nameEl.textContent = 'Upload failed — is the server running?';
+  }
+}
+
+// Warn when a pasted full URL's domain differs from the Domain dropdown. The URL wins
+// (it's scraped on its own marketplace) — this just makes the mismatch visible.
+function amzCheckDomain(){
+  const dd = document.getElementById('amzDomain').value;
+  const doms = new Set();
+  (document.getElementById('amzInput').value || '').split(/\r?\n/).forEach(line=>{
+    const m = line.trim().match(/^https?:\/\/(?:www\.)?([^\/?#]+)/i);
+    if(m){ const h = m[1].toLowerCase(); if(/^amazon\./.test(h) && h !== dd) doms.add(h); }
+  });
+  const note = document.getElementById('amzDomainNote');
+  if(doms.size){
+    note.innerHTML = '⚠ Pasted URL(s) are for <b>' + [...doms].map(esc).join(', ') +
+      '</b>, not the selected <b>' + esc(dd) + '</b>. Full URLs are scraped on their own ' +
+      'domain (the Domain dropdown applies only to plain ASINs / search keywords).';
+    note.style.display = 'block';
+  } else {
+    note.style.display = 'none';
   }
 }
 
