@@ -15,7 +15,7 @@ import re
 
 from bs4 import BeautifulSoup
 from curl_cffi import requests as cffi
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlparse, parse_qs
 
 from .config import settings
 
@@ -84,6 +84,25 @@ def _txt(node):
     return node.get_text(" ", strip=True) if node else None
 
 
+def _website_from_card(c) -> str | None:
+    """yp.ca hides the real site behind a redirect link
+    `<a class="mlr__item__cta" href="/gourl/<hash>?redirect=<urlencoded-url>">`.
+    Pull the `redirect` target out and decode it; fall back to a plain website link."""
+    a = c.select_one("a[href*='/gourl/']")
+    if a and a.get("href"):
+        qs = parse_qs(urlparse(a["href"]).query)
+        target = (qs.get("redirect") or [None])[0]
+        if target:
+            target = unquote(target)
+            if "yellowpages.ca" not in target.lower():
+                return target
+    web_el = c.select_one("a.mlr__item--website, a.listing__website--link")
+    href = web_el.get("href") if web_el else None
+    if href and "yellowpages.ca" not in href.lower():
+        return href
+    return None
+
+
 def parse_ca_cards(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
     out = []
@@ -111,8 +130,19 @@ def parse_ca_cards(html: str) -> list[dict]:
         href = name_el.get("href") if name_el else None
         source_url = (BASE_CA + href.split("?")[0]) if href else None
 
-        web_el = c.select_one("a.mlr__item--website, a.listing__website--link")
-        website = web_el.get("href") if web_el else None
+        website = _website_from_card(c)
+
+        img = c.select_one("img")
+        image = (img.get("src") or img.get("data-src")) if img else None
+        if image and image.startswith("//"):
+            image = "https:" + image
+
+        snip_el = (c.select_one(".listing__description")
+                   or c.select_one(".mlr__item--description")
+                   or c.select_one("[itemprop='description']"))
+        snippet = _txt(snip_el)
+        if snippet:
+            snippet = re.sub(r"^From Business:\s*", "", snippet)
 
         out.append({
             "name": name,
@@ -130,9 +160,9 @@ def parse_ca_cards(html: str) -> list[dict]:
             "email": None,               # not exposed on the CA results page
             "website": website,
             "directions": None,
-            "image": None,
+            "image": image,
             "years_in_business": None,
-            "description": None,
+            "description": snippet,
             "source_url": source_url,
         })
     return out
