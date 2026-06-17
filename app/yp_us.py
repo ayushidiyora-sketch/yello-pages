@@ -405,7 +405,8 @@ def parse_us_cards(html: str) -> list[dict]:
             if whole:
                 rating = whole + (".5" if "half" in cls else ".0")
 
-        web = c.select_one("a.track-visit-website")
+        # US markup uses a.track-visit-website; the AU site (same parser) uses a.yp-website-cta
+        web = c.select_one("a.track-visit-website") or c.select_one("a.yp-website-cta")
         website = web.get("href") if web else None
 
         dir_el = c.select_one("a.directions, a.track-map-it")
