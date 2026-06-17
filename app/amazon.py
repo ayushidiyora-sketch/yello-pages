@@ -156,6 +156,44 @@ def apply_currency(row: dict, target: str) -> dict:
     return row
 
 
+# ---------------- translation (so the Language dropdown = output language) ----------------
+_TRANSLATE_FIELDS = ("name", "about", "description", "categories", "availability")
+
+
+def _lang_code(language: str | None) -> str | None:
+    """'de_DE' -> 'de' (the code Google Translate expects)."""
+    return (language or "").split("_")[0].lower() or None
+
+
+def _translate(text: str, target: str) -> str:
+    """Translate text into `target` via the free Google endpoint, routed through the proxy.
+    Best-effort: returns the original text if translation is unavailable."""
+    if not text or not target:
+        return text
+    try:
+        r = yp_us.pooled_get(
+            "https://translate.googleapis.com/translate_a/single",
+            params={"client": "gtx", "sl": "auto", "tl": target, "dt": "t", "q": text[:1800]},
+            timeout=12,
+        )
+        if r is None or r.status_code != 200:
+            return text
+        data = r.json()
+        out = "".join(seg[0] for seg in data[0] if seg and seg[0])
+        return out or text
+    except Exception:
+        return text
+
+
+async def translate_row(row: dict, code: str):
+    """Translate a product row's text fields into `code` (concurrently). Mutates the row."""
+    vals = await asyncio.gather(
+        *[asyncio.to_thread(_translate, row.get(f, ""), code) for f in _TRANSLATE_FIELDS])
+    for f, v in zip(_TRANSLATE_FIELDS, vals):
+        if v:
+            row[f] = v
+
+
 # ---------------- HTTP through a proxy IP ----------------
 
 def _lang_header(code: str) -> str:
@@ -845,6 +883,7 @@ async def run_amazon_scrape(job_id: str, queries: list[str], domain: str,
     seen: set = set()
     domain = (domain or "amazon.com").strip().lstrip(".") or "amazon.com"
     lang = (language or "").strip() or None        # Accept-Language / lc-main for localized content
+    tlang = _lang_code(language)                   # translate scraped text into this language
     target_cur = (currency or "").strip() or None  # convert scraped prices into this currency
     zipc = (postcode or "").strip() or None        # set Amazon delivery location to this zip
 
@@ -897,6 +936,8 @@ async def run_amazon_scrape(job_id: str, queries: list[str], domain: str,
                     p = parse_product(html, asin, dom, url)
                     if p.get("name"):
                         apply_currency(p, target_cur)
+                        if tlang:
+                            await translate_row(p, tlang)
                         total += await _save(job_id, [p], seen, query=label, position_start=total)
             else:  # search / search_kw
                 if kind == "search":
@@ -917,9 +958,12 @@ async def run_amazon_scrape(job_id: str, queries: list[str], domain: str,
                     cards = parse_search_cards(html, dom)
                     if not cards:
                         break
-                    for card in cards:
+                    to_save = cards[:limit - got]
+                    for card in to_save:
                         apply_currency(card, target_cur)
-                    add = await _save(job_id, cards[:limit - got], seen,
+                    if tlang:
+                        await asyncio.gather(*[translate_row(c, tlang) for c in to_save])
+                    add = await _save(job_id, to_save, seen,
                                       query=label, position_start=total)
                     total += add
                     got += add
