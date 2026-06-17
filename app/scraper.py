@@ -188,6 +188,17 @@ async def run_scrape(job_id: str, search: str, location: str,
             max_records = min(max_records, hard_cap)
         await jobs.update_one({"job_id": job_id}, {"$set": {"total_available": page_total}})
 
+        # Warm the pool BEFORE enriching page 1. Website crawls + amenity detail fetches all go
+        # through the free pool; an unwarmed pool (or a one-page job, which skips the paging warm
+        # below) starves them and every enrichment column comes back empty. Probe a few proxies
+        # first so page-1 enrichment actually has connections to use.
+        if warm_pool and settings.ENRICH:
+            await asyncio.to_thread(
+                yp_us.ensure_pool,
+                {"search_terms": search, "geo_location_terms": location, "page": "1"},
+                BATCH + 2,
+            )
+
         first_cards = await collect(parse_cards(first_html))
         total += await _save(job_id, first_cards, seen,
                              remaining=(hard_cap - total) if hard_cap else None,
