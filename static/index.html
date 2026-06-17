@@ -175,6 +175,7 @@
     #pager button:disabled{opacity:.45;cursor:not-allowed}
     #pager .pinfo{color:var(--muted);font-size:13px;margin:0 8px}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -217,6 +218,7 @@
       <button class="btn-primary" id="startBtn" onclick="start()">▶ Start scraping</button>
       <button class="btn-stop" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
       <a id="download" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="downloadXlsx" style="display:none" onclick="downloadExcel()">⬇ Download Excel</button>
     </div>
   </div>
 
@@ -449,18 +451,32 @@ function toOutscraperRow(x, i){
 
 // Build the Download JSON from the CURRENT view, shaped to the full Outscraper column set.
 let _dlUrl = null;
+function _exportName(ext){
+  const safe=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  return `${safe(document.getElementById('search').value)}_${safe(document.getElementById('location').value)}.${ext}`;
+}
 function updateDownload(){
   const dl=document.getElementById('download');
-  if(!_view.length){ dl.style.display='none'; return; }
+  const xl=document.getElementById('downloadXlsx');
+  if(!_view.length){ dl.style.display='none'; xl.style.display='none'; return; }
   if(_dlUrl) URL.revokeObjectURL(_dlUrl);
   const rows=_view.map((x,i)=>toOutscraperRow(x,i));
   const blob=new Blob([JSON.stringify(rows, null, 2)], {type:'application/json'});
   _dlUrl=URL.createObjectURL(blob);
-  const safe=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   dl.href=_dlUrl;
-  dl.setAttribute('download',
-    `${safe(document.getElementById('search').value)}_${safe(document.getElementById('location').value)}.json`);
+  dl.setAttribute('download', _exportName('json'));
   dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+// Download the CURRENT view as a .xlsx, same 63 Outscraper columns as the JSON export.
+function downloadExcel(){
+  if(!_view.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded (no internet?). Use Download JSON instead.'); return; }
+  const rows=_view.map((x,i)=>toOutscraperRow(x,i));
+  const ws=XLSX.utils.json_to_sheet(rows, {header:OUTSCRAPER_COLUMNS});
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Listings');
+  XLSX.writeFile(wb, _exportName('xlsx'));
 }
 /* ---------- end filters + sort ---------- */
 
