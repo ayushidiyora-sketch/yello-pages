@@ -143,12 +143,18 @@ async def amazon_export_excel(job_id: str):
     rows = [amazon.to_export(d) async for d in products.find({"job_id": job_id}, {"_id": 0})]
     rows.sort(key=lambda r: r.get("position") or 0)
 
+    # header = fixed 95 columns + any dynamic details_/overview_ columns the products have
+    fixed = set(amazon.EXPORT_COLUMNS)
+    extras = sorted({k for r in rows for k in r if k not in fixed})
+    header = [c for c in amazon.EXPORT_COLUMNS if c not in ("position", "query")] \
+        + extras + ["position", "query"]
+
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Products"
-    ws.append(amazon.EXPORT_COLUMNS)            # header row = all 95 columns
+    ws.append(header)
     for r in rows:
-        ws.append([_xlsx_cell(r.get(c, "")) for c in amazon.EXPORT_COLUMNS])
+        ws.append([_xlsx_cell(r.get(c, "")) for c in header])
 
     buf = io.BytesIO()
     wb.save(buf)

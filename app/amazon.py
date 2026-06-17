@@ -747,20 +747,21 @@ def parse_product(html: str, asin: str | None, domain: str, url: str) -> dict:
     for i, src in enumerate(imgs[:5], start=1):
         row[f"image_{i}"] = src
 
-    # ---- detail tables -> details_<key> (only columns in the fixed schema) ----
+    # ---- detail tables -> details_<key>. Fixed-schema columns fill in place; any EXTRA
+    # attributes the product has (not in the 95) are kept as their own dynamic columns. ----
     for key, val in _detail_pairs(soup).items():
         col = "details_" + key
-        if col in _COLSET and not row.get(col):
+        if not row.get(col):
             row[col] = val
     if not row["details_best_sellers_rank"]:
         sr = soup.select_one("#SalesRank")
         if sr:
             row["details_best_sellers_rank"] = re.sub(r"\s+", " ", sr.get_text(" ", strip=True)).strip()
 
-    # ---- product overview -> overview_<key> ----
+    # ---- product overview -> overview_<key> (fixed columns + any extra attributes) ----
     for key, val in _overview_pairs(soup).items():
         col = "overview_" + key
-        if col in _COLSET and not row.get(col):
+        if not row.get(col):
             row[col] = val
 
     return row
@@ -789,8 +790,23 @@ async def _save(job_id: str, items: list[dict], seen: set, query: str = "",
 
 
 def to_export(doc: dict) -> dict:
-    """Return the doc as the fixed Outscraper column schema, in order (drops internals)."""
-    return {c: doc.get(c, "") for c in EXPORT_COLUMNS}
+    """Return the doc as the fixed Outscraper schema PLUS any dynamic details_/overview_
+    columns this product actually has (so its real attributes aren't dropped). Fixed columns
+    come first, extras (sorted) in the middle, position/query last. Internals are dropped."""
+    extras = sorted(k for k, v in doc.items()
+                    if k not in _COLSET and (k.startswith("details_") or k.startswith("overview_")))
+    if not extras:
+        return {c: doc.get(c, "") for c in EXPORT_COLUMNS}
+    out = {}
+    for c in EXPORT_COLUMNS:
+        if c in ("position", "query"):
+            continue
+        out[c] = doc.get(c, "")
+    for k in extras:
+        out[k] = doc.get(k, "")
+    out["position"] = doc.get("position", "")
+    out["query"] = doc.get("query", "")
+    return out
 
 
 async def export_products(job_id: str) -> str:
