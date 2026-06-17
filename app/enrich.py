@@ -430,6 +430,31 @@ async def enrich_amenities(cards: list[dict], fetch_detail) -> list[dict]:
     return cards
 
 
+async def enrich_fr_details(cards: list[dict], fetch_detail) -> list[dict]:
+    """FR-only: pagesjaunes hides the website + amenities on the SERP, so render each
+    business's detail page once and pull `website` (used next by enrich_cards to crawl for
+    emails/socials/meta) and `amenities`. Best-effort; the browser is serial so these queue."""
+    from . import yp_fr
+    for c in cards:
+        c.setdefault("amenities", None)
+    if not cards or not fetch_detail:
+        return cards
+
+    async def one(card: dict):
+        url = card.get("source_url")
+        if not url:
+            return
+        html = await fetch_detail(url)
+        website, amenities = yp_fr.parse_detail(html)
+        if website and not card.get("website"):
+            card["website"] = website
+        if amenities:
+            card["amenities"] = amenities
+
+    await asyncio.gather(*[one(c) for c in cards])
+    return cards
+
+
 def _clean_phones(raws: list, region: str | None) -> list:
     """Validate website-scraped numbers with libphonenumber: drop junk (e.g. '50.000 100'),
     normalize, and dedupe by E.164 (so +1-prefixed and bare forms collapse). Returns up to 3

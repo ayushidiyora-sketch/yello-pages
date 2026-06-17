@@ -7,6 +7,7 @@ db = client[settings.MONGO_DB]
 jobs = db["jobs"]              # one doc per scrape run
 businesses = db["businesses"]  # one doc per scraped listing (Yellow Pages)
 products = db["products"]      # one doc per scraped Amazon product
+gresults = db["gresults"]      # one doc per Google/DDG search result row
 
 
 async def ensure_indexes():
@@ -19,3 +20,4 @@ async def ensure_indexes():
     # Amazon products: fetch-by-job + de-dupe the same ASIN within one job
     await products.create_index("job_id")
     await products.create_index([("job_id", 1), ("asin", 1)])
+    await gresults.create_index("job_id")

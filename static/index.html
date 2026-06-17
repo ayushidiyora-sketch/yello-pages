@@ -178,15 +178,29 @@
     .resbar-controls .btn-ghost{padding:8px 14px;font-size:14px;font-weight:600}
 
     /* pagination */
-    #pager{display:flex;align-items:center;justify-content:center;gap:6px;
+    #pager,#gPager{display:flex;align-items:center;justify-content:center;gap:6px;
       flex-wrap:wrap;margin:18px 0 4px}
-    #pager button{padding:7px 12px;font-size:14px;font-weight:600;border:1px solid var(--line);
+    #pager button,#gPager button{padding:7px 12px;font-size:14px;font-weight:600;border:1px solid var(--line);
       background:#fff;color:var(--ink);border-radius:7px;cursor:pointer;min-width:38px}
-    #pager button:hover:not(:disabled){border-color:var(--yp);background:#fffdf5}
-    #pager button.active{background:var(--yp);border-color:var(--yp);color:#fff}
-    #pager button:disabled{opacity:.45;cursor:not-allowed}
-    #pager .pinfo{color:var(--muted);font-size:13px;margin:0 8px}
+    #pager button:hover:not(:disabled),#gPager button:hover:not(:disabled){border-color:var(--yp);background:#fffdf5}
+    #pager button.active,#gPager button.active{background:var(--yp);border-color:var(--yp);color:#fff}
+    #pager button:disabled,#gPager button:disabled{opacity:.45;cursor:not-allowed}
+    #pager .pinfo,#gPager .pinfo{color:var(--muted);font-size:13px;margin:0 8px}
+    /* Google-style search result cards */
+    #gResults{max-width:680px}
+    .gres{padding:16px 0;border-bottom:1px solid var(--line)}
+    .gres:last-child{border-bottom:0}
+    .gres-head{display:flex;align-items:center;gap:11px;margin-bottom:3px}
+    .gres-fav{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);padding:5px;background:#fff;flex:0 0 auto;object-fit:contain}
+    .gres-meta{min-width:0}
+    .gres-site{font-size:14px;color:#202124;line-height:1.25}
+    .gres-url{font-size:12px;color:#5f6368;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .gres-title{font-size:20px;color:#1a0dab;text-decoration:none;display:inline-block;margin:3px 0 2px;line-height:1.3}
+    .gres-title:hover{text-decoration:underline}
+    .gres-desc{font-size:14px;color:#4d5156;line-height:1.55}
+    .gres-badge{font-size:10px;font-weight:700;text-transform:uppercase;color:#5f6368;border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-left:8px;vertical-align:middle}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -229,6 +243,7 @@
       <button class="btn-primary" id="startBtn" onclick="start()">▶ Start scraping</button>
       <button class="btn-stop" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
       <a id="download" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="downloadXlsx" style="display:none" onclick="downloadExcel()">⬇ Download Excel</button>
     </div>
   </div>
 
@@ -360,6 +375,84 @@
   <div id="amzResults"></div>
   <div id="amzPager"></div>
   </div><!-- /amazonView -->
+
+  <!-- Google Search Scraper form (powered by DuckDuckGo via the proxy pool — no real IP) -->
+  <div id="gsearchView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries to search <span class="req">*</span></label>
+        <textarea id="gInput" placeholder="chatgpt&#10;openai&#10;best crm software"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit (records)</label>
+        <input id="gLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+      <div class="field">
+        <label>Date range</label>
+        <select id="gDate">
+          <option value="">Any time</option>
+          <option value="day">Past day</option>
+          <option value="week">Past week</option>
+          <option value="month">Past month</option>
+          <option value="year">Past year</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gLang">
+          <option value="en" selected>English (en)</option>
+          <option value="fr">French (fr)</option>
+          <option value="es">Spanish (es)</option>
+          <option value="de">German (de)</option>
+          <option value="it">Italian (it)</option>
+          <option value="pt">Portuguese (pt)</option>
+          <option value="nl">Dutch (nl)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Region</label>
+        <select id="gRegion">
+          <option value="us" selected>United States (us)</option>
+          <option value="uk">United Kingdom (uk)</option>
+          <option value="ca">Canada (ca)</option>
+          <option value="au">Australia (au)</option>
+          <option value="fr">France (fr)</option>
+          <option value="de">Germany (de)</option>
+          <option value="in">India (in)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>UULE <span class="help" title="Google-only geo code. DuckDuckGo (used here) ignores it.">?</span></label>
+        <input id="gUule" type="text" placeholder="(Google-only — ignored)">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gStartBtn" onclick="gStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="gStopBtn" onclick="gStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gStatus"></div>
+  <div class="bar" id="gBar"><i></i></div>
+
+  <div class="resbar" id="gResbar" style="display:none">
+    <div class="count" id="gCount"></div>
+    <div class="resbar-controls">
+      <a id="gDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gDownloadXlsx" style="display:none" onclick="gDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gResults"></div>
+  <div id="gPager"></div>
+  </div><!-- /gsearchView -->
    </div><!-- /wrap -->
   </main>
 </div><!-- /app -->
@@ -562,18 +655,32 @@ function toOutscraperRow(x, i){
 
 // Build the Download JSON from the CURRENT view, shaped to the full Outscraper column set.
 let _dlUrl = null;
+function _exportName(ext){
+  const safe=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  return `${safe(document.getElementById('search').value)}_${safe(document.getElementById('location').value)}.${ext}`;
+}
 function updateDownload(){
   const dl=document.getElementById('download');
-  if(!_view.length){ dl.style.display='none'; return; }
+  const xl=document.getElementById('downloadXlsx');
+  if(!_view.length){ dl.style.display='none'; if(xl) xl.style.display='none'; return; }
   if(_dlUrl) URL.revokeObjectURL(_dlUrl);
   const rows=_view.map((x,i)=>toOutscraperRow(x,i));
   const blob=new Blob([JSON.stringify(rows, null, 2)], {type:'application/json'});
   _dlUrl=URL.createObjectURL(blob);
-  const safe=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   dl.href=_dlUrl;
-  dl.setAttribute('download',
-    `${safe(document.getElementById('search').value)}_${safe(document.getElementById('location').value)}.json`);
+  dl.setAttribute('download', _exportName('json'));
   dl.style.display='inline-block';
+  if(xl) xl.style.display='inline-block';
+}
+// Download the CURRENT view as .xlsx (same 63 Outscraper columns as the JSON export).
+function downloadExcel(){
+  if(!_view.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded (no internet?). Use Download JSON instead.'); return; }
+  const rows=_view.map((x,i)=>toOutscraperRow(x,i));
+  const ws=XLSX.utils.json_to_sheet(rows, {header:OUTSCRAPER_COLUMNS});
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Listings');
+  XLSX.writeFile(wb, _exportName('xlsx'));
 }
 /* ---------- end filters + sort ---------- */
 
@@ -805,6 +912,7 @@ function selectService(s, keep){
   const vt = viewType(s);
   document.getElementById('scraperView').style.display = vt==='yellowpages' ? '' : 'none';
   document.getElementById('amazonView').style.display  = vt==='amazon' ? '' : 'none';
+  document.getElementById('gsearchView').style.display = vt==='gsearch' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -816,6 +924,7 @@ function selectService(s, keep){
 // which form a service renders: a dedicated Amazon form, the live Yellow Pages form, or the "coming soon" catalog
 function viewType(s){
   if(s.ui === 'amazon') return 'amazon';
+  if(s.ui === 'gsearch') return 'gsearch';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -1025,6 +1134,193 @@ function amzUpdateDownload(){
   dl.style.display='inline-block';
 }
 /* ---------- end Amazon ---------- */
+
+/* ---------- Google Search Scraper (DuckDuckGo via the proxy pool) ---------- */
+const GSEARCH_COLUMNS = ["query","link","title","description","question","position","type"];
+const G_PAGE_SIZE = 15;
+let gTimer=null, gJob=null, _gRows=[], _gDlUrl=null, _gPage=0;
+
+async function gFilePicked(){
+  const f=document.getElementById('gFile').files[0];
+  const nameEl=document.getElementById('gFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
+      append(rows.map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.';
+    } else { // csv / txt
+      const text=await f.text();
+      append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean));
+    }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gSetRunning(on){
+  document.getElementById('gStartBtn').disabled=on;
+  document.getElementById('gStopBtn').disabled=!on;
+  ['gInput','gLimit','gDate','gLang','gRegion','gUule'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gStart(){
+  const typed=document.getElementById('gInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('gLimit').value,10);
+  const body={
+    queries,
+    limit: (lim>0 ? lim : null),
+    date_range: document.getElementById('gDate').value,
+    region: document.getElementById('gRegion').value,
+    language: document.getElementById('gLang').value,
+    uule: document.getElementById('gUule').value.trim(),
+  };
+  let r;
+  try{ r=await fetch('/api/gsearch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gJob=(await r.json()).job_id;
+  _gRows=[]; _gPage=0;
+  document.getElementById('gResbar').style.display='none';
+  document.getElementById('gResults').innerHTML='';
+  document.getElementById('gPager').innerHTML='';
+  document.getElementById('gCount').textContent='';
+  document.getElementById('gBar').style.display='block';
+  document.querySelector('#gBar>i').style.width='30%';
+  gSetRunning(true);
+  if(gTimer) clearInterval(gTimer);
+  gTimer=setInterval(()=>gPoll(gJob),1500);
+  gPoll(gJob);
+}
+
+async function gStop(){ if(gJob){ document.getElementById('gStopBtn').disabled=true; await fetch('/api/stop/'+gJob,{method:'POST'}); } }
+
+async function gPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching… '+got+' results';
+  } else {
+    clearInterval(gTimer); gSetRunning(false);
+    document.getElementById('gBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' results';
+      gShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gShowResults(job_id){
+  _gRows=await (await fetch('/api/gresults/'+job_id+'?limit=2000')).json();
+  const resbar=document.getElementById('gResbar');
+  if(!_gRows.length){
+    document.getElementById('gResults').innerHTML='';
+    document.getElementById('gCount').innerHTML='<span class="empty">No results — the proxies may have been rate-limited. Try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gDownload').style.display='none';
+    document.getElementById('gDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gPage=0;
+  gRender();
+  const organic=_gRows.filter(r=>r.type!=='related').length;
+  document.getElementById('gCount').textContent='Showing '+organic+' results ('+G_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gUpdateDownload();
+}
+
+function gHost(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return ''; } }
+function gCrumb(u){
+  try{
+    const x=new URL(u);
+    const parts=x.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+    return x.protocol+'//'+x.hostname.replace(/^www\./,'')+(parts.length?(' › '+parts.join(' › ')):'');
+  }catch(e){ return u||''; }
+}
+function gRender(){
+  const rows=_gRows.filter(r=>r.type!=='related');
+  const start=_gPage*G_PAGE_SIZE;
+  let h='';
+  for(const r of rows.slice(start, start+G_PAGE_SIZE)){
+    const host=gHost(r.link);
+    const fav=host?`<img class="gres-fav" src="https://icons.duckduckgo.com/ip3/${esc(host)}.ico" alt="" onerror="this.style.visibility='hidden'">`:'<span class="gres-fav"></span>';
+    const badge=r.type!=='organic'?`<span class="gres-badge">${esc(r.type)}</span>`:'';
+    h+=`<div class="gres">
+      <div class="gres-head">${fav}<div class="gres-meta">
+        <div class="gres-site">${esc(host||r.query)}${badge}</div>
+        <div class="gres-url">${esc(gCrumb(r.link))}</div>
+      </div></div>
+      <a class="gres-title" href="${esc(r.link||'#')}" target="_blank" rel="noopener">${esc(r.title||r.link||'')}</a>
+      <div class="gres-desc">${esc(r.description||'')}</div>
+    </div>`;
+  }
+  // related searches shown on the last page only
+  const pages=Math.max(1, Math.ceil(rows.length/G_PAGE_SIZE));
+  if(_gPage>=pages-1){
+    const rel=_gRows.filter(r=>r.type==='related').map(r=>esc(r.question));
+    if(rel.length) h+='<div class="hint" style="margin-top:16px"><b>Related searches:</b> '+rel.join(' · ')+'</div>';
+  }
+  document.getElementById('gResults').innerHTML=h;
+  gRenderPager(rows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gRenderPager(total){
+  const pg=document.getElementById('gPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/G_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gPage=page; gRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gPage-1,{disabled:_gPage===0}));
+  let s=Math.max(0,_gPage-2), e=Math.min(pages-1,_gPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gPage+1,{disabled:_gPage>=pages-1}));
+}
+
+function gFileName(){
+  const q=(document.getElementById('gInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'google-search_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+
+function gUpdateDownload(){
+  const dl=document.getElementById('gDownload'), xl=document.getElementById('gDownloadXlsx');
+  if(!_gRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gDlUrl) URL.revokeObjectURL(_gDlUrl);
+  const rows=_gRows.map(r=>{ const o={}; for(const c of GSEARCH_COLUMNS) o[c]=r[c]??''; return o; });
+  const blob=new Blob([JSON.stringify(rows,null,2)],{type:'application/json'});
+  _gDlUrl=URL.createObjectURL(blob);
+  dl.href=_gDlUrl; dl.setAttribute('download', gFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+
+function gDownloadExcel(){
+  if(!_gRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded (no internet?).'); return; }
+  const rows=_gRows.map(r=>{ const o={}; for(const c of GSEARCH_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GSEARCH_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Results');
+  XLSX.writeFile(wb, gFileName()+'.xlsx');
+}
+/* ---------- end Google Search ---------- */
 /* ---------- end services ---------- */
 
 document.getElementById('region').addEventListener('change', updateRegionHint);
@@ -1032,7 +1328,7 @@ document.getElementById('region').addEventListener('change', updateRegionHint);
 document.getElementById('filtersModal').addEventListener('click', e=>{
   if(e.target.id==='filtersModal') closeFilters();
 });
-loadRegions();
+loadRegions();  
 loadServices();
 </script>
 </body>

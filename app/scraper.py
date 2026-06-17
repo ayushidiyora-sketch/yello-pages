@@ -16,9 +16,9 @@ REGIONS = {
     "au": "https://www.yellowpages.com.au",
     "ca": "https://www.yellowpages.ca",
     "be": "https://www.goldenpages.be",
-    "fr": "https://www.yellowpages.fr",
+    "fr": "https://www.pagesjaunes.fr",
 }
-SUPPORTED_REGIONS = {"us", "au", "ca"}
+SUPPORTED_REGIONS = {"us", "au", "ca", "fr"}
 
 # ----- Cooperative cancellation: a Stop request drops the job_id in here; run_scrape
 # checks it between pages and finishes early with status "stopped". -----
@@ -136,8 +136,8 @@ async def run_scrape(job_id: str, search: str, location: str,
         if region not in SUPPORTED_REGIONS:
             raise RuntimeError(
                 f"Region '{region}' isn't supported yet — only US (yellowpages.com), "
-                f"AU (yellowpages.com.au) and CA (yellowpages.ca) are implemented. "
-                f"Choose US, AU or CA in the Region dropdown."
+                f"AU (yellowpages.com.au), CA (yellowpages.ca) and FR (pagesjaunes.fr) are "
+                f"implemented. Choose US, AU, CA or FR in the Region dropdown."
             )
 
         # ---- pick the per-region scraper (same card layout; different fetch + URL) ----
@@ -157,6 +157,13 @@ async def run_scrape(job_id: str, search: str, location: str,
             detail_sync = yp_ca.fetch_detail_sync
             proxy_mode = "ca-paid-proxy" if paid else "ca-free-pool"
             warm_pool = not paid  # route CA through the free pool so no real IP is used
+        elif region == "fr":
+            from . import yp_fr
+            fetch, parse_total, parse_cards = (
+                yp_fr.fetch_fr_page, yp_fr.parse_fr_total, yp_fr.parse_fr_cards)
+            detail_sync = yp_fr.fetch_detail_sync
+            proxy_mode = "fr-browser"  # pagesjaunes.fr is Cloudflare-walled -> headless browser
+            warm_pool = False          # no proxy pool; the browser fetches directly
         else:  # us
             fetch, parse_total, parse_cards = (
                 yp_us.fetch_us_page, yp_us.parse_us_total, yp_us.parse_us_cards)
@@ -172,10 +179,16 @@ async def run_scrape(job_id: str, search: str, location: str,
         async def collect(html_cards):
             """Website-enrichment + amenities (detail page) for a page's cards — run in
             parallel (independent fields) to cut wall-clock time."""
-            await asyncio.gather(
-                enrich.enrich_cards(html_cards, region),
-                enrich.enrich_amenities(html_cards, detail_fetch),
-            )
+            if region == "fr":
+                # pagesjaunes hides website+amenities on the SERP: render each detail page to
+                # get them FIRST, then crawl the discovered website for emails/socials/meta.
+                await enrich.enrich_fr_details(html_cards, detail_fetch)
+                await enrich.enrich_cards(html_cards, region)
+            else:
+                await asyncio.gather(
+                    enrich.enrich_cards(html_cards, region),
+                    enrich.enrich_amenities(html_cards, detail_fetch),
+                )
             return html_cards
 
         # Page 1 first: gives the grand total and (US free pool) warms _GOOD.
