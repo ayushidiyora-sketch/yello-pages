@@ -6,6 +6,7 @@ db = client[settings.MONGO_DB]
 
 jobs = db["jobs"]              # one doc per scrape run
 businesses = db["businesses"]  # one doc per scraped listing
+gresults = db["gresults"]      # one doc per Google/DDG search result row
 
 
 async def ensure_indexes():
@@ -15,3 +16,4 @@ async def ensure_indexes():
         [("job_id", 1), ("name", 1), ("phone", 1)], unique=True
     )
     await jobs.create_index("job_id", unique=True)
+    await gresults.create_index("job_id")

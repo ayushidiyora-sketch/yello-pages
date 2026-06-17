@@ -6,10 +6,10 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 
-from .db import jobs, businesses, ensure_indexes
-from .models import ScrapeRequest
+from .db import jobs, businesses, gresults, ensure_indexes
+from .models import ScrapeRequest, GSearchRequest
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us
+from . import yp_us, gsearch
 
 
 @asynccontextmanager
@@ -43,7 +43,7 @@ async def regions():
         "au": "AU (yellowpages.com.au)",
         "ca": "CA (yellowpages.ca)",
         "be": "BE (goldenpages.be)",
-        "fr": "FR (yellowpages.fr)",
+        "fr": "FR (pagesjaunes.fr)",
     }
     return [
         {"code": code, "label": labels.get(code, code), "supported": code in SUPPORTED_REGIONS}
@@ -79,6 +79,30 @@ async def start_scrape(req: ScrapeRequest):
     # launch background scraping (returns immediately)
     asyncio.create_task(run_scrape(job_id, req.search, req.location, req.region, req.limit))
     return {"job_id": job_id}
+
+
+@app.post("/api/gsearch")
+async def gsearch_start(req: GSearchRequest):
+    """Google Search Scraper (powered by DuckDuckGo via the proxy pool — no real IP)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gsearch", "queries": queries, "limit": req.limit,
+        "date_range": req.date_range, "region": req.region, "language": req.language,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(gsearch.run_job(
+        job_id, queries, req.limit, req.date_range or "", req.region, req.language))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gresults/{job_id}")
+async def gsearch_results(job_id: str, limit: int = 2000):
+    rows = [d async for d in gresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
 
 
 @app.post("/api/stop/{job_id}")

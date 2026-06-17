@@ -13,6 +13,15 @@ class ScrapeRequest(BaseModel):
     categories: Optional[list[str]] = Field(None, examples=[["Plumbers"]])  # YP category labels
 
 
+class GSearchRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["chatgpt"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[10])  # rows/query; None = all
+    date_range: Optional[str] = Field("", examples=["any"])   # any|day|week|month|year
+    region: str = Field("us", examples=["us"])
+    language: str = Field("en", examples=["en"])
+    uule: Optional[str] = Field("", examples=[""])             # Google-only geo code (ignored on DDG)
+
+
 class Business(BaseModel):
     job_id: str
     name: str
