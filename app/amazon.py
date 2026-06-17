@@ -457,6 +457,16 @@ def parse_upload(filename: str, data: bytes) -> list[str]:
     return out
 
 
+def _domain_of(u: str) -> str | None:
+    """Host of a URL without 'www.' (e.g. 'amazon.se'), or None. Lets a pasted full URL
+    drive the marketplace (currency/fetch) instead of the dropdown domain."""
+    try:
+        host = urlparse(u).netloc.lower()
+        return (host[4:] if host.startswith("www.") else host) or None
+    except Exception:
+        return None
+
+
 def _label(spec) -> str:
     """Human-readable query label stored on each product row."""
     return {"asin": spec[1] if spec[0] == "asin" else "",
@@ -873,32 +883,38 @@ async def run_amazon_scrape(job_id: str, queries: list[str], domain: str,
 
             if kind in ("asin", "product", "product_url"):
                 if kind == "asin":
-                    asin, url = spec[1], f"https://www.{domain}/dp/{spec[1]}"
+                    asin, url, dom = spec[1], f"https://www.{domain}/dp/{spec[1]}", domain
                 elif kind == "product":
                     asin, url = spec[1], spec[2]
+                    dom = _domain_of(url) or domain     # a pasted URL drives its own marketplace
                 else:
                     asin, url = None, spec[1]
-                html = await _fetch(url, lang, zipc, domain, stopped)
+                    dom = _domain_of(url) or domain
+                html = await _fetch(url, lang, zipc, dom, stopped)
                 if stopped():                       # Stop pressed during the fetch — don't save it
                     await finish("stopped"); return
                 if html:
-                    p = parse_product(html, asin, domain, url)
+                    p = parse_product(html, asin, dom, url)
                     if p.get("name"):
                         apply_currency(p, target_cur)
                         total += await _save(job_id, [p], seen, query=label, position_start=total)
             else:  # search / search_kw
-                search_url = spec[1] if kind == "search" else f"https://www.{domain}/s?k={quote_plus(spec[1])}"
+                if kind == "search":
+                    search_url = spec[1]
+                    dom = _domain_of(search_url) or domain
+                else:
+                    search_url, dom = f"https://www.{domain}/s?k={quote_plus(spec[1])}", domain
                 got = 0
                 page = 1
                 while got < limit and page <= MAX_SEARCH_PAGES:
                     if stopped():
                         await finish("stopped"); return
-                    html = await _fetch(_with_page(search_url, page), lang, zipc, domain, stopped)
+                    html = await _fetch(_with_page(search_url, page), lang, zipc, dom, stopped)
                     if stopped():                   # Stop pressed during the fetch — don't save it
                         await finish("stopped"); return
                     if not html:
                         break
-                    cards = parse_search_cards(html, domain)
+                    cards = parse_search_cards(html, dom)
                     if not cards:
                         break
                     for card in cards:
