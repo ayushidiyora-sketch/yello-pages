@@ -53,6 +53,12 @@ class BBBRequest(BaseModel):
     limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # rows/query; None = all
 
 
+class BBBReviewsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # a bbb.org reviews/profile URL
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/business; None = all
+    sort: str = Field("recent", examples=["recent"])  # recent | highest | lowest
+
+
 class Business(BaseModel):
     job_id: str
     name: str

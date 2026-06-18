@@ -689,11 +689,12 @@
   "no": "69",
   "name": "BBB Business Reviews Scraper",
   "brand": "BBB Business",
-  "description": "Returns reviews from a list of businesses",
+  "description": "Returns customer reviews from a bbb.org business",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "bbb_reviews"
  },
  {
   "no": "70",
