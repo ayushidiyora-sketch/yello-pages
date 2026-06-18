@@ -7,11 +7,70 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, Response
 
 from .db import (jobs, businesses, products, reviews, ebay_products, gresults, bbbresults,
-                 ensure_indexes)
+                 g2reviews, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
-                     EbayScrapeRequest, GSearchRequest, BBBRequest)
+                     EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us, amazon, amazon_reviews, ebay, gsearch, bbb
+from . import yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, g2, storage
+
+
+# ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
+# A thin wrapper around every background scrape: run it as usual (Mongo stays the live store
+# the UI polls), then — done, stopped, or error — export whatever landed in Mongo to a per-job
+# folder with an Excel + JSON file. Scraper modules are untouched.
+
+async def _amazon_rows(job_id):
+    rows = [amazon.to_export(d) async for d in products.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    fixed = set(amazon.EXPORT_COLUMNS)
+    extras = sorted({k for r in rows for k in r if k not in fixed})
+    header = [c for c in amazon.EXPORT_COLUMNS if c not in ("position", "query")] \
+        + extras + ["position", "query"]
+    return rows, header
+
+
+async def _reviews_rows(job_id):
+    rows = [amazon_reviews.to_export(d) async for d in reviews.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, amazon_reviews.REVIEW_COLUMNS
+
+
+async def _ebay_rows(job_id):
+    rows = [ebay.to_export(d) async for d in ebay_products.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, ebay.EBAY_COLUMNS
+
+
+async def _yp_rows(job_id):
+    rows = [d async for d in businesses.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, None
+
+
+async def _gsearch_rows(job_id):
+    rows = [d async for d in gresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, None
+
+
+async def _bbb_rows(job_id):
+    rows = [d async for d in bbbresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, None
+
+
+async def _g2_rows(job_id):
+    rows = [g2.to_export(d) async for d in g2reviews.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, g2.G2_COLUMNS
+
+
+async def _run_and_archive(coro, service, job_id, fetch):
+    try:
+        await coro
+    finally:
+        try:
+            rows, header = await fetch(job_id)
+            await storage.archive(service, job_id, rows, header)
+        except Exception:
+            pass  # archiving must never break the job
 
 
 @asynccontextmanager
@@ -85,7 +144,9 @@ async def start_scrape(req: ScrapeRequest):
         "finished_at": None,
     })
     # launch background scraping (returns immediately)
-    asyncio.create_task(run_scrape(job_id, req.search, req.location, req.region, req.limit))
+    asyncio.create_task(_run_and_archive(
+        run_scrape(job_id, req.search, req.location, req.region, req.limit),
+        "yellowpages", job_id, _yp_rows))
     return {"job_id": job_id}
 
 
@@ -118,8 +179,10 @@ async def start_amazon_scrape(req: AmazonScrapeRequest):
         "started_at": datetime.utcnow(),
         "finished_at": None,
     })
-    asyncio.create_task(amazon.run_amazon_scrape(
-        job_id, queries, req.domain, req.postcode, req.language, req.currency, req.limit))
+    asyncio.create_task(_run_and_archive(
+        amazon.run_amazon_scrape(
+            job_id, queries, req.domain, req.postcode, req.language, req.currency, req.limit),
+        "amazon_products", job_id, _amazon_rows))
     return {"job_id": job_id}
 
 
@@ -202,7 +265,9 @@ async def start_amazon_reviews(req: AmazonReviewsRequest):
         "started_at": datetime.utcnow(),
         "finished_at": None,
     })
-    asyncio.create_task(amazon_reviews.run_reviews_scrape(job_id, queries, req.domain, req.limit))
+    asyncio.create_task(_run_and_archive(
+        amazon_reviews.run_reviews_scrape(job_id, queries, req.domain, req.limit),
+        "amazon_reviews", job_id, _reviews_rows))
     return {"job_id": job_id}
 
 
@@ -258,7 +323,9 @@ async def start_ebay_scrape(req: EbayScrapeRequest):
         "total_available": expected or len(queries),
         "started_at": datetime.utcnow(), "finished_at": None,
     })
-    asyncio.create_task(ebay.run_ebay_scrape(job_id, queries, req.country, req.postcode, req.limit))
+    asyncio.create_task(_run_and_archive(
+        ebay.run_ebay_scrape(job_id, queries, req.country, req.postcode, req.limit),
+        "ebay_products", job_id, _ebay_rows))
     return {"job_id": job_id}
 
 
@@ -305,8 +372,9 @@ async def gsearch_start(req: GSearchRequest):
         "status": "running", "total_scraped": 0,
         "started_at": datetime.utcnow(), "finished_at": None,
     })
-    asyncio.create_task(gsearch.run_job(
-        job_id, queries, req.limit, req.date_range or "", req.region, req.language))
+    asyncio.create_task(_run_and_archive(
+        gsearch.run_job(job_id, queries, req.limit, req.date_range or "", req.region, req.language),
+        "google_search", job_id, _gsearch_rows))
     return {"job_id": job_id}
 
 
@@ -328,13 +396,39 @@ async def bbb_start(req: BBBRequest):
         "status": "running", "total_scraped": 0,
         "started_at": datetime.utcnow(), "finished_at": None,
     })
-    asyncio.create_task(bbb.run_job(job_id, queries, req.limit))
+    asyncio.create_task(_run_and_archive(
+        bbb.run_job(job_id, queries, req.limit),
+        "bbb_business", job_id, _bbb_rows))
     return {"job_id": job_id}
 
 
 @app.get("/api/bbb/results/{job_id}")
 async def bbb_results(job_id: str, limit: int = 2000):
     rows = [d async for d in bbbresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/g2")
+async def g2_start(req: G2Request):
+    """G2 Reviews Scraper (g2.com). Queries may be product-reviews URLs, product URLs, or slugs."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "g2", "queries": queries, "limit": req.limit,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        g2.run_job(job_id, queries, req.limit, req.sort or ""),
+        "g2_reviews", job_id, _g2_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/g2/results/{job_id}")
+async def g2_results(job_id: str, limit: int = 4000):
+    rows, _ = await _g2_rows(job_id)
     return rows[:limit]
 @app.post("/api/stop/{job_id}")
 async def stop(job_id: str):

@@ -53,6 +53,13 @@ class BBBRequest(BaseModel):
     limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # rows/query; None = all
 
 
+class G2Request(BaseModel):
+    # one line each: a g2.com product-reviews URL, a product URL, or a bare product slug.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.g2.com/products/outscraper/reviews"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # reviews/query; None = all
+    sort: str = Field("", examples=["most_recent"])  # ""|most_recent|most_helpful|highest_rated|lowest_rated
+
+
 class Business(BaseModel):
     job_id: str
     name: str
