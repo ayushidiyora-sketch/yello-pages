@@ -281,7 +281,7 @@
     <div class="grid">
       <div class="field">
         <label>Domain</label>
-        <select id="amzDomain">
+        <select id="amzDomain" onchange="amzCheckPostcode()">
           <option value="amazon.com" selected>amazon.com</option>
           <option value="amazon.co.uk">amazon.co.uk</option>
           <option value="amazon.ca">amazon.ca</option>
@@ -303,7 +303,8 @@
       </div>
       <div class="field">
         <label>Delivery postcode</label>
-        <input id="amzPostcode" placeholder="11201">
+        <input id="amzPostcode" placeholder="11201" oninput="amzCheckPostcode()">
+        <span class="hint" id="amzPostcodeNote" style="display:none;color:var(--amber)"></span>
       </div>
       <div class="field">
         <label>Language</label>
@@ -346,7 +347,7 @@
 
     <div class="field full" style="margin-top:14px">
       <label>Product ASINs or URLs <span class="req">*</span></label>
-      <textarea id="amzInput" wrap="off" placeholder="B00K0QKBM6&#10;https://www.amazon.com/s?k=golf+clubs&ref=nb_sb_noss_1"></textarea>
+      <textarea id="amzInput" wrap="off" oninput="amzCheckPostcode()" placeholder="B00K0QKBM6&#10;https://www.amazon.com/s?k=golf+clubs&ref=nb_sb_noss_1"></textarea>
       <div class="upload-row">
         <span>or select a CSV/XLSX/TXT/Parquet file</span>
         <button class="btn-upload" type="button" onclick="document.getElementById('amzFile').click()">⬆ Upload file</button>
@@ -952,9 +953,63 @@ async function amzFilePicked(){
     const merged = (ta.value ? ta.value.split(/\r?\n/) : []).concat(lines)
       .map(s=>s.trim()).filter(Boolean);
     ta.value = [...new Set(merged)].join('\n');
+    amzCheckPostcode();
     nameEl.textContent = 'Loaded ' + count + ' link' + (count===1?'':'s') + ' from ' + f.name;
   }catch(e){
     nameEl.textContent = 'Upload failed — is the server running?';
+  }
+}
+
+// Postcode format per marketplace (country). {re: valid pattern, eg: example to show}.
+const AMZ_POSTCODE = {
+  'amazon.com':    {re:/^\d{5}(-\d{4})?$/,            eg:'10001'},
+  'amazon.co.uk':  {re:/^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$/, eg:'SW1A 1AA'},
+  'amazon.ca':     {re:/^[A-Za-z]\d[A-Za-z]\s*\d[A-Za-z]\d$/, eg:'M5V 2T6'},
+  'amazon.de':     {re:/^\d{5}$/,                     eg:'10115'},
+  'amazon.es':     {re:/^\d{5}$/,                     eg:'28001'},
+  'amazon.fr':     {re:/^\d{5}$/,                     eg:'75001'},
+  'amazon.it':     {re:/^\d{5}$/,                     eg:'00100'},
+  'amazon.in':     {re:/^\d{6}$/,                     eg:'110001'},
+  'amazon.nl':     {re:/^\d{4}\s*[A-Za-z]{2}$/,       eg:'1011 AB'},
+  'amazon.se':     {re:/^\d{3}\s*\d{2}$/,             eg:'111 64'},
+  'amazon.sa':     {re:/^\d{5}$/,                     eg:'11564'},
+  'amazon.com.mx': {re:/^\d{5}$/,                     eg:'01000'},
+  'amazon.com.br': {re:/^\d{5}-?\d{3}$/,              eg:'01000-000'},
+  'amazon.co.jp':  {re:/^\d{3}-?\d{4}$/,              eg:'100-0001'},
+  'amazon.pl':     {re:/^\d{2}-?\d{3}$/,              eg:'00-001'},
+  'amazon.com.au': {re:/^\d{4}$/,                     eg:'2000'},
+  // amazon.ae has no postal-code system — no validation
+};
+
+// Warn if the delivery postcode doesn't match the marketplace actually being scraped:
+// a pasted URL's domain wins, otherwise the dropdown. A wrong-country postcode is ignored by Amazon.
+function amzCheckPostcode(){
+  const note = document.getElementById('amzPostcodeNote');
+  const pc = document.getElementById('amzPostcode').value.trim();
+  if(!pc){ note.style.display='none'; return; }   // postcode optional
+  // effective domain = first URL's domain in the box, else the dropdown
+  let dom = document.getElementById('amzDomain').value;
+  const lines = (document.getElementById('amzInput').value || '').split(/\r?\n/);
+  for(const line of lines){
+    const m = line.trim().match(/^https?:\/\/(?:www\.)?([^\/?#]+)/i);
+    if(m && /^amazon\./.test(m[1].toLowerCase())){ dom = m[1].toLowerCase(); break; }
+  }
+  const fmt = AMZ_POSTCODE[dom];
+  if(!fmt){ note.style.display='none'; return; }   // e.g. amazon.ae — no postal-code system
+  if(!fmt.re.test(pc)){
+    // clearly wrong format for this country
+    note.style.color = 'var(--amber)';
+    note.textContent = '⚠ ' + dom + ' needs a postcode like ' + fmt.eg +
+      ' — this one may be ignored by Amazon.';
+    note.style.display = 'block';
+  } else if(dom !== 'amazon.com'){
+    // format looks ok, but many countries share a length (e.g. 5 digits) — gentle reminder
+    note.style.color = 'var(--muted)';
+    note.textContent = 'ℹ Make sure this is a real ' + dom + ' postcode (e.g. ' + fmt.eg +
+      '); a wrong-country code is ignored by Amazon.';
+    note.style.display = 'block';
+  } else {
+    note.style.display = 'none';
   }
 }
 
