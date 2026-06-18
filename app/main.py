@@ -7,11 +7,11 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, Response
 
 from .db import (jobs, businesses, products, reviews, ebay_products, gresults, bbbresults,
-                 g2reviews, ensure_indexes)
+                 g2reviews, bbbreviews, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
-                     EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request)
+                     EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, g2, storage
+from . import yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2, storage
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -53,6 +53,11 @@ async def _gsearch_rows(job_id):
 
 async def _bbb_rows(job_id):
     rows = [d async for d in bbbresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, None
+
+
+async def _bbbreviews_rows(job_id):
+    rows = [d async for d in bbbreviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, None
 
 
@@ -430,6 +435,30 @@ async def g2_start(req: G2Request):
 async def g2_results(job_id: str, limit: int = 4000):
     rows, _ = await _g2_rows(job_id)
     return rows[:limit]
+
+
+@app.post("/api/bbb-reviews")
+async def bbb_reviews_start(req: BBBReviewsRequest):
+    """BBB Business Reviews Scraper — customer reviews from a bbb.org business URL."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one bbb.org reviews/profile URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "bbb_reviews", "queries": queries, "limit": req.limit,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        bbb_reviews.run_job(job_id, queries, req.limit, req.sort),
+        "bbb_reviews", job_id, _bbbreviews_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/bbb-reviews/results/{job_id}")
+async def bbb_reviews_results(job_id: str, limit: int = 4000):
+    rows = [d async for d in bbbreviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
 @app.post("/api/stop/{job_id}")
 async def stop(job_id: str):
     doc = await jobs.find_one({"job_id": job_id}, {"_id": 0, "status": 1})
@@ -469,3 +498,11 @@ async def export(job_id: str):
         media_type="application/json",
         filename=os.path.basename(doc["export_path"]),
     )
+
+
+# Catch-all (declared LAST so it never shadows /api/* or other routes): serve the SPA so a direct
+# load / refresh of a per-service URL like /Emails-Contacts-Scraper works (client-side routing).
+@app.get("/{full_path:path}", response_class=HTMLResponse)
+async def spa(full_path: str):
+    with open("static/index.html", encoding="utf-8") as f:
+        return f.read()

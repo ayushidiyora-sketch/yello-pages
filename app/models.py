@@ -60,6 +60,12 @@ class G2Request(BaseModel):
     sort: str = Field("", examples=["most_recent"])  # ""|most_recent|most_helpful|highest_rated|lowest_rated
 
 
+class BBBReviewsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # a bbb.org reviews/profile URL
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/business; None = all
+    sort: str = Field("recent", examples=["recent"])  # recent | highest | lowest
+
+
 class Business(BaseModel):
     job_id: str
     name: str
