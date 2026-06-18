@@ -24,6 +24,12 @@ class AmazonScrapeRequest(BaseModel):
     limit: int = Field(1, ge=1, le=1000, examples=[10])  # max results per one query
 
 
+class AmazonReviewsRequest(BaseModel):
+    # one line each: a raw ASIN, a product URL (.../dp/ASIN), or a /product-reviews/ASIN URL.
+    queries: list[str] = Field(default_factory=list, examples=[["B001R1RXUG"]])
+    domain: str = Field("amazon.com", examples=["amazon.com"])
+
+
 class GSearchRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1, examples=[["chatgpt"]])
     limit: Optional[int] = Field(None, ge=1, le=1000, examples=[10])  # rows/query; None = all

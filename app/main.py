@@ -6,10 +6,10 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, Response
 
-from .db import jobs, businesses, products, gresults, ensure_indexes
-from .models import ScrapeRequest, AmazonScrapeRequest, GSearchRequest
+from .db import jobs, businesses, products, reviews, gresults, ensure_indexes
+from .models import ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest, GSearchRequest
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us, amazon, gsearch
+from . import yp_us, amazon, amazon_reviews, gsearch
 
 
 @asynccontextmanager
@@ -172,6 +172,60 @@ def _xlsx_cell(v):
     if isinstance(v, (list, tuple)):
         return ", ".join(str(x) for x in v)
     return str(v)
+
+
+# ---------------- Amazon Reviews ----------------
+
+@app.post("/api/amazon-reviews/scrape")
+async def start_amazon_reviews(req: AmazonReviewsRequest):
+    queries = [q.strip() for q in (req.queries or []) if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "Provide at least one ASIN or product URL.")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id,
+        "kind": "amazon-reviews",
+        "domain": req.domain,
+        "queries": queries,
+        "status": "running",
+        "total_scraped": 0,
+        "started_at": datetime.utcnow(),
+        "finished_at": None,
+    })
+    asyncio.create_task(amazon_reviews.run_reviews_scrape(job_id, queries, req.domain))
+    return {"job_id": job_id}
+
+
+@app.get("/api/amazon-reviews/results/{job_id}")
+async def amazon_reviews_results(job_id: str, limit: int = 2000):
+    rows = [amazon_reviews.to_export(d) async for d in reviews.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows[:limit]
+
+
+@app.get("/api/amazon-reviews/export-excel/{job_id}")
+async def amazon_reviews_export_excel(job_id: str):
+    """Download all scraped reviews as an .xlsx (one row per review)."""
+    import io
+    import openpyxl
+
+    rows = [amazon_reviews.to_export(d) async for d in reviews.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Reviews"
+    ws.append(amazon_reviews.REVIEW_COLUMNS)
+    for r in rows:
+        ws.append([_xlsx_cell(r.get(c, "")) for c in amazon_reviews.REVIEW_COLUMNS])
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return Response(
+        buf.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="amazon_reviews_{job_id[:8]}.xlsx"'},
+    )
 
 
 @app.post("/api/gsearch")

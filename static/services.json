@@ -371,7 +371,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "amazon_reviews"
  },
  {
   "no": "38",

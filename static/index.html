@@ -377,6 +377,65 @@
   <div id="amzPager"></div>
   </div><!-- /amazonView -->
 
+  <!-- Amazon Reviews Scraper form (Domain + ASINs/URLs only) -->
+  <div id="amazonReviewsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field">
+        <label>Domain</label>
+        <select id="arvDomain">
+          <option value="amazon.com" selected>amazon.com</option>
+          <option value="amazon.co.uk">amazon.co.uk</option>
+          <option value="amazon.ca">amazon.ca</option>
+          <option value="amazon.de">amazon.de</option>
+          <option value="amazon.es">amazon.es</option>
+          <option value="amazon.fr">amazon.fr</option>
+          <option value="amazon.it">amazon.it</option>
+          <option value="amazon.in">amazon.in</option>
+          <option value="amazon.nl">amazon.nl</option>
+          <option value="amazon.se">amazon.se</option>
+          <option value="amazon.sa">amazon.sa</option>
+          <option value="amazon.com.mx">amazon.com.mx</option>
+          <option value="amazon.com.br">amazon.com.br</option>
+          <option value="amazon.co.jp">amazon.co.jp</option>
+          <option value="amazon.pl">amazon.pl</option>
+          <option value="amazon.com.au">amazon.com.au</option>
+          <option value="amazon.ae">amazon.ae</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field full" style="margin-top:14px">
+      <label>Product ASINs or URLs <span class="req">*</span></label>
+      <textarea id="arvInput" wrap="off" placeholder="B001R1RXUG&#10;https://www.amazon.com/dp/B07XJ8C8F5"></textarea>
+      <div class="upload-row">
+        <span>or select a CSV/XLSX/TXT/Parquet file</span>
+        <button class="btn-upload" type="button" onclick="document.getElementById('arvFile').click()">⬆ Upload file</button>
+        <input id="arvFile" type="file" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="arvFilePicked()">
+        <span id="arvFileName" class="hint"></span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="arvStartBtn" onclick="arvStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="arvStopBtn" onclick="arvStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="arvStatus"></div>
+  <div class="bar" id="arvBar"><i></i></div>
+
+  <div class="resbar" id="arvResbar" style="display:none">
+    <div class="count" id="arvCount"></div>
+    <div class="resbar-controls">
+      <a id="arvDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <a id="arvExcel" style="display:none" href="#"><button class="btn-ghost" type="button">⬇ Download Excel</button></a>
+    </div>
+  </div>
+  <div id="arvResults"></div>
+  <div id="arvPager"></div>
+  </div><!-- /amazonReviewsView -->
+
   <!-- Google Search Scraper form (powered by DuckDuckGo via the proxy pool — no real IP) -->
   <div id="gsearchView" style="display:none">
   <div class="panel">
@@ -913,6 +972,7 @@ function selectService(s, keep){
   const vt = viewType(s);
   document.getElementById('scraperView').style.display = vt==='yellowpages' ? '' : 'none';
   document.getElementById('amazonView').style.display  = vt==='amazon' ? '' : 'none';
+  document.getElementById('amazonReviewsView').style.display = vt==='amazon_reviews' ? '' : 'none';
   document.getElementById('gsearchView').style.display = vt==='gsearch' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
@@ -925,6 +985,7 @@ function selectService(s, keep){
 // which form a service renders: a dedicated Amazon form, the live Yellow Pages form, or the "coming soon" catalog
 function viewType(s){
   if(s.ui === 'amazon') return 'amazon';
+  if(s.ui === 'amazon_reviews') return 'amazon_reviews';
   if(s.ui === 'gsearch') return 'gsearch';
   if(s.live) return 'yellowpages';
   return 'catalog';
@@ -1189,6 +1250,170 @@ function amzUpdateDownload(){
   dl.style.display='inline-block';
 }
 /* ---------- end Amazon ---------- */
+
+/* ---------- Amazon Reviews Scraper (Domain + ASINs/URLs; one row per review) ---------- */
+let arvTimer = null, arvJob = null;
+let _arvRows = [], _arvPage = 0, _arvDlUrl = null;
+
+async function arvFilePicked(){
+  const f = document.getElementById('arvFile').files[0];
+  const nameEl = document.getElementById('arvFileName');
+  if(!f){ nameEl.textContent = ''; return; }
+  nameEl.textContent = 'Reading ' + f.name + '…';
+  const fd = new FormData(); fd.append('file', f);
+  try{
+    const r = await fetch('/api/amazon/parse-file', {method:'POST', body:fd});   // same extractor
+    if(!r.ok){ nameEl.textContent = 'Could not read file: ' + (await r.text()); return; }
+    const {lines, count} = await r.json();
+    if(!count){ nameEl.textContent = 'No ASINs/URLs found in ' + f.name; return; }
+    const ta = document.getElementById('arvInput');
+    const merged = (ta.value ? ta.value.split(/\r?\n/) : []).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value = [...new Set(merged)].join('\n');
+    nameEl.textContent = 'Loaded ' + count + ' item' + (count===1?'':'s') + ' from ' + f.name;
+  }catch(e){ nameEl.textContent = 'Upload failed — is the server running?'; }
+}
+
+function arvSetRunning(on){
+  document.getElementById('arvStartBtn').disabled = on;
+  document.getElementById('arvStopBtn').disabled = !on;
+  ['arvDomain','arvInput'].forEach(id=>{ document.getElementById(id).disabled = on; });
+}
+
+async function arvStart(){
+  const typed = document.getElementById('arvInput').value.trim();
+  const queries = typed ? typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean) : [];
+  if(!queries.length){ alert('Enter Product ASINs or URLs (one per line), or upload a file.'); return; }
+  const body = { queries, domain: document.getElementById('arvDomain').value };
+  let r;
+  try{ r = await fetch('/api/amazon-reviews/scrape',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: ' + (await r.text())); return; }
+  const {job_id} = await r.json();
+  arvJob = job_id;
+  _arvRows = []; _arvPage = 0;
+  document.getElementById('arvResbar').style.display = 'none';
+  document.getElementById('arvDownload').style.display = 'none';
+  document.getElementById('arvExcel').style.display = 'none';
+  document.getElementById('arvResults').innerHTML = '';
+  document.getElementById('arvPager').innerHTML = '';
+  document.getElementById('arvCount').textContent = '';
+  document.getElementById('arvBar').style.display = 'block';
+  document.querySelector('#arvBar>i').style.width = '0';
+  arvSetRunning(true);
+  if(arvTimer) clearInterval(arvTimer);
+  arvTimer = setInterval(()=>arvPoll(job_id), 1500);
+  arvPoll(job_id);
+}
+
+async function arvStop(){
+  if(!arvJob) return;
+  document.getElementById('arvStopBtn').disabled = true;
+  await fetch('/api/stop/'+arvJob, {method:'POST'});
+}
+
+async function arvPoll(job_id){
+  const s = await (await fetch('/api/status/'+job_id)).json();
+  const el = document.getElementById('arvStatus');
+  const got = s.total_scraped || 0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML = '<span class="spin"></span> Scraping reviews… '+got+' so far';
+    document.querySelector('#arvBar>i').style.width = Math.min(95, got)+'%';
+  } else {
+    clearInterval(arvTimer);
+    arvSetRunning(false);
+    document.getElementById('arvBar').style.display='none';
+    if(s.status==='done' || s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent = (s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews scraped';
+      arvShowResults(job_id, s.status);
+    } else if(s.status==='error'){
+      el.className='status error';
+      el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function arvShowResults(job_id, status){
+  _arvRows = await (await fetch('/api/amazon-reviews/results/'+job_id+'?limit=2000')).json();
+  _arvPage = 0;
+  const resbar = document.getElementById('arvResbar');
+  const excel = document.getElementById('arvExcel');
+  if(!_arvRows.length){
+    excel.style.display='none';
+    document.getElementById('arvResults').innerHTML='';
+    const msg = status==='stopped'
+      ? 'Stopped before any review was scraped.'
+      : 'No reviews found — the product may have no reviews, or proxies were blocked / Amazon required sign-in. Try again, or set a paid PROXY_URL in .env.';
+    document.getElementById('arvCount').innerHTML='<span class="empty">'+msg+'</span>';
+    resbar.style.display='flex';
+    return;
+  }
+  resbar.style.display='flex';
+  arvRenderPage();
+  document.getElementById('arvCount').textContent =
+    'Showing '+_arvRows.length+' reviews ('+PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  arvUpdateDownload();
+  excel.href = '/api/amazon-reviews/export-excel/' + job_id;
+  excel.style.display='inline-block';
+}
+
+function arvCardEl(x, i){
+  const stars = x.rating ? `<span class="stars" title="${esc(x.rating)}">${starStr(x.rating)}</span>` : '';
+  const verified = x.verified_purchase ? '<span class="open">Verified Purchase</span>' : '';
+  const helpful = x.helpful_count ? `<span>${esc(x.helpful_count)} found helpful</span>` : '';
+  const badges = [stars, verified, helpful].filter(Boolean).join('');
+  const meta = [x.author && ('By '+esc(x.author)), x.review_date && esc(x.review_date), x.review_location && esc(x.review_location)].filter(Boolean).join(' · ');
+  const card = document.createElement('div'); card.className='yp-card';
+  card.innerHTML = `
+    <div class="yp-main">
+      <a class="yp-name" href="${esc(x.review_url||'#')}" target="_blank" rel="noopener"><span class="rank">${i+1}.</span> ${esc(x.title||'(no title)')}</a>
+      ${x.product_name?`<div class="yp-cats">${esc(x.product_name)}</div>`:''}
+      ${badges?`<div class="yp-badges">${badges}</div>`:''}
+      ${x.review_text?`<div class="yp-snippet">${esc(x.review_text)}</div>`:''}
+      ${meta?`<div class="yp-links">${meta}</div>`:''}
+    </div>
+    <div class="yp-side">
+      ${x.asin?`<div class="yp-addr">ASIN: ${esc(x.asin)}</div>`:''}
+      ${x.variant?`<div class="yp-addr">${esc(x.variant)}</div>`:''}
+    </div>`;
+  return card;
+}
+
+function arvRenderPager(){
+  const pg=document.getElementById('arvPager'); pg.innerHTML='';
+  const pages=Math.ceil(_arvRows.length/PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{const b=document.createElement('button');b.textContent=label;
+    if(o.active)b.className='active'; if(o.disabled)b.disabled=true;
+    b.onclick=()=>{_arvPage=page;arvRenderPage();}; return b;};
+  pg.appendChild(mk('‹ Prev',_arvPage-1,{disabled:_arvPage===0}));
+  let s=Math.max(0,_arvPage-2), e=Math.min(pages-1,_arvPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_arvPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_arvPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_arvPage===pages-1}));}
+  pg.appendChild(mk('Next ›',_arvPage+1,{disabled:_arvPage>=pages-1}));
+  pg.appendChild(pinfo('Page '+(_arvPage+1)+' of '+pages));
+}
+
+function arvRenderPage(){
+  const box=document.getElementById('arvResults'); box.innerHTML='';
+  const start=_arvPage*PAGE_SIZE;
+  _arvRows.slice(start,start+PAGE_SIZE).forEach((x,j)=>box.appendChild(arvCardEl(x,start+j)));
+  arvRenderPager();
+}
+
+function arvUpdateDownload(){
+  const dl=document.getElementById('arvDownload');
+  if(!_arvRows.length){ dl.style.display='none'; return; }
+  if(_arvDlUrl) URL.revokeObjectURL(_arvDlUrl);
+  const blob=new Blob([JSON.stringify(_arvRows, null, 2)], {type:'application/json'});
+  _arvDlUrl=URL.createObjectURL(blob);
+  dl.href=_arvDlUrl;
+  dl.setAttribute('download', 'amazon_reviews_'+document.getElementById('arvDomain').value+'.json');
+  dl.style.display='inline-block';
+}
+/* ---------- end Amazon Reviews ---------- */
 
 /* ---------- Google Search Scraper (DuckDuckGo via the proxy pool) ---------- */
 const GSEARCH_COLUMNS = ["query","link","title","description","question","position","type"];
