@@ -8,6 +8,7 @@ jobs = db["jobs"]              # one doc per scrape run
 businesses = db["businesses"]  # one doc per scraped listing (Yellow Pages)
 products = db["products"]      # one doc per scraped Amazon product
 gresults = db["gresults"]      # one doc per Google/DDG search result row
+bbbresults = db["bbbresults"]  # one doc per BBB business result row
 
 
 async def ensure_indexes():
@@ -21,3 +22,4 @@ async def ensure_indexes():
     await products.create_index("job_id")
     await products.create_index([("job_id", 1), ("asin", 1)])
     await gresults.create_index("job_id")
+    await bbbresults.create_index("job_id")

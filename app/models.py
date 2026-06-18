@@ -33,6 +33,11 @@ class GSearchRequest(BaseModel):
     uule: Optional[str] = Field("", examples=[""])             # Google-only geo code (ignored on DDG)
 
 
+class BBBRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["auto sellers"]])  # term or bbb.org URL
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # rows/query; None = all
+
+
 class Business(BaseModel):
     job_id: str
     name: str

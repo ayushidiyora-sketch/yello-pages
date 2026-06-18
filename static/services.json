@@ -677,11 +677,12 @@
   "no": "68",
   "name": "BBB Business Scraper",
   "brand": "BBB Business",
-  "description": "",
+  "description": "Returns business listings from bbb.org",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "bbb"
  },
  {
   "no": "69",
