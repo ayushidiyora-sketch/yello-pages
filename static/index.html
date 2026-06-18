@@ -178,14 +178,14 @@
     .resbar-controls .btn-ghost{padding:8px 14px;font-size:14px;font-weight:600}
 
     /* pagination */
-    #pager,#gPager{display:flex;align-items:center;justify-content:center;gap:6px;
+    #pager,#gPager,#bbbPager{display:flex;align-items:center;justify-content:center;gap:6px;
       flex-wrap:wrap;margin:18px 0 4px}
-    #pager button,#gPager button{padding:7px 12px;font-size:14px;font-weight:600;border:1px solid var(--line);
+    #pager button,#gPager button,#bbbPager button{padding:7px 12px;font-size:14px;font-weight:600;border:1px solid var(--line);
       background:#fff;color:var(--ink);border-radius:7px;cursor:pointer;min-width:38px}
-    #pager button:hover:not(:disabled),#gPager button:hover:not(:disabled){border-color:var(--yp);background:#fffdf5}
-    #pager button.active,#gPager button.active{background:var(--yp);border-color:var(--yp);color:#fff}
-    #pager button:disabled,#gPager button:disabled{opacity:.45;cursor:not-allowed}
-    #pager .pinfo,#gPager .pinfo{color:var(--muted);font-size:13px;margin:0 8px}
+    #pager button:hover:not(:disabled),#gPager button:hover:not(:disabled),#bbbPager button:hover:not(:disabled){border-color:var(--yp);background:#fffdf5}
+    #pager button.active,#gPager button.active,#bbbPager button.active{background:var(--yp);border-color:var(--yp);color:#fff}
+    #pager button:disabled,#gPager button:disabled,#bbbPager button:disabled{opacity:.45;cursor:not-allowed}
+    #pager .pinfo,#gPager .pinfo,#bbbPager .pinfo{color:var(--muted);font-size:13px;margin:0 8px}
     /* Google-style search result cards */
     #gResults{max-width:680px}
     .gres{padding:16px 0;border-bottom:1px solid var(--line)}
@@ -199,6 +199,23 @@
     .gres-title:hover{text-decoration:underline}
     .gres-desc{font-size:14px;color:#4d5156;line-height:1.55}
     .gres-badge{font-size:10px;font-weight:700;text-transform:uppercase;color:#5f6368;border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-left:8px;vertical-align:middle}
+    /* BBB result cards (bbb.org search layout) */
+    #bbbResults{max-width:780px}
+    .bbb-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);display:flex;gap:18px;align-items:flex-start;justify-content:space-between}
+    .bbb-card-main{flex:1;min-width:0}
+    .bbb-seal{width:104px;height:auto;flex:0 0 auto}
+    .bbb-logo{width:74px;height:74px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff;flex:0 0 auto}
+    .bbb-name{font-size:20px;font-weight:700;color:#0a58ca;text-decoration:none;line-height:1.3}
+    .bbb-name:hover{text-decoration:underline}
+    .bbb-cats{font-size:13px;color:var(--muted);margin:3px 0 12px}
+    .bbb-meta{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:14px;margin-bottom:10px}
+    .bbb-rating b{color:#0a58ca}
+    .bbb-acc{color:var(--green);font-weight:600;font-size:12.5px;background:#eafaf0;border:1px solid #bfe6cc;border-radius:20px;padding:2px 10px}
+    .bbb-contact{border-top:1px solid var(--line);padding-top:11px;font-size:14px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:center}
+    .bbb-phone{color:#0a58ca;text-decoration:none;font-weight:700}
+    .bbb-phone:hover{text-decoration:underline}
+    .bbb-addr{color:var(--muted)}
+    .bbb-sa{color:#0a58ca;font-size:13px}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -573,6 +590,46 @@
   <div id="gResults"></div>
   <div id="gPager"></div>
   </div><!-- /gsearchView -->
+
+  <!-- BBB Business Scraper form (bbb.org) -->
+  <div id="bbbView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="bbbInput" placeholder="auto sellers&#10;https://www.bbb.org/us/category/kitchen-accessories&#10;https://www.bbb.org/search?find_text=Roofing+Equipment&amp;find_loc=New+Square%2C+NY&amp;find_country=USA"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="bbbFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bbbFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('bbbFile').click()">⬆ Upload file</button>
+          <span class="hint" id="bbbFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="bbbLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="bbbStartBtn" onclick="bbbStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="bbbStopBtn" onclick="bbbStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="bbbStatus"></div>
+  <div class="bar" id="bbbBar"><i></i></div>
+
+  <div class="resbar" id="bbbResbar" style="display:none">
+    <div class="count" id="bbbCount"></div>
+    <div class="resbar-controls">
+      <a id="bbbDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="bbbDownloadXlsx" style="display:none" onclick="bbbDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="bbbResults"></div>
+  <div id="bbbPager"></div>
+  </div><!-- /bbbView -->
    </div><!-- /wrap -->
   </main>
 </div><!-- /app -->
@@ -1037,6 +1094,7 @@ function selectService(s, keep){
   document.getElementById('amazonReviewsView').style.display = vt==='amazon_reviews' ? '' : 'none';
   document.getElementById('ebayView').style.display = vt==='ebay' ? '' : 'none';
   document.getElementById('gsearchView').style.display = vt==='gsearch' ? '' : 'none';
+  document.getElementById('bbbView').style.display     = vt==='bbb' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -1051,6 +1109,7 @@ function viewType(s){
   if(s.ui === 'amazon_reviews') return 'amazon_reviews';
   if(s.ui === 'ebay') return 'ebay';
   if(s.ui === 'gsearch') return 'gsearch';
+  if(s.ui === 'bbb') return 'bbb';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -1778,7 +1837,7 @@ async function gShowResults(job_id){
   resbar.style.display='flex';
   _gPage=0;
   gRender();
-  const organic=_gRows.filter(r=>r.type!=='related').length;
+  const organic=_gRows.filter(r=>G_CARD_TYPES.includes(r.type)).length;
   document.getElementById('gCount').textContent='Showing '+organic+' results ('+G_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
   gUpdateDownload();
 }
@@ -1791,28 +1850,32 @@ function gCrumb(u){
     return x.protocol+'//'+x.hostname.replace(/^www\./,'')+(parts.length?(' › '+parts.join(' › ')):'');
   }catch(e){ return u||''; }
 }
+const G_CARD_TYPES=['organic','ad','news'];
 function gRender(){
-  const rows=_gRows.filter(r=>r.type!=='related');
+  const rows=_gRows.filter(r=>G_CARD_TYPES.includes(r.type));
   const start=_gPage*G_PAGE_SIZE;
   let h='';
   for(const r of rows.slice(start, start+G_PAGE_SIZE)){
     const host=gHost(r.link);
     const fav=host?`<img class="gres-fav" src="https://icons.duckduckgo.com/ip3/${esc(host)}.ico" alt="" onerror="this.style.visibility='hidden'">`:'<span class="gres-fav"></span>';
     const badge=r.type!=='organic'?`<span class="gres-badge">${esc(r.type)}</span>`:'';
+    const q=r.question?`<div class="hint" style="margin-top:4px">❓ ${esc(r.question)}</div>`:'';
     h+=`<div class="gres">
       <div class="gres-head">${fav}<div class="gres-meta">
         <div class="gres-site">${esc(host||r.query)}${badge}</div>
         <div class="gres-url">${esc(gCrumb(r.link))}</div>
       </div></div>
       <a class="gres-title" href="${esc(r.link||'#')}" target="_blank" rel="noopener">${esc(r.title||r.link||'')}</a>
-      <div class="gres-desc">${esc(r.description||'')}</div>
+      <div class="gres-desc">${esc(r.description||'')}</div>${q}
     </div>`;
   }
-  // related searches shown on the last page only
+  // People also ask + related searches shown on the last page only
   const pages=Math.max(1, Math.ceil(rows.length/G_PAGE_SIZE));
   if(_gPage>=pages-1){
+    const paa=_gRows.filter(r=>r.type==='people_also_ask').map(r=>esc(r.question));
+    if(paa.length) h+='<div class="hint" style="margin-top:18px"><b>People also ask:</b><ul style="margin:6px 0 0">'+paa.map(q=>'<li>'+q+'</li>').join('')+'</ul></div>';
     const rel=_gRows.filter(r=>r.type==='related').map(r=>esc(r.question));
-    if(rel.length) h+='<div class="hint" style="margin-top:16px"><b>Related searches:</b> '+rel.join(' · ')+'</div>';
+    if(rel.length) h+='<div class="hint" style="margin-top:12px"><b>Related searches:</b> '+rel.join(' · ')+'</div>';
   }
   document.getElementById('gResults').innerHTML=h;
   gRenderPager(rows.length);
@@ -1860,6 +1923,169 @@ function gDownloadExcel(){
   XLSX.writeFile(wb, gFileName()+'.xlsx');
 }
 /* ---------- end Google Search ---------- */
+
+/* ---------- BBB Business Scraper (bbb.org) ---------- */
+const BBB_COLUMNS = ["query","profile_id","url","name","type_of_entity","contact_information","num_employees","primary_category","all_categories","category","licenses","years_in_business","business_start","website","social_media","email","additional_emails","phone","fax_numbers","additional_phone","displayed_address","address","city","state","postalcode","country","service_area","accredited","rating","average_rating","reviews_total","images"];
+const BBB_PAGE_SIZE = 15;
+let bbbTimer=null, bbbJob=null, _bbbRows=[], _bbbDlUrl=null, _bbbPage=0;
+
+async function bbbFilePicked(){
+  const f=document.getElementById('bbbFile').files[0];
+  const nameEl=document.getElementById('bbbFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('bbbInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.';
+    } else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function bbbSetRunning(on){
+  document.getElementById('bbbStartBtn').disabled=on;
+  document.getElementById('bbbStopBtn').disabled=!on;
+  ['bbbInput','bbbLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function bbbStart(){
+  const typed=document.getElementById('bbbInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (a search term or a bbb.org URL), one per line.'); return; }
+  const lim=parseInt(document.getElementById('bbbLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/bbb',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queries, limit:(lim>0?lim:null)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  bbbJob=(await r.json()).job_id;
+  _bbbRows=[]; _bbbPage=0;
+  document.getElementById('bbbResbar').style.display='none';
+  document.getElementById('bbbResults').innerHTML='';
+  document.getElementById('bbbPager').innerHTML='';
+  document.getElementById('bbbCount').textContent='';
+  document.getElementById('bbbBar').style.display='block';
+  document.querySelector('#bbbBar>i').style.width='30%';
+  bbbSetRunning(true);
+  if(bbbTimer) clearInterval(bbbTimer);
+  bbbTimer=setInterval(()=>bbbPoll(bbbJob),1500);
+  bbbPoll(bbbJob);
+}
+
+async function bbbStop(){ if(bbbJob){ document.getElementById('bbbStopBtn').disabled=true; await fetch('/api/stop/'+bbbJob,{method:'POST'}); } }
+
+async function bbbPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('bbbStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' businesses';
+  } else {
+    clearInterval(bbbTimer); bbbSetRunning(false);
+    document.getElementById('bbbBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' businesses';
+      bbbShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function bbbShowResults(job_id){
+  _bbbRows=await (await fetch('/api/bbb/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('bbbResbar');
+  if(!_bbbRows.length){
+    document.getElementById('bbbResults').innerHTML='';
+    document.getElementById('bbbCount').innerHTML='<span class="empty">No results — bbb.org may have blocked the request. Try again, or set a paid PROXY_URL.</span>';
+    resbar.style.display='flex';
+    document.getElementById('bbbDownload').style.display='none';
+    document.getElementById('bbbDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _bbbPage=0;
+  bbbRender();
+  document.getElementById('bbbCount').textContent='Showing '+_bbbRows.length+' businesses ('+BBB_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  bbbUpdateDownload();
+}
+
+function bbbRender(){
+  const start=_bbbPage*BBB_PAGE_SIZE;
+  let h='';
+  _bbbRows.slice(start, start+BBB_PAGE_SIZE).forEach((r)=>{
+    const name=r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener" class="bbb-name">${esc(r.name||'')}</a>`:`<span class="bbb-name">${esc(r.name||'')}</span>`;
+    const addr=[r.address, [r.city,r.state].filter(Boolean).join(', '), r.postalcode].filter(Boolean).join(', ');
+    const rating=r.rating?`<span class="bbb-rating">BBB Rating: <b>${esc(r.rating)}</b></span>`:'';
+    const acc=r.accredited==='Yes'?'<span class="bbb-acc">✔ BBB Accredited</span>':'';
+    const sa=r.service_area?`<span class="bbb-sa">📍 ${esc(r.service_area)}</span>`:'';
+    const phone=r.phone?`<a href="tel:${esc(r.phone)}" class="bbb-phone">${esc(r.phone)}</a>`:'';
+    const logo=(r.images&&/^https?:/.test(r.images))?`<img class="bbb-logo" src="${esc(r.images)}" alt="" onerror="this.remove()">`:'';
+    const seal=r.accredited==='Yes'?`<img class="bbb-seal" src="/bbb-seal.svg" alt="BBB Accredited Business" onerror="this.remove()">`:'';
+    h+=`<div class="bbb-card">
+      <div class="bbb-card-main">
+        ${name}
+        ${r.category?`<div class="bbb-cats">${esc(r.category)}</div>`:''}
+        <div class="bbb-meta">${rating}${acc}${sa}</div>
+        ${(phone||addr||logo)?`<div class="bbb-contact">${logo}${phone}${addr?`<span class="bbb-addr">${esc(addr)}</span>`:''}</div>`:''}
+      </div>
+      ${seal}
+    </div>`;
+  });
+  document.getElementById('bbbResults').innerHTML=h;
+  bbbRenderPager(_bbbRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function bbbRenderPager(total){
+  const pg=document.getElementById('bbbPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/BBB_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_bbbPage=page; bbbRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_bbbPage-1,{disabled:_bbbPage===0}));
+  let s=Math.max(0,_bbbPage-2), e=Math.min(pages-1,_bbbPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_bbbPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_bbbPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_bbbPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_bbbPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_bbbPage+1,{disabled:_bbbPage>=pages-1}));
+}
+
+function bbbFileName(){
+  const q=(document.getElementById('bbbInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'bbb_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function bbbUpdateDownload(){
+  const dl=document.getElementById('bbbDownload'), xl=document.getElementById('bbbDownloadXlsx');
+  if(!_bbbRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_bbbDlUrl) URL.revokeObjectURL(_bbbDlUrl);
+  const rows=_bbbRows.map(r=>{ const o={}; for(const c of BBB_COLUMNS) o[c]=r[c]??''; return o; });
+  _bbbDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_bbbDlUrl; dl.setAttribute('download', bbbFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function bbbDownloadExcel(){
+  if(!_bbbRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_bbbRows.map(r=>{ const o={}; for(const c of BBB_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:BBB_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'BBB');
+  XLSX.writeFile(wb, bbbFileName()+'.xlsx');
+}
+/* ---------- end BBB ---------- */
 /* ---------- end services ---------- */
 
 document.getElementById('region').addEventListener('change', updateRegionHint);

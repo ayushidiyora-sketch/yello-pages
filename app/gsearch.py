@@ -6,6 +6,7 @@ real IP is never used. Returns rows shaped like Outscraper's Google Search outpu
 query, link, title, description, question, position, type.
 """
 import asyncio
+import json
 from urllib.parse import unquote, urlparse, parse_qs
 
 from bs4 import BeautifulSoup
@@ -61,33 +62,57 @@ TRANSLATE = "https://translate.googleapis.com/translate_a/single"
 
 
 def _translate_one(text: str, target: str) -> str:
-    """Translate a single string into `target`. Returns the original on any failure."""
+    """Translate a single string into `target`. Retries through the flaky free proxy a few
+    times before giving up (returns the original only if every attempt fails)."""
     text = (text or "").strip()
     if not text:
         return text
-    try:
-        r = yp_us.pooled_get(TRANSLATE,
-                             {"client": "gtx", "sl": "auto", "tl": target, "dt": "t", "q": text},
-                             timeout=20)
-        data = r.json()
-        out = "".join(seg[0] for seg in data[0] if seg and seg[0])
-        return out or text
-    except Exception:
-        return text
+    for _attempt in range(5):
+        try:
+            r = yp_us.pooled_get(TRANSLATE,
+                                 {"client": "gtx", "sl": "auto", "tl": target, "dt": "t", "q": text},
+                                 timeout=20)
+            if r is not None and r.status_code == 200:
+                data = r.json()
+                out = "".join(seg[0] for seg in data[0] if seg and seg[0])
+                if out:
+                    return out
+        except Exception:
+            pass
+    return text
+
+
+def _needs_translation(text: str, target: str) -> bool:
+    """Whether `text` should be translated into `target`. For non-English targets, always
+    (translate everything). For English, only rows with a non-Latin-script char (Hangul, CJK,
+    Cyrillic, Arabic, Greek, …) — so foreign-script results become English while already-Latin
+    rows are left untouched (keeps big English runs fast and avoids rewording)."""
+    if not target.lower().startswith("en"):
+        return True
+    # a LETTER beyond Latin (Latin/Latin-Extended end at U+024F) -> non-Latin script (Hangul, CJK,
+    # Cyrillic, Arabic, Greek…). `isalpha` excludes punctuation/symbols like en-dash, ™, "smart quotes".
+    return any(c.isalpha() and ord(c) > 0x024F for c in text)
 
 
 def _translate_rows(rows: list[dict], target: str) -> None:
     """Translate each result's title + description into `target` (in place), via the free Google
     Translate endpoint through the proxy pool. One request per row (title+description joined by a
-    newline, split back) keeps alignment exact. Skips English (the base) and related rows."""
-    if not target or target.lower().startswith("en"):
+    newline, split back) keeps alignment exact. Rows already in the target language are skipped
+    (see `_needs_translation`); related-search rows are skipped."""
+    if not target:
         return
     for r in rows:
         if r.get("type") == "related":
             continue
+        # the synthesized People-Also-Ask question follows the selected language too
+        q = (r.get("question") or "").strip()
+        if q and _needs_translation(q, target):
+            r["question"] = _translate_one(q, target)
         title = (r.get("title") or "").replace("\n", " ").strip()
         desc = (r.get("description") or "").replace("\n", " ").strip()
         if not title and not desc:
+            continue
+        if not _needs_translation(title + " " + desc, target):
             continue
         out = _translate_one(title + "\n" + desc, target) if (title and desc) else None
         parts = out.split("\n") if out else []
@@ -99,6 +124,47 @@ def _translate_rows(rows: list[dict], target: str) -> None:
                 r["title"] = _translate_one(title, target)
             if desc:
                 r["description"] = _translate_one(desc, target)
+
+
+AC = "https://duckduckgo.com/ac/"
+# question seeds -> "People also ask" style related questions from autocomplete
+_Q_SEEDS = ["how", "what", "where", "why", "can", "best"]
+
+
+def _autocomplete(seed: str) -> list[str]:
+    """Suggestions for `seed` from DuckDuckGo autocomplete (through the proxy). Returns []. The
+    response is `["seed", ["sug1", "sug2", ...]]`."""
+    for _attempt in range(3):
+        try:
+            r = yp_us.pooled_get(AC, {"q": seed, "type": "list"}, timeout=15)
+            if r is not None and r.status_code == 200:
+                data = json.loads(r.text)
+                if isinstance(data, list) and len(data) >= 2 and isinstance(data[1], list):
+                    return [s for s in data[1] if isinstance(s, str)]
+        except Exception:
+            pass
+    return []
+
+
+def _people_also_ask(query: str, n: int = 10) -> list[str]:
+    """Generate ~n related questions for `query` by seeding autocomplete with question words
+    (DuckDuckGo has no real 'People also ask'). Title-cased and '?'-terminated."""
+    query = (query or "").strip()
+    if not query:
+        return []
+    ql, seen, out = query.lower(), set(), []
+    for seed in _Q_SEEDS:
+        for s in _autocomplete(f"{seed} {query}"):
+            s = s.strip()
+            k = s.lower()
+            if not s or k in seen or ql not in k:
+                continue
+            seen.add(k)
+            q = s[0].upper() + s[1:]
+            out.append(q if q.endswith("?") else q + "?")
+            if len(out) >= n:
+                return out
+    return out
 
 
 def _parse(html: str, query: str, start_pos: int) -> list[dict]:
@@ -176,7 +242,17 @@ def search_sync(query: str, limit: int | None = None, date_range: str = "",
                 out.append(x)
                 n += 1
         rows = out
-    # translate title + description into the selected language (free Google Translate via proxy)
+    # People Also Ask: DuckDuckGo has none, so synthesize related questions from autocomplete and
+    # fill the `question` column — one on each organic row (round-robin) PLUS dedicated PAA rows.
+    organic = [r for r in rows if r["type"] in ("organic", "ad", "news")]
+    questions = _people_also_ask(query) if organic else []
+    if questions:
+        for i, r in enumerate(organic):
+            r["question"] = questions[i % len(questions)]
+        for q in questions:
+            rows.append({"query": query, "link": "", "title": "", "description": "",
+                         "question": q, "position": 0, "type": "people_also_ask"})
+    # translate title + description (+ question) into the selected language (Google Translate via proxy)
     _translate_rows(rows, language)
     return rows
 
@@ -199,7 +275,8 @@ async def run_job(job_id: str, queries: list[str], limit: int | None, date_range
                 r["job_id"] = job_id
             if rows:
                 await gresults.insert_many(rows)
-                total += len(rows)
+                # count only actual results — not the synthesized People-Also-Ask / related rows
+                total += sum(1 for r in rows if r["type"] in ("organic", "ad", "news"))
             await jobs.update_one({"job_id": job_id}, {"$set": {"total_scraped": total}})
         await jobs.update_one({"job_id": job_id}, {"$set": {
             "status": "done", "total_scraped": total, "finished_at": datetime.utcnow()}})

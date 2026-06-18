@@ -10,6 +10,7 @@ products = db["products"]      # one doc per scraped Amazon product
 reviews = db["reviews"]        # one doc per scraped Amazon review
 ebay_products = db["ebay_products"]  # one doc per scraped eBay product
 gresults = db["gresults"]      # one doc per Google/DDG search result row
+bbbresults = db["bbbresults"]  # one doc per BBB business result row
 
 
 async def ensure_indexes():
@@ -29,3 +30,4 @@ async def ensure_indexes():
     await ebay_products.create_index("job_id")
     await ebay_products.create_index([("job_id", 1), ("item_id", 1)])
     await gresults.create_index("job_id")
+    await bbbresults.create_index("job_id")

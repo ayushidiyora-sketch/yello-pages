@@ -6,11 +6,12 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, Response
 
-from .db import jobs, businesses, products, reviews, ebay_products, gresults, ensure_indexes
+from .db import (jobs, businesses, products, reviews, ebay_products, gresults, bbbresults,
+                 ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
-                     EbayScrapeRequest, GSearchRequest)
+                     EbayScrapeRequest, GSearchRequest, BBBRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us, amazon, amazon_reviews, ebay, gsearch
+from . import yp_us, amazon, amazon_reviews, ebay, gsearch, bbb
 
 
 @asynccontextmanager
@@ -26,6 +27,12 @@ app = FastAPI(title="YellowPages US Scraper", lifespan=lifespan)
 async def index():
     with open("static/index.html", encoding="utf-8") as f:
         return f.read()
+
+
+@app.get("/bbb-seal.svg")
+async def bbb_seal():
+    """BBB Accredited Business seal, served locally (bbb.org blocks hot-linking)."""
+    return FileResponse("static/bbb-seal.svg", media_type="image/svg+xml")
 
 
 @app.get("/api/services")
@@ -306,6 +313,28 @@ async def gsearch_start(req: GSearchRequest):
 @app.get("/api/gresults/{job_id}")
 async def gsearch_results(job_id: str, limit: int = 2000):
     rows = [d async for d in gresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/bbb")
+async def bbb_start(req: BBBRequest):
+    """BBB Business Scraper (bbb.org). Queries may be search terms or bbb.org URLs."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "bbb", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(bbb.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/bbb/results/{job_id}")
+async def bbb_results(job_id: str, limit: int = 2000):
+    rows = [d async for d in bbbresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 @app.post("/api/stop/{job_id}")
 async def stop(job_id: str):
