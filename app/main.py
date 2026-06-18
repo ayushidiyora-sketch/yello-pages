@@ -6,10 +6,11 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, Response
 
-from .db import jobs, businesses, products, reviews, gresults, ensure_indexes
-from .models import ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest, GSearchRequest
+from .db import jobs, businesses, products, reviews, ebay_products, gresults, ensure_indexes
+from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
+                     EbayScrapeRequest, GSearchRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us, amazon, amazon_reviews, gsearch
+from . import yp_us, amazon, amazon_reviews, ebay, gsearch
 
 
 @asynccontextmanager
@@ -186,13 +187,15 @@ async def start_amazon_reviews(req: AmazonReviewsRequest):
         "job_id": job_id,
         "kind": "amazon-reviews",
         "domain": req.domain,
+        "limit": req.limit,
         "queries": queries,
         "status": "running",
         "total_scraped": 0,
+        "total_available": len(queries) * max(1, req.limit),
         "started_at": datetime.utcnow(),
         "finished_at": None,
     })
-    asyncio.create_task(amazon_reviews.run_reviews_scrape(job_id, queries, req.domain))
+    asyncio.create_task(amazon_reviews.run_reviews_scrape(job_id, queries, req.domain, req.limit))
     return {"job_id": job_id}
 
 
@@ -225,6 +228,60 @@ async def amazon_reviews_export_excel(job_id: str):
         buf.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="amazon_reviews_{job_id[:8]}.xlsx"'},
+    )
+
+
+# ---------------- eBay Products ----------------
+
+@app.post("/api/ebay/scrape")
+async def start_ebay_scrape(req: EbayScrapeRequest):
+    queries = [q.strip() for q in (req.queries or []) if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "Provide at least one eBay item id, URL, or search.")
+    job_id = uuid.uuid4().hex
+    expected = 0
+    for q in queries:
+        spec = ebay.classify(q, ebay.domain_for(req.country))
+        if not spec:
+            continue
+        expected += 1 if spec[0] == "item" else max(1, req.limit)
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "ebay", "country": req.country, "postcode": req.postcode,
+        "limit": req.limit, "queries": queries, "status": "running", "total_scraped": 0,
+        "total_available": expected or len(queries),
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(ebay.run_ebay_scrape(job_id, queries, req.country, req.postcode, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/ebay/results/{job_id}")
+async def ebay_results(job_id: str, limit: int = 1000):
+    rows = [ebay.to_export(d) async for d in ebay_products.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows[:limit]
+
+
+@app.get("/api/ebay/export-excel/{job_id}")
+async def ebay_export_excel(job_id: str):
+    """Download all scraped eBay products as an .xlsx."""
+    import io
+    import openpyxl
+
+    rows = [ebay.to_export(d) async for d in ebay_products.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "eBay Products"
+    ws.append(ebay.EBAY_COLUMNS)
+    for r in rows:
+        ws.append([_xlsx_cell(r.get(c, "")) for c in ebay.EBAY_COLUMNS])
+    buf = io.BytesIO()
+    wb.save(buf)
+    return Response(
+        buf.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="ebay_products_{job_id[:8]}.xlsx"'},
     )
 
 

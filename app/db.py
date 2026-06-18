@@ -8,6 +8,7 @@ jobs = db["jobs"]              # one doc per scrape run
 businesses = db["businesses"]  # one doc per scraped listing (Yellow Pages)
 products = db["products"]      # one doc per scraped Amazon product
 reviews = db["reviews"]        # one doc per scraped Amazon review
+ebay_products = db["ebay_products"]  # one doc per scraped eBay product
 gresults = db["gresults"]      # one doc per Google/DDG search result row
 
 
@@ -24,4 +25,7 @@ async def ensure_indexes():
     # Amazon reviews: fetch-by-job + de-dupe the same review within one job
     await reviews.create_index("job_id")
     await reviews.create_index([("job_id", 1), ("review_id", 1)])
+    # eBay products: fetch-by-job + de-dupe the same item within one job
+    await ebay_products.create_index("job_id")
+    await ebay_products.create_index([("job_id", 1), ("item_id", 1)])
     await gresults.create_index("job_id")

@@ -343,6 +343,11 @@
           <option value="PLN">PLN</option>
         </select>
       </div>
+      <div class="field">
+        <label>Limit (records)</label>
+        <input id="amzLimit" type="number" min="1" placeholder="20">
+        <span class="hint">Default 20. Applies per search query.</span>
+      </div>
     </div>
 
     <div class="field full" style="margin-top:14px">
@@ -403,6 +408,11 @@
           <option value="amazon.ae">amazon.ae</option>
         </select>
       </div>
+      <div class="field">
+        <label>Limit (records)</label>
+        <input id="arvLimit" type="number" min="1" placeholder="20">
+        <span class="hint">Default 20. Max reviews per product.</span>
+      </div>
     </div>
 
     <div class="field full" style="margin-top:14px">
@@ -435,6 +445,56 @@
   <div id="arvResults"></div>
   <div id="arvPager"></div>
   </div><!-- /amazonReviewsView -->
+
+  <!-- eBay Products Scraper form (Country + Delivery postcode + item IDs/URLs) -->
+  <div id="ebayView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field">
+        <label>Country</label>
+        <select id="ebyCountry"></select>
+      </div>
+      <div class="field">
+        <label>Delivery postcode</label>
+        <input id="ebyPostcode" placeholder="10001">
+      </div>
+      <div class="field">
+        <label>Limit (records)</label>
+        <input id="ebyLimit" type="number" min="1" placeholder="20">
+        <span class="hint">Default 20. Applies per search query.</span>
+      </div>
+    </div>
+
+    <div class="field full" style="margin-top:14px">
+      <label>Product IDs or URLs <span class="req">*</span></label>
+      <textarea id="ebyInput" wrap="off" placeholder="364912345678&#10;https://www.ebay.com/itm/364912345678&#10;golf clubs"></textarea>
+      <div class="upload-row">
+        <span>or select a CSV/XLSX/TXT/Parquet file</span>
+        <button class="btn-upload" type="button" onclick="document.getElementById('ebyFile').click()">⬆ Upload file</button>
+        <input id="ebyFile" type="file" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ebyFilePicked()">
+        <span id="ebyFileName" class="hint"></span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="ebyStartBtn" onclick="ebyStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="ebyStopBtn" onclick="ebyStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="ebyStatus"></div>
+  <div class="bar" id="ebyBar"><i></i></div>
+
+  <div class="resbar" id="ebyResbar" style="display:none">
+    <div class="count" id="ebyCount"></div>
+    <div class="resbar-controls">
+      <a id="ebyDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <a id="ebyExcel" style="display:none" href="#"><button class="btn-ghost" type="button">⬇ Download Excel</button></a>
+    </div>
+  </div>
+  <div id="ebyResults"></div>
+  <div id="ebyPager"></div>
+  </div><!-- /ebayView -->
 
   <!-- Google Search Scraper form (powered by DuckDuckGo via the proxy pool — no real IP) -->
   <div id="gsearchView" style="display:none">
@@ -843,6 +903,8 @@ async function poll(job_id){
 }
 
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+// Limit field: empty / invalid -> default 20; otherwise the entered number.
+function readLimit(id){ const el=document.getElementById(id); const v=el?parseInt(el.value,10):NaN; return (Number.isFinite(v)&&v>0)?v:20; }
 function starStr(r){const v=parseFloat(r)||0,full=Math.floor(v),half=(v-full)>=0.5;
   return '★'.repeat(full)+(half?'½':'')+'☆'.repeat(Math.max(0,5-full-(half?1:0)));}
 
@@ -973,6 +1035,7 @@ function selectService(s, keep){
   document.getElementById('scraperView').style.display = vt==='yellowpages' ? '' : 'none';
   document.getElementById('amazonView').style.display  = vt==='amazon' ? '' : 'none';
   document.getElementById('amazonReviewsView').style.display = vt==='amazon_reviews' ? '' : 'none';
+  document.getElementById('ebayView').style.display = vt==='ebay' ? '' : 'none';
   document.getElementById('gsearchView').style.display = vt==='gsearch' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
@@ -986,6 +1049,7 @@ function selectService(s, keep){
 function viewType(s){
   if(s.ui === 'amazon') return 'amazon';
   if(s.ui === 'amazon_reviews') return 'amazon_reviews';
+  if(s.ui === 'ebay') return 'ebay';
   if(s.ui === 'gsearch') return 'gsearch';
   if(s.live) return 'yellowpages';
   return 'catalog';
@@ -1093,7 +1157,7 @@ async function amzStart(){
     postcode: document.getElementById('amzPostcode').value.trim() || null,
     language: document.getElementById('amzLanguage').value || null,
     currency: document.getElementById('amzCurrency').value || null,
-    limit: 20,   // default results per SEARCH query (the Limit field was removed from the UI)
+    limit: readLimit('amzLimit'),   // empty field = default 20
   };
 
   let r;
@@ -1283,7 +1347,7 @@ async function arvStart(){
   const typed = document.getElementById('arvInput').value.trim();
   const queries = typed ? typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean) : [];
   if(!queries.length){ alert('Enter Product ASINs or URLs (one per line), or upload a file.'); return; }
-  const body = { queries, domain: document.getElementById('arvDomain').value };
+  const body = { queries, domain: document.getElementById('arvDomain').value, limit: readLimit('arvLimit') };
   let r;
   try{ r = await fetch('/api/amazon-reviews/scrape',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
   catch(e){ alert('Could not reach the server.'); return; }
@@ -1360,22 +1424,22 @@ async function arvShowResults(job_id, status){
 
 function arvCardEl(x, i){
   const stars = x.rating ? `<span class="stars" title="${esc(x.rating)}">${starStr(x.rating)}</span>` : '';
-  const verified = x.verified_purchase ? '<span class="open">Verified Purchase</span>' : '';
-  const helpful = x.helpful_count ? `<span>${esc(x.helpful_count)} found helpful</span>` : '';
-  const badges = [stars, verified, helpful].filter(Boolean).join('');
-  const meta = [x.author && ('By '+esc(x.author)), x.review_date && esc(x.review_date), x.review_location && esc(x.review_location)].filter(Boolean).join(' · ');
+  const bage = x.bage ? `<span class="open">${esc(x.bage)}</span>` : '';
+  const helpful = x.helpful ? `<span>${esc(x.helpful)} found helpful</span>` : '';
+  const badges = [stars, bage, helpful].filter(Boolean).join('');
+  const meta = [x.autor_name && ('By '+esc(x.autor_name)), x.date && esc(x.date)].filter(Boolean).join(' · ');
   const card = document.createElement('div'); card.className='yp-card';
   card.innerHTML = `
     <div class="yp-main">
-      <a class="yp-name" href="${esc(x.review_url||'#')}" target="_blank" rel="noopener"><span class="rank">${i+1}.</span> ${esc(x.title||'(no title)')}</a>
+      <a class="yp-name" href="${esc(x.url||'#')}" target="_blank" rel="noopener"><span class="rank">${i+1}.</span> ${esc(x.title||'(no title)')}</a>
       ${x.product_name?`<div class="yp-cats">${esc(x.product_name)}</div>`:''}
       ${badges?`<div class="yp-badges">${badges}</div>`:''}
-      ${x.review_text?`<div class="yp-snippet">${esc(x.review_text)}</div>`:''}
+      ${x.body?`<div class="yp-snippet">${esc(x.body)}</div>`:''}
       ${meta?`<div class="yp-links">${meta}</div>`:''}
     </div>
     <div class="yp-side">
-      ${x.asin?`<div class="yp-addr">ASIN: ${esc(x.asin)}</div>`:''}
-      ${x.variant?`<div class="yp-addr">${esc(x.variant)}</div>`:''}
+      ${x.product_asin?`<div class="yp-addr">ASIN: ${esc(x.product_asin)}</div>`:''}
+      ${x.variation?`<div class="yp-addr">${esc(x.variation)}</div>`:''}
     </div>`;
   return card;
 }
@@ -1414,6 +1478,201 @@ function arvUpdateDownload(){
   dl.style.display='inline-block';
 }
 /* ---------- end Amazon Reviews ---------- */
+
+/* ---------- eBay Products Scraper (Country + postcode + item IDs/URLs) ---------- */
+let ebyTimer = null, ebyJob = null;
+let _ebyRows = [], _ebyPage = 0, _ebyDlUrl = null;
+
+// Populate the Country dropdown with every country (flag + name via Intl), US default.
+function ebyInitCountries(){
+  const sel = document.getElementById('ebyCountry');
+  if(!sel || sel.options.length) return;
+  const iso = "US GB DE FR IT ES CA AU AT BE CH IE NL PL IN JP CN BR MX RU ZA AE SA SE NO DK FI PT GR CZ HU RO TR KR SG HK MY PH TH ID VN NZ IL AR CL CO PE UA".split(" ");
+  let dn = null;
+  try { dn = new Intl.DisplayNames(['en'], {type:'region'}); } catch(e){}
+  const flag = c => c.replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+  iso.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c;
+    const name = dn ? dn.of(c) : c;
+    o.textContent = flag(c) + ' ' + name;
+    if(c === 'US') o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+async function ebyFilePicked(){
+  const f = document.getElementById('ebyFile').files[0];
+  const nameEl = document.getElementById('ebyFileName');
+  if(!f){ nameEl.textContent = ''; return; }
+  nameEl.textContent = 'Reading ' + f.name + '…';
+  const fd = new FormData(); fd.append('file', f);
+  try{
+    const r = await fetch('/api/amazon/parse-file', {method:'POST', body:fd});   // same extractor
+    if(!r.ok){ nameEl.textContent = 'Could not read file: ' + (await r.text()); return; }
+    const {lines, count} = await r.json();
+    if(!count){ nameEl.textContent = 'No IDs/URLs found in ' + f.name; return; }
+    const ta = document.getElementById('ebyInput');
+    const merged = (ta.value ? ta.value.split(/\r?\n/) : []).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value = [...new Set(merged)].join('\n');
+    nameEl.textContent = 'Loaded ' + count + ' item' + (count===1?'':'s') + ' from ' + f.name;
+  }catch(e){ nameEl.textContent = 'Upload failed — is the server running?'; }
+}
+
+function ebySetRunning(on){
+  document.getElementById('ebyStartBtn').disabled = on;
+  document.getElementById('ebyStopBtn').disabled = !on;
+  ['ebyCountry','ebyPostcode','ebyInput'].forEach(id=>{ document.getElementById(id).disabled = on; });
+}
+
+async function ebyStart(){
+  const typed = document.getElementById('ebyInput').value.trim();
+  const queries = typed ? typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean) : [];
+  if(!queries.length){ alert('Enter eBay item IDs or URLs (one per line), or upload a file.'); return; }
+  const body = {
+    queries,
+    country: document.getElementById('ebyCountry').value || 'US',
+    postcode: document.getElementById('ebyPostcode').value.trim() || null,
+    limit: readLimit('ebyLimit'),
+  };
+  let r;
+  try{ r = await fetch('/api/ebay/scrape',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: ' + (await r.text())); return; }
+  const {job_id} = await r.json();
+  ebyJob = job_id;
+  _ebyRows = []; _ebyPage = 0;
+  document.getElementById('ebyResbar').style.display = 'none';
+  document.getElementById('ebyDownload').style.display = 'none';
+  document.getElementById('ebyExcel').style.display = 'none';
+  document.getElementById('ebyResults').innerHTML = '';
+  document.getElementById('ebyPager').innerHTML = '';
+  document.getElementById('ebyCount').textContent = '';
+  document.getElementById('ebyBar').style.display = 'block';
+  document.querySelector('#ebyBar>i').style.width = '0';
+  ebySetRunning(true);
+  if(ebyTimer) clearInterval(ebyTimer);
+  ebyTimer = setInterval(()=>ebyPoll(job_id), 1500);
+  ebyPoll(job_id);
+}
+
+async function ebyStop(){
+  if(!ebyJob) return;
+  document.getElementById('ebyStopBtn').disabled = true;
+  await fetch('/api/stop/'+ebyJob, {method:'POST'});
+}
+
+async function ebyPoll(job_id){
+  const s = await (await fetch('/api/status/'+job_id)).json();
+  const el = document.getElementById('ebyStatus');
+  const got = s.total_scraped || 0;
+  const cap = s.total_available;
+  if(cap){ document.querySelector('#ebyBar>i').style.width = Math.min(100, Math.round(got/cap*100))+'%'; }
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML = '<span class="spin"></span> Scraping… '+got+' products'+(cap?(' / '+cap):'');
+  } else {
+    clearInterval(ebyTimer);
+    ebySetRunning(false);
+    document.getElementById('ebyBar').style.display='none';
+    if(s.status==='done' || s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent = (s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' products scraped';
+      ebyShowResults(job_id, s.status);
+    } else if(s.status==='error'){
+      el.className='status error';
+      el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function ebyShowResults(job_id, status){
+  _ebyRows = await (await fetch('/api/ebay/results/'+job_id+'?limit=1000')).json();
+  _ebyPage = 0;
+  const resbar = document.getElementById('ebyResbar');
+  const excel = document.getElementById('ebyExcel');
+  if(!_ebyRows.length){
+    excel.style.display='none';
+    document.getElementById('ebyResults').innerHTML='';
+    const msg = status==='stopped'
+      ? 'Stopped before any product was scraped.'
+      : 'No products found — proxies may have been blocked by eBay. Try again, or set a paid PROXY_URL in .env.';
+    document.getElementById('ebyCount').innerHTML='<span class="empty">'+msg+'</span>';
+    resbar.style.display='flex';
+    return;
+  }
+  resbar.style.display='flex';
+  ebyRenderPage();
+  document.getElementById('ebyCount').textContent =
+    'Showing '+_ebyRows.length+' products ('+PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  ebyUpdateDownload();
+  excel.href = '/api/ebay/export-excel/' + job_id;
+  excel.style.display='inline-block';
+}
+
+function ebyCardEl(x, i){
+  const thumb = x.image ? `<img src="${esc(x.image)}" alt="" onerror="this.remove()">` : '<span class="ph">🏷</span>';
+  const meta = [
+    x.sold && (esc(x.sold)+' sold'),
+    x.item_location && ('Located in: '+esc(x.item_location)),
+  ].filter(Boolean).join(' · ');
+  const seller = [
+    x.seller_name && ('Seller: '+esc(x.seller_name)),
+    x.seller_feedback_percent && (esc(x.seller_feedback_percent)+'% positive'),
+  ].filter(Boolean).join('<br>');
+  const card = document.createElement('div'); card.className='yp-card';
+  card.innerHTML = `
+    <div class="yp-thumb">${thumb}</div>
+    <div class="yp-main">
+      <a class="yp-name" href="${esc(x.url||'#')}" target="_blank" rel="noopener"><span class="rank">${i+1}.</span> ${esc(x.title||'(untitled)')}</a>
+      ${meta?`<div class="yp-cats">${meta}</div>`:''}
+      <div class="yp-links"><a href="${esc(x.url||'#')}" target="_blank" rel="noopener">View on eBay</a></div>
+      ${x.shipping?`<div class="yp-snippet"><b>Shipping:</b> ${esc(x.shipping)}</div>`:''}
+      ${x.condition?`<div class="yp-snippet"><b>Condition:</b> ${esc(x.condition)}</div>`:''}
+      ${x.returns?`<div class="yp-snippet"><b>Returns:</b> ${esc(x.returns)}</div>`:''}
+    </div>
+    <div class="yp-side">
+      ${x.price?`<div class="yp-phone">${esc(x.price)}</div>`:''}
+      ${x.item_id?`<div class="yp-addr">Item: ${esc(x.item_id)}</div>`:''}
+      ${seller?`<div class="yp-addr">${seller}</div>`:''}
+    </div>`;
+  return card;
+}
+
+function ebyRenderPager(){
+  const pg=document.getElementById('ebyPager'); pg.innerHTML='';
+  const pages=Math.ceil(_ebyRows.length/PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{const b=document.createElement('button');b.textContent=label;
+    if(o.active)b.className='active'; if(o.disabled)b.disabled=true;
+    b.onclick=()=>{_ebyPage=page;ebyRenderPage();}; return b;};
+  pg.appendChild(mk('‹ Prev',_ebyPage-1,{disabled:_ebyPage===0}));
+  let s=Math.max(0,_ebyPage-2), e=Math.min(pages-1,_ebyPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_ebyPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_ebyPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_ebyPage===pages-1}));}
+  pg.appendChild(mk('Next ›',_ebyPage+1,{disabled:_ebyPage>=pages-1}));
+  pg.appendChild(pinfo('Page '+(_ebyPage+1)+' of '+pages));
+}
+
+function ebyRenderPage(){
+  const box=document.getElementById('ebyResults'); box.innerHTML='';
+  const start=_ebyPage*PAGE_SIZE;
+  _ebyRows.slice(start,start+PAGE_SIZE).forEach((x,j)=>box.appendChild(ebyCardEl(x,start+j)));
+  ebyRenderPager();
+}
+
+function ebyUpdateDownload(){
+  const dl=document.getElementById('ebyDownload');
+  if(!_ebyRows.length){ dl.style.display='none'; return; }
+  if(_ebyDlUrl) URL.revokeObjectURL(_ebyDlUrl);
+  const blob=new Blob([JSON.stringify(_ebyRows, null, 2)], {type:'application/json'});
+  _ebyDlUrl=URL.createObjectURL(blob);
+  dl.href=_ebyDlUrl;
+  dl.setAttribute('download', 'ebay_'+document.getElementById('ebyCountry').value+'.json');
+  dl.style.display='inline-block';
+}
+/* ---------- end eBay ---------- */
 
 /* ---------- Google Search Scraper (DuckDuckGo via the proxy pool) ---------- */
 const GSEARCH_COLUMNS = ["query","link","title","description","question","position","type"];
@@ -1608,8 +1867,9 @@ document.getElementById('region').addEventListener('change', updateRegionHint);
 document.getElementById('filtersModal').addEventListener('click', e=>{
   if(e.target.id==='filtersModal') closeFilters();
 });
-loadRegions();  
+loadRegions();
 loadServices();
+ebyInitCountries();
 </script>
 </body>
 </html>

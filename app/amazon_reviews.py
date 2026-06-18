@@ -24,9 +24,10 @@ MAX_REVIEW_PAGES = 6          # pages fetched per product (best-effort)
 
 # Fixed export schema (one row per review)
 REVIEW_COLUMNS = [
-    "asin", "product_name", "review_id", "title", "rating", "review_text",
-    "review_date", "review_location", "author", "verified_purchase",
-    "helpful_count", "variant", "images", "review_url", "position", "query",
+    "id", "product_asin", "title", "body", "rating", "rating_text", "helpful",
+    "comments", "date", "bage", "official_comment_banner", "url", "img_url",
+    "variation", "total_reviews", "overall_rating", "autor_name", "autor_descriptor",
+    "autor_url", "autor_profile_img", "product_name", "product_url",
 ]
 
 _ASIN_RE = re.compile(r"^[A-Z0-9]{10}$")
@@ -34,10 +35,72 @@ _ASIN_IN_URL = re.compile(r"/(?:dp|gp/product|gp/aw/d|product|product-reviews)/(
 
 
 def _blank_row() -> dict:
-    r = {c: "" for c in REVIEW_COLUMNS}
-    r["images"] = []
-    r["verified_purchase"] = False
-    return r
+    return {c: "" for c in REVIEW_COLUMNS}
+
+
+def _headless_get_sync(url: str, proxy: str | None) -> str | None:
+    """Render a page in headless Chrome (so JS-loaded public reviews appear) and return the
+    HTML. Routed through `proxy` when given (no real IP). Returns None on any failure."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return None
+    launch_proxy = None
+    if proxy:
+        launch_proxy = {"server": proxy if proxy.startswith("http") else "http://" + proxy}
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(channel="chrome", headless=True, proxy=launch_proxy,
+                                        args=["--no-sandbox", "--disable-blink-features=AutomationControlled"])
+            ctx = browser.new_context(locale="en-US",
+                                      user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                                                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                                  "Chrome/124.0 Safari/537.36"))
+            page = ctx.new_page()
+            page.goto(url, timeout=30000, wait_until="domcontentloaded")
+            # reviews lazy-load — scroll down a few times to trigger the widget, then wait
+            try:
+                for _ in range(4):
+                    page.evaluate("window.scrollBy(0, document.body.scrollHeight/4)")
+                    page.wait_for_timeout(700)
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                page.wait_for_selector('[data-hook="review"]', timeout=8000)
+            except Exception:
+                pass
+            html = page.content()
+            browser.close()
+            return html
+    except Exception:
+        return None
+
+
+async def _rv_fetch(url: str, stop=None) -> str | None:
+    """Fetch a review page via headless Chrome through the proxy pool (best-effort).
+    Tries a few warm proxies; returns the first render that contains review blocks (else the
+    last usable HTML). Falls back to the plain curl fetch if Playwright isn't available."""
+    if stop and stop():
+        return None
+    paid = settings.PROXY_URL.strip()
+    if paid:
+        html = await asyncio.to_thread(_headless_get_sync, url, paid)
+        return html or await amazon._fetch(url, None, None, "amazon.com", stop)
+
+    with yp_us._LOCK:
+        warm = list(yp_us._GOOD)
+    if len(warm) < 4:
+        await asyncio.to_thread(yp_us.ensure_pool, amazon.SEED_PARAMS, 8)
+        with yp_us._LOCK:
+            warm = list(yp_us._GOOD)
+    fallback = None
+    for px in warm[:5]:
+        if stop and stop():
+            return None
+        html = await asyncio.to_thread(_headless_get_sync, url, px)
+        if html and 'data-hook="review"' in html:
+            return html
+        if html and fallback is None:
+            fallback = html
+    return fallback
 
 
 def classify(line: str, domain: str):
@@ -63,69 +126,102 @@ def _reviews_url(domain: str, asin: str, page: int = 1) -> str:
     })
 
 
-def parse_product_name(soup) -> str:
-    el = (soup.select_one('a[data-hook="product-link"]')
-          or soup.select_one(".product-title")
-          or soup.select_one("#productTitle"))
-    return amazon._txt(el) or ""
+def parse_page_meta(soup) -> tuple[str, str, str]:
+    """Page-level: (product_name, overall_rating, total_reviews) — same for every review."""
+    name = amazon._txt(soup.select_one('a[data-hook="product-link"]')
+                       or soup.select_one(".product-title")
+                       or soup.select_one("#productTitle")) or ""
+    overall = ""
+    el = soup.select_one("#acrPopover")
+    if el and el.get("title"):
+        m = re.search(r"([\d.]+)", el["title"]); overall = m.group(1) if m else ""
+    if not overall:
+        alt = soup.select_one('[data-hook="rating-out-of-text"], #averageCustomerReviews .a-icon-alt')
+        if alt:
+            m = re.search(r"([\d.]+)", alt.get_text()); overall = m.group(1) if m else ""
+    total = ""
+    tel = soup.select_one('#acrCustomerReviewText, [data-hook="total-review-count"]')
+    if tel:
+        m = re.search(r"[\d,]+", tel.get_text()); total = m.group(0).replace(",", "") if m else ""
+    return name, overall, total
 
 
 def parse_reviews(html: str, asin: str, domain: str) -> tuple[list[dict], str]:
-    """Return (review_rows, product_name) parsed from a product-reviews page."""
+    """Return (review_rows, product_name) shaped to the fixed REVIEW_COLUMNS schema."""
     soup = BeautifulSoup(html, "lxml")
     base = f"https://www.{domain}"
-    product_name = parse_product_name(soup)
+    product_name, overall_rating, total_reviews = parse_page_meta(soup)
+    product_url = f"{base}/dp/{asin}"
     out = []
-    for b in soup.select('div[data-hook="review"], li[data-hook="review"]'):
+    for b in soup.select('[data-hook="review"]'):
         row = _blank_row()
-        row["asin"] = asin
+        row["id"] = b.get("id") or ""
+        row["product_asin"] = asin
         row["product_name"] = product_name
-        row["review_id"] = b.get("id") or ""
+        row["product_url"] = product_url
+        row["total_reviews"] = total_reviews
+        row["overall_rating"] = overall_rating
 
-        title_el = b.select_one('[data-hook="review-title"]')
+        # title (+ review url). New markup: data-hook="reviewTitle" (<h5> inside <a>).
+        title_el = b.select_one('[data-hook="reviewTitle"], [data-hook="review-title"]')
         if title_el:
-            spans = title_el.select("span")
-            # the visible title is the last span (earlier spans hold the star rating)
-            row["title"] = (spans[-1].get_text(strip=True) if spans
-                            else title_el.get_text(" ", strip=True))
-            href = title_el.get("href") or (title_el.find_parent("a") or {}).get("href")
+            t = re.sub(r"^\s*[\d.]+\s+out of 5 stars\s*", "", title_el.get_text(" ", strip=True))
+            row["title"] = t.strip()
+            a = title_el if title_el.name == "a" else title_el.find_parent("a")
+            href = (a.get("href") if a else None) or title_el.get("href")
             if href:
-                row["review_url"] = urljoin(base, href)
+                row["url"] = urljoin(base, href)
 
         ri = b.select_one('[data-hook="review-star-rating"] .a-icon-alt, '
-                          '[data-hook="cmps-review-star-rating"] .a-icon-alt, '
-                          'i[data-hook="review-star-rating"] span')
+                          '[data-hook="cmps-review-star-rating"] .a-icon-alt')
         if ri:
-            m = re.search(r"([\d.]+)\s+out of 5", ri.get_text())
+            row["rating_text"] = ri.get_text(strip=True)
+            m = re.search(r"([\d.]+)\s+out of 5", row["rating_text"])
             if m:
                 row["rating"] = m.group(1)
 
-        row["author"] = amazon._txt(b.select_one(".a-profile-name")) or ""
-        row["review_text"] = amazon._txt(b.select_one('[data-hook="review-body"]')) or ""
-        row["verified_purchase"] = bool(b.select_one('[data-hook="avp-badge"]'))
-        row["variant"] = amazon._txt(b.select_one('[data-hook="format-strip"]')) or ""
+        body_el = (b.select_one('[data-hook="reviewRichContentContainer"]')
+                   or b.select_one('[data-hook="reviewText"]')
+                   or b.select_one('[data-hook="review-body"]'))
+        row["body"] = amazon._txt(body_el) or ""
+
+        # author name / profile url / avatar / descriptor
+        row["autor_name"] = amazon._txt(b.select_one(".a-profile-name")) or ""
+        prof = b.select_one("a.a-profile")
+        if prof and prof.get("href"):
+            row["autor_url"] = urljoin(base, prof["href"])
+        av = b.select_one(".a-profile-avatar img")
+        if av:
+            row["autor_profile_img"] = av.get("src") or av.get("data-src") or ""
+        row["autor_descriptor"] = amazon._txt(b.select_one(".a-profile-descriptor")) or ""
 
         date_raw = amazon._txt(b.select_one('[data-hook="review-date"]')) or ""
-        row["review_date"] = date_raw
-        # "Reviewed in the United States on June 1, 2024" -> location + date
-        dm = re.match(r"Reviewed in (.+?) on (.+)$", date_raw)
-        if dm:
-            row["review_location"] = dm.group(1).strip()
-            row["review_date"] = dm.group(2).strip()
+        dm = re.match(r"Reviewed in .+? on (.+)$", date_raw)
+        row["date"] = dm.group(1).strip() if dm else date_raw
+
+        row["bage"] = (amazon._txt(b.select_one('[data-hook="avp-badge"]'))
+                       or amazon._txt(b.select_one('.c7y-badge-text, [data-hook="vine-badge"]')) or "")
+        row["official_comment_banner"] = amazon._txt(
+            b.select_one('[data-hook="review-comment-official"], .review-official-comment')) or ""
+        row["variation"] = amazon._txt(b.select_one('[data-hook="format-strip"]')) or ""
 
         hv = amazon._txt(b.select_one('[data-hook="helpful-vote-statement"]'))
         if hv:
             m = re.search(r"[\d,]+", hv)
-            row["helpful_count"] = m.group(0).replace(",", "") if m else ("1" if "One" in hv else "")
+            row["helpful"] = m.group(0).replace(",", "") if m else ("1" if "One" in hv else "")
+        cm = amazon._txt(b.select_one('[data-hook="review-comment-count"], .review-comments-count'))
+        if cm:
+            m = re.search(r"[\d,]+", cm)
+            row["comments"] = m.group(0).replace(",", "") if m else ""
 
         imgs = []
-        for im in b.select('[data-hook="review-image-tile"], .review-image-tile'):
+        for im in b.select('[data-hook="review-image-tile"], .review-image-tile img, img[data-hook="review-image-tile"]'):
             src = im.get("src") or im.get("data-src")
             if src and src not in imgs:
                 imgs.append(src)
-        row["images"] = imgs
+        row["img_url"] = ", ".join(imgs)
 
-        if row["title"] or row["review_text"]:
+        if row["title"] or row["body"]:
             out.append(row)
     return out, product_name
 
@@ -135,7 +231,7 @@ def parse_reviews(html: str, asin: str, domain: str) -> tuple[list[dict], str]:
 async def _save(job_id: str, items: list[dict], seen: set, query: str, position_start: int) -> int:
     added = 0
     for it in items:
-        key = it.get("review_id") or (it.get("author"), it.get("title"), it.get("review_date"))
+        key = it.get("id") or (it.get("autor_name"), it.get("title"), it.get("date"))
         if not key or key in seen:
             continue
         seen.add(key)
@@ -168,12 +264,13 @@ async def export_reviews(job_id: str) -> str:
 
 # ---------------- run loop ----------------
 
-async def run_reviews_scrape(job_id: str, queries: list[str], domain: str):
-    """Background task: for each ASIN/URL, scrape its reviews through a proxy IP, live."""
+async def run_reviews_scrape(job_id: str, queries: list[str], domain: str, limit: int = 20):
+    """Background task: for each ASIN/URL, scrape up to `limit` reviews through a proxy IP, live."""
     from .scraper import STOP_REQUESTS
 
     total = 0
     seen: set = set()
+    limit = max(1, limit or 20)
     domain = (domain or "amazon.com").strip().lstrip(".") or "amazon.com"
 
     def stopped() -> bool:
@@ -198,35 +295,37 @@ async def run_reviews_scrape(job_id: str, queries: list[str], domain: str):
         else:
             await jobs.update_one({"job_id": job_id}, {"$set": {"proxy_mode": "amazon-paid-proxy"}})
 
-        for asin, dom in specs:
-            if stopped():
-                await finish("stopped"); return
-
-            # the product page embeds a "top reviews" widget — try it first (the dedicated
-            # /product-reviews/ page is increasingly JS/login-gated and returns no static reviews)
-            dp_html = await amazon._fetch(f"https://www.{dom}/dp/{asin}", None, None, dom, stopped)
-            if dp_html:
+        async def scrape_product(asin: str, dom: str) -> int:
+            """Scrape one product's reviews (dp widget + review pages), up to `limit`. Returns count."""
+            added = 0
+            # product page embeds a public "top reviews" widget (rendered via headless)
+            dp_html = await _rv_fetch(f"https://www.{dom}/dp/{asin}", stopped)
+            if dp_html and not stopped():
                 rows, _ = parse_reviews(dp_html, asin, dom)
-                total += await _save(job_id, rows, seen, query=asin, position_start=total)
-                await jobs.update_one({"job_id": job_id}, {"$set": {"total_scraped": total}})
-
+                added += await _save(job_id, rows[:limit - added], seen, query=asin, position_start=total + added)
             page = 1
-            while page <= MAX_REVIEW_PAGES:
-                if stopped():
-                    await finish("stopped"); return
-                html = await amazon._fetch(_reviews_url(dom, asin, page), None, None, dom, stopped)
-                if stopped():
-                    await finish("stopped"); return
-                if not html:
+            while added < limit and page <= MAX_REVIEW_PAGES and not stopped():
+                html = await _rv_fetch(_reviews_url(dom, asin, page), stopped)
+                if stopped() or not html:
                     break
                 rows, _ = parse_reviews(html, asin, dom)
                 if not rows:
                     break
-                add = await _save(job_id, rows, seen, query=asin, position_start=total)
-                total += add
+                a = await _save(job_id, rows[:limit - added], seen, query=asin, position_start=total + added)
+                added += a
                 page += 1
-                if add == 0:        # only duplicates -> no new pages worth fetching
+                if a == 0:        # only duplicates -> no new pages worth fetching
                     break
+            return added
+
+        for asin, dom in specs:
+            if stopped():
+                await finish("stopped"); return
+            add = await scrape_product(asin, dom)
+            # free proxies are flaky — if a product yielded nothing, give it one more try
+            if add == 0 and not stopped():
+                add = await scrape_product(asin, dom)
+            total += add
             await jobs.update_one({"job_id": job_id}, {"$set": {"total_scraped": total}})
 
         await finish("stopped" if stopped() else "done")

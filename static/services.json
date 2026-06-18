@@ -748,11 +748,12 @@
   "no": "75",
   "name": "eBay Products Scraper",
   "brand": "eBay",
-  "description": "يرجع قوائم المنتجات",
+  "description": "Returns the list of products",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "ebay"
  },
  {
   "no": "76",

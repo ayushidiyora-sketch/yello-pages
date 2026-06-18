@@ -28,6 +28,15 @@ class AmazonReviewsRequest(BaseModel):
     # one line each: a raw ASIN, a product URL (.../dp/ASIN), or a /product-reviews/ASIN URL.
     queries: list[str] = Field(default_factory=list, examples=[["B001R1RXUG"]])
     domain: str = Field("amazon.com", examples=["amazon.com"])
+    limit: int = Field(20, ge=1, le=1000, examples=[20])  # max reviews per product
+
+
+class EbayScrapeRequest(BaseModel):
+    # one line each: an eBay item id, an item URL (.../itm/ID), a search URL, or a keyword.
+    queries: list[str] = Field(default_factory=list, examples=[["golf clubs"]])
+    country: str = Field("US", examples=["US"])       # ISO-2; selects the eBay marketplace
+    postcode: Optional[str] = Field(None, examples=["10001"])
+    limit: int = Field(20, ge=1, le=1000, examples=[20])  # max results per search query
 
 
 class GSearchRequest(BaseModel):
