@@ -1008,7 +1008,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_jobs"
  },
  {
   "no": "101",
@@ -1018,7 +1019,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_reviews"
  },
  {
   "no": "102",
@@ -1244,11 +1246,12 @@
   "no": "124",
   "name": "Walmart Products Scraper",
   "brand": "Walmart",
-  "description": "",
+  "description": "Returns the list of products",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "walmart"
  },
  {
   "no": "125",
@@ -1378,7 +1381,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "walmart_reviews"
  },
  {
   "no": "138",

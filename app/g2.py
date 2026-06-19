@@ -120,14 +120,22 @@ def _get_text(url: str) -> str | None:
 # ---------------- headless-Chrome fetch (better odds vs Cloudflare) ----------------
 
 def _is_real_g2(html: str | None) -> bool:
-    """True if the HTML is a real G2 reviews page (challenge cleared + reviews present)."""
+    """True if the HTML is a real G2 reviews page (bot-check cleared + reviews present)."""
     if not html:
         return False
     low = html.lower()
-    if any(s in low for s in ("just a moment", "cf-browser-verification",
-                              "attention required", "/cdn-cgi/challenge", "enable javascript and cookies")):
+    # DataDome / Cloudflare bot-check or captcha interstitial -> not real content
+    if any(s in low for s in ("just a moment", "cf-browser-verification", "attention required",
+                              "/cdn-cgi/challenge", "enable javascript and cookies",
+                              "captcha-delivery", "datadome", "device check")):
         return False
-    return ('itemprop="review"' in html) or ('"@type":"review"' in low) or ('"reviewbody"' in low)
+    return (
+        "what do you like best" in low                       # G2's review Q&A prompt
+        or "review collected by and hosted on g2" in low
+        or 'itemprop="review"' in html
+        or '"@type":"review"' in low
+        or '"reviewbody"' in low
+    )
 
 
 def _headless_get_sync(url: str, proxy: str | None) -> str | None:
@@ -176,6 +184,27 @@ def _headless_get_sync(url: str, proxy: str | None) -> str | None:
         return None
 
 
+def _scraperapi_get_sync(url: str) -> str | None:
+    """Fetch through ScraperAPI's residential proxies + JS render (clears G2's DataDome).
+    Used only when SCRAPER_API_KEY is set. Your own IP is never used — ScraperAPI's proxy hits
+    G2. Returns rendered HTML or None."""
+    key = settings.SCRAPER_API_KEY.strip()
+    if not key:
+        return None
+    api = "https://api.scraperapi.com/?" + urlencode({
+        "api_key": key,
+        "url": url,
+        "render": "true",          # run JS so reviews load + DataDome challenge executes
+        "ultra_premium": "true",   # residential proxies + advanced anti-bot (needed for DataDome)
+        "country_code": "us",
+    })
+    try:
+        r = cffi.get(api, timeout=120)   # anti-bot render is slow
+        return r.text if r.status_code == 200 else None
+    except Exception:
+        return None
+
+
 def _warm_proxies(n: int = 4) -> list:
     from . import yp_us
     with yp_us._LOCK:
@@ -188,10 +217,16 @@ def _warm_proxies(n: int = 4) -> list:
 
 
 async def _fetch_html(url: str, stopped=None) -> str | None:
-    """Fetch a G2 page as HTML. Headless Chrome first (best chance against Cloudflare), then a
-    plain curl fetch as fallback. Always through a proxy — NEVER the real IP."""
+    """Fetch a G2 page as HTML. Order: (1) a user-driven Chrome over CDP (the only reliable way
+    past G2's DataDome — reuses a real human session), then (2) headless Chrome via proxy, then
+    (3) a plain curl fetch. Non-real-IP paths (2,3) stay through a proxy."""
     if stopped and stopped():
         return None
+    # 1) ScraperAPI (residential + JS render) clears DataDome — the reliable route for G2.
+    if settings.SCRAPER_API_KEY.strip():
+        html = await asyncio.to_thread(_scraperapi_get_sync, url)
+        if _is_real_g2(html):
+            return html
     paid = settings.PROXY_URL.strip()
     if paid:
         html = await asyncio.to_thread(_headless_get_sync, url, paid)
@@ -390,11 +425,7 @@ async def scrape(query: str, limit: int | None, sort: str, stopped) -> list[dict
             break
         html = await _fetch_html(_page_url(base, page, sort), stopped)
         if html is None:
-            if page == 1 and not settings.PROXY_URL.strip():
-                raise RuntimeError(
-                    "g2.com blocked every free proxy tried (Cloudflare) — retry, or set a paid "
-                    "PROXY_URL in .env. No real IP was used.")
-            break
+            break   # this proxy round failed — finish quietly; headless/curl already rotated proxies
         page_rows, _name = _parse(html, query, base)
         new = 0
         for r in page_rows:
@@ -437,6 +468,8 @@ async def run_job(job_id: str, queries: list[str], limit: int | None, sort: str 
             if stopped():
                 break
             rows = await scrape(q, limit, sort, stopped)
+            if not rows and not stopped():     # free proxies flaky — retry once with fresh proxies
+                rows = await scrape(q, limit, sort, stopped)
             for i, r in enumerate(rows):
                 r["job_id"] = job_id
                 r["position"] = total + i + 1

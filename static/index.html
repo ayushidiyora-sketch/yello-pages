@@ -251,6 +251,34 @@
     .g2-prod{font-size:12.5px;color:var(--blue);text-decoration:none}
     .g2-prod:hover{text-decoration:underline}
 
+    /* Glassdoor job cards */
+    #gjobResults{max-width:820px}
+    .gjob-card{display:flex;gap:14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .gjob-logo{flex:0 0 56px;width:56px;height:56px;border-radius:8px;object-fit:contain;border:1px solid var(--line);background:#fff}
+    .gjob-main{flex:1;min-width:0}
+    .gjob-title{font-size:16px;font-weight:700;color:var(--blue);text-decoration:none}
+    .gjob-title:hover{text-decoration:underline}
+    .gjob-co{font-size:13.5px;color:#3a3f45;margin:2px 0}
+    .gjob-co .rating{color:#e8a200;font-weight:600;margin-left:6px}
+    .gjob-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:#555;margin:4px 0}
+    .gjob-meta .sal{color:var(--green);font-weight:600}
+    .gjob-easy{font-size:11px;font-weight:700;color:#1d4ed8;background:#e8efff;border:1px solid #d6e2ff;border-radius:20px;padding:1px 8px}
+    .gjob-snip{font-size:13px;color:#555;margin-top:6px;line-height:1.45}
+
+    /* Walmart product cards */
+    #wmpResults{display:flex;flex-direction:column;gap:12px;max-width:900px}
+    .wmp-card{display:flex;gap:14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .wmp-thumb{flex:0 0 84px;width:84px;height:84px;border-radius:8px;object-fit:contain;border:1px solid var(--line);background:#fff}
+    .wmp-main{flex:1;min-width:0}
+    .wmp-name{font-size:16px;font-weight:700;color:var(--blue);text-decoration:none}
+    .wmp-name:hover{text-decoration:underline}
+    .wmp-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:#555;margin:5px 0}
+    .wmp-meta .stars{color:#e8a200;letter-spacing:1px}
+    .wmp-side{flex:0 0 130px;text-align:right}
+    .wmp-price{font-size:18px;font-weight:800;color:var(--ink);white-space:nowrap}
+    .wmp-avail{font-size:12px;color:var(--green);margin-top:4px}
+    @media(max-width:640px){.wmp-card{flex-wrap:wrap}.wmp-side{flex-basis:100%;text-align:left;margin-top:6px}}
+
     /* ---- home / landing page (matches dashboard theme) ---- */
     .home-hero{background:linear-gradient(135deg,#0b1736 0%,#16306e 58%,#1d4ed8 100%);
       color:#fff;border-radius:18px;padding:48px 44px;position:relative;overflow:hidden;
@@ -837,6 +865,184 @@
   <div id="bbrResults"></div>
   <div id="bbrPager"></div>
   </div><!-- /bbbReviewsView -->
+
+  <!-- Glassdoor Job Scraper form (glassdoor.com job-search URLs) -->
+  <div id="gjobView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search URLs <span class="req">*</span></label>
+        <textarea id="gjobInput" placeholder="https://www.glassdoor.com/Job/los-angeles-ca-us-python-jobs-SRCH_IL.0,17_IC1146821_KO18,24.htm"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gjobFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gjobFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gjobFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gjobFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gjobLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gjobStartBtn" onclick="gjobStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="gjobStopBtn" onclick="gjobStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gjobStatus"></div>
+  <div class="bar" id="gjobBar"><i></i></div>
+
+  <div class="resbar" id="gjobResbar" style="display:none">
+    <div class="count" id="gjobCount"></div>
+    <div class="resbar-controls">
+      <a id="gjobDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gjobDownloadXlsx" style="display:none" onclick="gjobDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gjobResults"></div>
+  <div id="gjobPager"></div>
+  </div><!-- /gjobView -->
+
+  <!-- Glassdoor Reviews Scraper form (glassdoor.com company-reviews URLs) -->
+  <div id="gdrView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="gdrInput" placeholder="https://www.glassdoor.com/Reviews/Amazon-Reviews-E6036.htm&#10;https://www.glassdoor.com/Reviews/USA-Jobs-Reviews-E221792.htm"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gdrFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gdrFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gdrFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gdrFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gdrLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="gdrSort">
+          <option value="most_recent" selected>Most Recent</option>
+          <option value="most_helpful">Most Helpful</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gdrStartBtn" onclick="gdrStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="gdrStopBtn" onclick="gdrStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gdrStatus"></div>
+  <div class="bar" id="gdrBar"><i></i></div>
+
+  <div class="resbar" id="gdrResbar" style="display:none">
+    <div class="count" id="gdrCount"></div>
+    <div class="resbar-controls">
+      <a id="gdrDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gdrDownloadXlsx" style="display:none" onclick="gdrDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gdrResults"></div>
+  <div id="gdrPager"></div>
+  </div><!-- /gdrView -->
+
+  <!-- Walmart Products Scraper form (walmart.com /ip/ product URLs) -->
+  <div id="wmpView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="wmpInput" placeholder="https://www.walmart.com/ip/625493716&#10;https://www.walmart.com/ip/Homfa-Sofa-Bed/625493716"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="wmpFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="wmpFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('wmpFile').click()">⬆ Upload file</button>
+          <span class="hint" id="wmpFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="wmpLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="wmpStartBtn" onclick="wmpStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="wmpStopBtn" onclick="wmpStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="wmpStatus"></div>
+  <div class="bar" id="wmpBar"><i></i></div>
+
+  <div class="resbar" id="wmpResbar" style="display:none">
+    <div class="count" id="wmpCount"></div>
+    <div class="resbar-controls">
+      <a id="wmpDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="wmpDownloadXlsx" style="display:none" onclick="wmpDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="wmpResults"></div>
+  <div id="wmpPager"></div>
+  </div><!-- /wmpView -->
+
+  <!-- Walmart Reviews Scraper form (walmart.com product URLs) -->
+  <div id="wmrView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="wmrInput" placeholder="https://www.walmart.com/ip/Blackstone-Original-4-Burner-36-Propane-Omnivore-Griddle-with-Hard-Cover/1347629739"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="wmrFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="wmrFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('wmrFile').click()">⬆ Upload file</button>
+          <span class="hint" id="wmrFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="wmrLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="wmrSort">
+          <option value="most_relevant" selected>Most Relevant</option>
+          <option value="top_reviews">Top reviews</option>
+          <option value="newest">Newest to Oldest</option>
+          <option value="oldest">Oldest to Newest</option>
+          <option value="high_rating">High to Low Rating</option>
+          <option value="low_rating">Low to High Rating</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="wmrStartBtn" onclick="wmrStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="wmrStopBtn" onclick="wmrStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="wmrStatus"></div>
+  <div class="bar" id="wmrBar"><i></i></div>
+
+  <div class="resbar" id="wmrResbar" style="display:none">
+    <div class="count" id="wmrCount"></div>
+    <div class="resbar-controls">
+      <a id="wmrDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="wmrDownloadXlsx" style="display:none" onclick="wmrDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="wmrResults"></div>
+  <div id="wmrPager"></div>
+  </div><!-- /wmrView -->
    </div><!-- /wrap -->
   </main>
 </div><!-- /app -->
@@ -1279,6 +1485,10 @@ function homeIcon(s){
   if(u==='bbb') return '🏢';
   if(u==='g2') return '⭐';
   if(u==='bbb_reviews') return '⭐';
+  if(u==='glassdoor_jobs') return '💼';
+  if(u==='glassdoor_reviews') return '⭐';
+  if(u==='walmart') return '🛒';
+  if(u==='walmart_reviews') return '⭐';
   if(s.live) return '📒';                 // Yellow Pages
   const t = (s.tags && s.tags[0]) || '';
   if(/Lead|Contact|Email/i.test(t)) return '✉️';
@@ -1293,7 +1503,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -1394,6 +1604,10 @@ function selectService(s, keep, fromHistory){
   document.getElementById('bbbView').style.display     = vt==='bbb' ? '' : 'none';
   document.getElementById('g2View').style.display      = vt==='g2' ? '' : 'none';
   document.getElementById('bbbReviewsView').style.display = vt==='bbb_reviews' ? '' : 'none';
+  document.getElementById('gjobView').style.display    = vt==='glassdoor_jobs' ? '' : 'none';
+  document.getElementById('gdrView').style.display     = vt==='glassdoor_reviews' ? '' : 'none';
+  document.getElementById('wmpView').style.display     = vt==='walmart' ? '' : 'none';
+  document.getElementById('wmrView').style.display     = vt==='walmart_reviews' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -1411,6 +1625,10 @@ function viewType(s){
   if(s.ui === 'bbb') return 'bbb';
   if(s.ui === 'g2') return 'g2';
   if(s.ui === 'bbb_reviews') return 'bbb_reviews';
+  if(s.ui === 'glassdoor_jobs') return 'glassdoor_jobs';
+  if(s.ui === 'glassdoor_reviews') return 'glassdoor_reviews';
+  if(s.ui === 'walmart') return 'walmart';
+  if(s.ui === 'walmart_reviews') return 'walmart_reviews';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -1589,7 +1807,7 @@ async function amzShowResults(job_id, status){
     // a manual Stop with 0 results isn't a proxy failure — show a neutral message
     const msg = status==='stopped'
       ? 'Stopped before any product was scraped.'
-      : 'No products found — proxies may have been blocked by Amazon. Try again, or set a paid PROXY_URL in .env.';
+      : 'No products found — please click Start scraping to try again.';
     document.getElementById('amzCount').innerHTML='<span class="empty">'+msg+'</span>';
     resbar.style.display='flex';
     return;
@@ -1768,7 +1986,7 @@ async function arvShowResults(job_id, status){
     document.getElementById('arvResults').innerHTML='';
     const msg = status==='stopped'
       ? 'Stopped before any review was scraped.'
-      : 'No reviews found — the product may have no reviews, or proxies were blocked / Amazon required sign-in. Try again, or set a paid PROXY_URL in .env.';
+      : 'No reviews found — the product may have no reviews. Please click Start scraping to try again.';
     document.getElementById('arvCount').innerHTML='<span class="empty">'+msg+'</span>';
     resbar.style.display='flex';
     return;
@@ -1956,7 +2174,7 @@ async function ebyShowResults(job_id, status){
     document.getElementById('ebyResults').innerHTML='';
     const msg = status==='stopped'
       ? 'Stopped before any product was scraped.'
-      : 'No products found — proxies may have been blocked by eBay. Try again, or set a paid PROXY_URL in .env.';
+      : 'No products found — please click Start scraping to try again.';
     document.getElementById('ebyCount').innerHTML='<span class="empty">'+msg+'</span>';
     resbar.style.display='flex';
     return;
@@ -2309,7 +2527,7 @@ async function bbbShowResults(job_id){
   const resbar=document.getElementById('bbbResbar');
   if(!_bbbRows.length){
     document.getElementById('bbbResults').innerHTML='';
-    document.getElementById('bbbCount').innerHTML='<span class="empty">No results — bbb.org may have blocked the request. Try again, or set a paid PROXY_URL.</span>';
+    document.getElementById('bbbCount').innerHTML='<span class="empty">No results found — please click Start scraping to try again.</span>';
     resbar.style.display='flex';
     document.getElementById('bbbDownload').style.display='none';
     document.getElementById('bbbDownloadXlsx').style.display='none';
@@ -2473,7 +2691,7 @@ async function g2ShowResults(job_id){
   const resbar=document.getElementById('g2Resbar');
   if(!_g2Rows.length){
     document.getElementById('g2Results').innerHTML='';
-    document.getElementById('g2Count').innerHTML='<span class="empty">No reviews — g2.com (Cloudflare) may have blocked the request. Try again, or set a paid PROXY_URL.</span>';
+    document.getElementById('g2Count').innerHTML='<span class="empty">No reviews found — please click Start scraping to try again.</span>';
     resbar.style.display='flex';
     document.getElementById('g2Download').style.display='none';
     document.getElementById('g2DownloadXlsx').style.display='none';
@@ -2643,7 +2861,7 @@ async function bbrShowResults(job_id){
   const resbar=document.getElementById('bbrResbar');
   if(!_bbrRows.length){
     document.getElementById('bbrResults').innerHTML='';
-    document.getElementById('bbrCount').innerHTML='<span class="empty">No reviews — the business may have none, or bbb.org blocked the request. Try again.</span>';
+    document.getElementById('bbrCount').innerHTML='<span class="empty">No reviews found — please click Start scraping to try again.</span>';
     resbar.style.display='flex';
     document.getElementById('bbrDownload').style.display='none';
     document.getElementById('bbrDownloadXlsx').style.display='none';
@@ -2714,6 +2932,649 @@ function bbrDownloadExcel(){
   XLSX.writeFile(wb, bbrFileName()+'.xlsx');
 }
 /* ---------- end BBB Reviews ---------- */
+/* ---------- Glassdoor Job Scraper (glassdoor.com) ---------- */
+const GJOB_COLUMNS = ["query","job_title","company","company_rating","location","salary","date_posted","easy_apply","job_url","snippet","logo","position"];
+const GJOB_PAGE_SIZE = 15;
+let gjobTimer=null, gjobJob=null, _gjobRows=[], _gjobDlUrl=null, _gjobPage=0;
+
+async function gjobFilePicked(){
+  const f=document.getElementById('gjobFile').files[0];
+  const nameEl=document.getElementById('gjobFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gjobInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' URL'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.';
+    } else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gjobSetRunning(on){
+  document.getElementById('gjobStartBtn').disabled=on;
+  document.getElementById('gjobStopBtn').disabled=!on;
+  ['gjobInput','gjobLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gjobStart(){
+  const typed=document.getElementById('gjobInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Glassdoor job-search URL, one per line.'); return; }
+  const lim=parseInt(document.getElementById('gjobLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/glassdoor-jobs',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queries, limit:(lim>0?lim:null)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gjobJob=(await r.json()).job_id;
+  _gjobRows=[]; _gjobPage=0;
+  document.getElementById('gjobResbar').style.display='none';
+  document.getElementById('gjobResults').innerHTML='';
+  document.getElementById('gjobPager').innerHTML='';
+  document.getElementById('gjobCount').textContent='';
+  document.getElementById('gjobBar').style.display='block';
+  document.querySelector('#gjobBar>i').style.width='30%';
+  gjobSetRunning(true);
+  if(gjobTimer) clearInterval(gjobTimer);
+  gjobTimer=setInterval(()=>gjobPoll(gjobJob),1500);
+  gjobPoll(gjobJob);
+}
+
+async function gjobStop(){ if(gjobJob){ document.getElementById('gjobStopBtn').disabled=true; await fetch('/api/stop/'+gjobJob,{method:'POST'}); } }
+
+async function gjobPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gjobStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' jobs';
+  } else {
+    clearInterval(gjobTimer); gjobSetRunning(false);
+    document.getElementById('gjobBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' jobs';
+      gjobShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gjobShowResults(job_id){
+  _gjobRows=await (await fetch('/api/glassdoor-jobs/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('gjobResbar');
+  if(!_gjobRows.length){
+    document.getElementById('gjobResults').innerHTML='';
+    document.getElementById('gjobCount').innerHTML='<span class="empty">No jobs found — please click Start scraping to try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gjobDownload').style.display='none';
+    document.getElementById('gjobDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gjobPage=0;
+  gjobRender();
+  document.getElementById('gjobCount').textContent='Showing '+_gjobRows.length+' jobs ('+GJOB_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gjobUpdateDownload();
+}
+
+function gjobRender(){
+  const start=_gjobPage*GJOB_PAGE_SIZE;
+  let h='';
+  _gjobRows.slice(start, start+GJOB_PAGE_SIZE).forEach((r)=>{
+    const title=r.job_url?`<a href="${esc(r.job_url)}" target="_blank" rel="noopener" class="gjob-title">${esc(r.job_title||'')}</a>`:`<span class="gjob-title">${esc(r.job_title||'')}</span>`;
+    const rating=r.company_rating?`<span class="rating">★ ${esc(r.company_rating)}</span>`:'';
+    const easy=r.easy_apply==='Yes'?'<span class="gjob-easy">Easy Apply</span>':'';
+    const meta=[r.location?esc(r.location):'', r.salary?`<span class="sal">${esc(r.salary)}</span>`:'', r.date_posted?esc(r.date_posted):'', easy].filter(Boolean).join('<span class="sep"> · </span>');
+    const logo=(r.logo&&/^https?:/.test(r.logo))?`<img class="gjob-logo" src="${esc(r.logo)}" alt="" onerror="this.remove()">`:'';
+    h+=`<div class="gjob-card">
+      ${logo}
+      <div class="gjob-main">
+        ${title}
+        ${(r.company||rating)?`<div class="gjob-co">${esc(r.company||'')}${rating}</div>`:''}
+        ${meta?`<div class="gjob-meta">${meta}</div>`:''}
+        ${r.snippet?`<div class="gjob-snip">${esc(r.snippet)}</div>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('gjobResults').innerHTML=h;
+  gjobRenderPager(_gjobRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gjobRenderPager(total){
+  const pg=document.getElementById('gjobPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GJOB_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gjobPage=page; gjobRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gjobPage-1,{disabled:_gjobPage===0}));
+  let s=Math.max(0,_gjobPage-2), e=Math.min(pages-1,_gjobPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gjobPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gjobPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gjobPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gjobPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gjobPage+1,{disabled:_gjobPage>=pages-1}));
+}
+
+function gjobFileNameOut(){
+  const q=(document.getElementById('gjobInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'glassdoor_jobs_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function gjobUpdateDownload(){
+  const dl=document.getElementById('gjobDownload'), xl=document.getElementById('gjobDownloadXlsx');
+  if(!_gjobRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gjobDlUrl) URL.revokeObjectURL(_gjobDlUrl);
+  const rows=_gjobRows.map(r=>{ const o={}; for(const c of GJOB_COLUMNS) o[c]=r[c]??''; return o; });
+  _gjobDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gjobDlUrl; dl.setAttribute('download', gjobFileNameOut()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gjobDownloadExcel(){
+  if(!_gjobRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gjobRows.map(r=>{ const o={}; for(const c of GJOB_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GJOB_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Glassdoor Jobs');
+  XLSX.writeFile(wb, gjobFileNameOut()+'.xlsx');
+}
+/* ---------- end Glassdoor Jobs ---------- */
+
+/* ---------- Glassdoor Reviews Scraper (glassdoor.com) ---------- */
+const GDR_COLUMNS = ["query","company","review_title","rating","pros","cons","reviewer","employment_status","location","date","recommends","ceo_approval","outlook","helpful","review_url","position"];
+const GDR_PAGE_SIZE = 10;
+let gdrTimer=null, gdrJob=null, _gdrRows=[], _gdrDlUrl=null, _gdrPage=0;
+
+async function gdrFilePicked(){
+  const f=document.getElementById('gdrFile').files[0];
+  const nameEl=document.getElementById('gdrFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gdrInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' URL'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.';
+    } else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gdrSetRunning(on){
+  document.getElementById('gdrStartBtn').disabled=on;
+  document.getElementById('gdrStopBtn').disabled=!on;
+  ['gdrInput','gdrLimit','gdrSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gdrStart(){
+  const typed=document.getElementById('gdrInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Glassdoor reviews URL, one per line.'); return; }
+  const lim=parseInt(document.getElementById('gdrLimit').value,10);
+  const sort=document.getElementById('gdrSort').value;
+  let r;
+  try{ r=await fetch('/api/glassdoor-reviews',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queries, limit:(lim>0?lim:null), sort})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gdrJob=(await r.json()).job_id;
+  _gdrRows=[]; _gdrPage=0;
+  document.getElementById('gdrResbar').style.display='none';
+  document.getElementById('gdrResults').innerHTML='';
+  document.getElementById('gdrPager').innerHTML='';
+  document.getElementById('gdrCount').textContent='';
+  document.getElementById('gdrBar').style.display='block';
+  document.querySelector('#gdrBar>i').style.width='30%';
+  gdrSetRunning(true);
+  if(gdrTimer) clearInterval(gdrTimer);
+  gdrTimer=setInterval(()=>gdrPoll(gdrJob),1500);
+  gdrPoll(gdrJob);
+}
+
+async function gdrStop(){ if(gdrJob){ document.getElementById('gdrStopBtn').disabled=true; await fetch('/api/stop/'+gdrJob,{method:'POST'}); } }
+
+async function gdrPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gdrStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' reviews';
+  } else {
+    clearInterval(gdrTimer); gdrSetRunning(false);
+    document.getElementById('gdrBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      gdrShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gdrShowResults(job_id){
+  _gdrRows=await (await fetch('/api/glassdoor-reviews/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('gdrResbar');
+  if(!_gdrRows.length){
+    document.getElementById('gdrResults').innerHTML='';
+    document.getElementById('gdrCount').innerHTML='<span class="empty">No reviews found — please click Start scraping to try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gdrDownload').style.display='none';
+    document.getElementById('gdrDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gdrPage=0;
+  gdrRender();
+  document.getElementById('gdrCount').textContent='Showing '+_gdrRows.length+' reviews ('+GDR_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gdrUpdateDownload();
+}
+
+function gdrRender(){
+  const start=_gdrPage*GDR_PAGE_SIZE;
+  let h='';
+  _gdrRows.slice(start, start+GDR_PAGE_SIZE).forEach((r)=>{
+    const titleTxt=r.review_title||'(no title)';
+    const title=r.review_url?`<a href="${esc(r.review_url)}" target="_blank" rel="noopener" class="g2-title" style="text-decoration:none">${esc(titleTxt)}</a>`:`<span class="g2-title">${esc(titleTxt)}</span>`;
+    const who=[r.reviewer, r.employment_status, r.location].filter(Boolean).map(esc).join(' · ');
+    const badges=[r.recommends==='Yes'?'👍 Recommends':'', r.ceo_approval==='Yes'?'✔ Approves CEO':'', r.outlook?(r.outlook+' outlook'):''].filter(Boolean).map(esc).join(' · ');
+    const helpful=r.helpful?`👍 ${esc(r.helpful)} found helpful`:'';
+    const meta=[who?`<span class="who">${who}</span>`:'', r.date?esc(r.date):'', badges, helpful].filter(Boolean).join(' · ');
+    let body='';
+    if(r.pros) body+=`<div class="g2-qa"><b>👍 Pros</b>${esc(r.pros)}</div>`;
+    if(r.cons) body+=`<div class="g2-qa"><b>👎 Cons</b>${esc(r.cons)}</div>`;
+    const co=r.company?`<div class="g2-foot">Company: ${esc(r.company)}</div>`:'';
+    h+=`<div class="g2-card">
+      <div class="g2-top">${title}${g2Stars(r.rating)}</div>
+      <div class="g2-meta">${meta}</div>
+      ${body}
+      ${co}
+    </div>`;
+  });
+  document.getElementById('gdrResults').innerHTML=h;
+  gdrRenderPager(_gdrRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gdrRenderPager(total){
+  const pg=document.getElementById('gdrPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GDR_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gdrPage=page; gdrRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gdrPage-1,{disabled:_gdrPage===0}));
+  let s=Math.max(0,_gdrPage-2), e=Math.min(pages-1,_gdrPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gdrPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gdrPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gdrPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gdrPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gdrPage+1,{disabled:_gdrPage>=pages-1}));
+}
+
+function gdrFileNameOut(){
+  const q=(document.getElementById('gdrInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'glassdoor_reviews_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function gdrUpdateDownload(){
+  const dl=document.getElementById('gdrDownload'), xl=document.getElementById('gdrDownloadXlsx');
+  if(!_gdrRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gdrDlUrl) URL.revokeObjectURL(_gdrDlUrl);
+  const rows=_gdrRows.map(r=>{ const o={}; for(const c of GDR_COLUMNS) o[c]=r[c]??''; return o; });
+  _gdrDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gdrDlUrl; dl.setAttribute('download', gdrFileNameOut()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gdrDownloadExcel(){
+  if(!_gdrRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gdrRows.map(r=>{ const o={}; for(const c of GDR_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GDR_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Glassdoor Reviews');
+  XLSX.writeFile(wb, gdrFileNameOut()+'.xlsx');
+}
+/* ---------- end Glassdoor Reviews ---------- */
+
+/* ---------- Walmart Products Scraper (walmart.com) ---------- */
+const WMP_COLUMNS = ["query","item_id","name","brand","price","currency","rating","review_count","availability","seller","category","description","image","url","position"];
+const WMP_PAGE_SIZE = 20;
+let wmpTimer=null, wmpJob=null, _wmpRows=[], _wmpDlUrl=null, _wmpPage=0;
+
+async function wmpFilePicked(){
+  const f=document.getElementById('wmpFile').files[0];
+  const nameEl=document.getElementById('wmpFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('wmpInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' URL'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.';
+    } else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function wmpSetRunning(on){
+  document.getElementById('wmpStartBtn').disabled=on;
+  document.getElementById('wmpStopBtn').disabled=!on;
+  ['wmpInput','wmpLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function wmpStart(){
+  const typed=document.getElementById('wmpInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Walmart product URL, one per line.'); return; }
+  const lim=parseInt(document.getElementById('wmpLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/walmart',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queries, limit:(lim>0?lim:null)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  wmpJob=(await r.json()).job_id;
+  _wmpRows=[]; _wmpPage=0;
+  document.getElementById('wmpResbar').style.display='none';
+  document.getElementById('wmpResults').innerHTML='';
+  document.getElementById('wmpPager').innerHTML='';
+  document.getElementById('wmpCount').textContent='';
+  document.getElementById('wmpBar').style.display='block';
+  document.querySelector('#wmpBar>i').style.width='30%';
+  wmpSetRunning(true);
+  if(wmpTimer) clearInterval(wmpTimer);
+  wmpTimer=setInterval(()=>wmpPoll(wmpJob),1500);
+  wmpPoll(wmpJob);
+}
+
+async function wmpStop(){ if(wmpJob){ document.getElementById('wmpStopBtn').disabled=true; await fetch('/api/stop/'+wmpJob,{method:'POST'}); } }
+
+async function wmpPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('wmpStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' products';
+  } else {
+    clearInterval(wmpTimer); wmpSetRunning(false);
+    document.getElementById('wmpBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' products';
+      wmpShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function wmpShowResults(job_id){
+  _wmpRows=await (await fetch('/api/walmart/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('wmpResbar');
+  if(!_wmpRows.length){
+    document.getElementById('wmpResults').innerHTML='';
+    document.getElementById('wmpCount').innerHTML='<span class="empty">No products found — please click Start scraping to try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('wmpDownload').style.display='none';
+    document.getElementById('wmpDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _wmpPage=0;
+  wmpRender();
+  document.getElementById('wmpCount').textContent='Showing '+_wmpRows.length+' products ('+WMP_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  wmpUpdateDownload();
+}
+
+function wmpRender(){
+  const start=_wmpPage*WMP_PAGE_SIZE;
+  let h='';
+  _wmpRows.slice(start, start+WMP_PAGE_SIZE).forEach((r)=>{
+    const name=r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener" class="wmp-name">${esc(r.name||'')}</a>`:`<span class="wmp-name">${esc(r.name||'')}</span>`;
+    const n=Math.round(parseFloat(r.rating)||0);
+    const stars=n?`<span class="stars">${'★'.repeat(Math.min(5,n))}${'☆'.repeat(Math.max(0,5-n))}</span> ${esc(r.rating)}${r.review_count?(' ('+esc(r.review_count)+')'):''}`:'';
+    const meta=[r.brand?('Brand: '+esc(r.brand)):'', stars, r.seller?('Seller: '+esc(r.seller)):'', r.item_id?('Item: '+esc(r.item_id)):''].filter(Boolean).join('<span class="sep"> · </span>');
+    const price=r.price?`<div class="wmp-price">${esc(r.currency==='USD'||!r.currency?'$':r.currency+' ')}${esc(r.price)}</div>`:'';
+    const avail=r.availability?`<div class="wmp-avail">${esc(r.availability)}</div>`:'';
+    const logo=(r.image&&/^https?:/.test(r.image))?`<img class="wmp-thumb" src="${esc(r.image)}" alt="" onerror="this.remove()">`:'';
+    h+=`<div class="wmp-card">
+      ${logo}
+      <div class="wmp-main">
+        ${name}
+        ${meta?`<div class="wmp-meta">${meta}</div>`:''}
+        ${r.description?`<div class="gjob-snip">${esc(r.description)}</div>`:''}
+      </div>
+      <div class="wmp-side">${price}${avail}</div>
+    </div>`;
+  });
+  document.getElementById('wmpResults').innerHTML=h;
+  wmpRenderPager(_wmpRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function wmpRenderPager(total){
+  const pg=document.getElementById('wmpPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/WMP_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_wmpPage=page; wmpRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_wmpPage-1,{disabled:_wmpPage===0}));
+  let s=Math.max(0,_wmpPage-2), e=Math.min(pages-1,_wmpPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_wmpPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_wmpPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_wmpPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_wmpPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_wmpPage+1,{disabled:_wmpPage>=pages-1}));
+}
+
+function wmpFileNameOut(){
+  const q=(document.getElementById('wmpInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'walmart_products_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function wmpUpdateDownload(){
+  const dl=document.getElementById('wmpDownload'), xl=document.getElementById('wmpDownloadXlsx');
+  if(!_wmpRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_wmpDlUrl) URL.revokeObjectURL(_wmpDlUrl);
+  const rows=_wmpRows.map(r=>{ const o={}; for(const c of WMP_COLUMNS) o[c]=r[c]??''; return o; });
+  _wmpDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_wmpDlUrl; dl.setAttribute('download', wmpFileNameOut()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function wmpDownloadExcel(){
+  if(!_wmpRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_wmpRows.map(r=>{ const o={}; for(const c of WMP_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:WMP_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Walmart Products');
+  XLSX.writeFile(wb, wmpFileNameOut()+'.xlsx');
+}
+/* ---------- end Walmart ---------- */
+
+/* ---------- Walmart Reviews Scraper (walmart.com) ---------- */
+const WMR_COLUMNS = ["query","product_name","item_id","reviewer","rating","title","text","date","verified_purchase","helpful_positive","helpful_negative","review_url","position"];
+const WMR_PAGE_SIZE = 10;
+let wmrTimer=null, wmrJob=null, _wmrRows=[], _wmrDlUrl=null, _wmrPage=0;
+
+async function wmrFilePicked(){
+  const f=document.getElementById('wmrFile').files[0];
+  const nameEl=document.getElementById('wmrFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('wmrInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' URL'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.';
+    } else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function wmrSetRunning(on){
+  document.getElementById('wmrStartBtn').disabled=on;
+  document.getElementById('wmrStopBtn').disabled=!on;
+  ['wmrInput','wmrLimit','wmrSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function wmrStart(){
+  const typed=document.getElementById('wmrInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Walmart product URL, one per line.'); return; }
+  const lim=parseInt(document.getElementById('wmrLimit').value,10);
+  const sort=document.getElementById('wmrSort').value;
+  let r;
+  try{ r=await fetch('/api/walmart-reviews',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queries, limit:(lim>0?lim:null), sort})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  wmrJob=(await r.json()).job_id;
+  _wmrRows=[]; _wmrPage=0;
+  document.getElementById('wmrResbar').style.display='none';
+  document.getElementById('wmrResults').innerHTML='';
+  document.getElementById('wmrPager').innerHTML='';
+  document.getElementById('wmrCount').textContent='';
+  document.getElementById('wmrBar').style.display='block';
+  document.querySelector('#wmrBar>i').style.width='30%';
+  wmrSetRunning(true);
+  if(wmrTimer) clearInterval(wmrTimer);
+  wmrTimer=setInterval(()=>wmrPoll(wmrJob),1500);
+  wmrPoll(wmrJob);
+}
+
+async function wmrStop(){ if(wmrJob){ document.getElementById('wmrStopBtn').disabled=true; await fetch('/api/stop/'+wmrJob,{method:'POST'}); } }
+
+async function wmrPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('wmrStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' reviews';
+  } else {
+    clearInterval(wmrTimer); wmrSetRunning(false);
+    document.getElementById('wmrBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      wmrShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function wmrShowResults(job_id){
+  _wmrRows=await (await fetch('/api/walmart-reviews/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('wmrResbar');
+  if(!_wmrRows.length){
+    document.getElementById('wmrResults').innerHTML='';
+    document.getElementById('wmrCount').innerHTML='<span class="empty">No reviews found — please click Start scraping to try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('wmrDownload').style.display='none';
+    document.getElementById('wmrDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _wmrPage=0;
+  wmrRender();
+  document.getElementById('wmrCount').textContent='Showing '+_wmrRows.length+' reviews ('+WMR_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  wmrUpdateDownload();
+}
+
+function wmrRender(){
+  const start=_wmrPage*WMR_PAGE_SIZE;
+  let h='';
+  _wmrRows.slice(start, start+WMR_PAGE_SIZE).forEach((r)=>{
+    const title=`<span class="g2-title">${esc(r.title||'(no title)')}</span>`;
+    const verified=r.verified_purchase==='Yes'?'<span class="g2-verified">✔ Verified Purchase</span>':'';
+    const helpful=(r.helpful_positive||r.helpful_negative)?`👍 ${esc(r.helpful_positive||'0')} / 👎 ${esc(r.helpful_negative||'0')}`:'';
+    const meta=[r.reviewer?`<span class="who">${esc(r.reviewer)}</span>`:'', r.date?esc(r.date):'', verified, helpful].filter(Boolean).join(' · ');
+    const body=r.text?`<div class="g2-body">${esc(r.text)}</div>`:'';
+    const prod=r.product_name?`<div class="g2-foot">Product: ${esc(r.product_name)}${r.item_id?(' · Item '+esc(r.item_id)):''}</div>`:'';
+    h+=`<div class="g2-card">
+      <div class="g2-top">${title}${g2Stars(r.rating)}</div>
+      <div class="g2-meta">${meta}</div>
+      ${body}
+      ${prod}
+    </div>`;
+  });
+  document.getElementById('wmrResults').innerHTML=h;
+  wmrRenderPager(_wmrRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function wmrRenderPager(total){
+  const pg=document.getElementById('wmrPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/WMR_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_wmrPage=page; wmrRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_wmrPage-1,{disabled:_wmrPage===0}));
+  let s=Math.max(0,_wmrPage-2), e=Math.min(pages-1,_wmrPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_wmrPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_wmrPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_wmrPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_wmrPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_wmrPage+1,{disabled:_wmrPage>=pages-1}));
+}
+
+function wmrFileNameOut(){
+  const q=(document.getElementById('wmrInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'walmart_reviews_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function wmrUpdateDownload(){
+  const dl=document.getElementById('wmrDownload'), xl=document.getElementById('wmrDownloadXlsx');
+  if(!_wmrRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_wmrDlUrl) URL.revokeObjectURL(_wmrDlUrl);
+  const rows=_wmrRows.map(r=>{ const o={}; for(const c of WMR_COLUMNS) o[c]=r[c]??''; return o; });
+  _wmrDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_wmrDlUrl; dl.setAttribute('download', wmrFileNameOut()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function wmrDownloadExcel(){
+  if(!_wmrRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_wmrRows.map(r=>{ const o={}; for(const c of WMR_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:WMR_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Walmart Reviews');
+  XLSX.writeFile(wb, wmrFileNameOut()+'.xlsx');
+}
+/* ---------- end Walmart Reviews ---------- */
 /* ---------- end services ---------- */
 
 document.getElementById('region').addEventListener('change', updateRegionHint);

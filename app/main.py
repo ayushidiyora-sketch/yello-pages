@@ -7,11 +7,15 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, Response
 
 from .db import (jobs, businesses, products, reviews, ebay_products, gresults, bbbresults,
-                 g2reviews, bbbreviews, ensure_indexes)
+                 g2reviews, bbbreviews, gjobs, gdreviews, walmart_products, walmart_reviews,
+                 ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
-                     EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest)
+                     EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
+                     GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
+                     WalmartReviewsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
-from . import yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2, storage
+from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
+               glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv, storage)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -65,6 +69,30 @@ async def _g2_rows(job_id):
     rows = [g2.to_export(d) async for d in g2reviews.find({"job_id": job_id}, {"_id": 0})]
     rows.sort(key=lambda r: r.get("position") or 0)
     return rows, g2.G2_COLUMNS
+
+
+async def _gjobs_rows(job_id):
+    rows = [glassdoor_jobs.to_export(d) async for d in gjobs.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, glassdoor_jobs.GLASSDOOR_JOB_COLUMNS
+
+
+async def _gdreviews_rows(job_id):
+    rows = [glassdoor_reviews.to_export(d) async for d in gdreviews.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, glassdoor_reviews.GLASSDOOR_REVIEW_COLUMNS
+
+
+async def _walmart_rows(job_id):
+    rows = [walmart.to_export(d) async for d in walmart_products.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, walmart.WALMART_PRODUCT_COLUMNS
+
+
+async def _walmartrv_rows(job_id):
+    rows = [walmart_rv.to_export(d) async for d in walmart_reviews.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, walmart_rv.WALMART_REVIEW_COLUMNS
 
 
 async def _run_and_archive(coro, service, job_id, fetch):
@@ -434,6 +462,102 @@ async def g2_start(req: G2Request):
 @app.get("/api/g2/results/{job_id}")
 async def g2_results(job_id: str, limit: int = 4000):
     rows, _ = await _g2_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/glassdoor-jobs")
+async def glassdoor_jobs_start(req: GlassdoorJobsRequest):
+    """Glassdoor Job Scraper — jobs from a glassdoor.com job-search URL."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Glassdoor job-search URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "glassdoor_jobs", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        glassdoor_jobs.run_job(job_id, queries, req.limit),
+        "glassdoor_jobs", job_id, _gjobs_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/glassdoor-jobs/results/{job_id}")
+async def glassdoor_jobs_results(job_id: str, limit: int = 4000):
+    rows, _ = await _gjobs_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/glassdoor-reviews")
+async def glassdoor_reviews_start(req: GlassdoorReviewsRequest):
+    """Glassdoor Reviews Scraper — company reviews from a glassdoor.com reviews URL."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Glassdoor reviews URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "glassdoor_reviews", "queries": queries, "limit": req.limit,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        glassdoor_reviews.run_job(job_id, queries, req.limit, req.sort or ""),
+        "glassdoor_reviews", job_id, _gdreviews_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/glassdoor-reviews/results/{job_id}")
+async def glassdoor_reviews_results(job_id: str, limit: int = 4000):
+    rows, _ = await _gdreviews_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/walmart")
+async def walmart_start(req: WalmartProductsRequest):
+    """Walmart Products Scraper — products from walmart.com /ip/ URLs."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Walmart product URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "walmart", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        walmart.run_job(job_id, queries, req.limit),
+        "walmart_products", job_id, _walmart_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/walmart/results/{job_id}")
+async def walmart_results(job_id: str, limit: int = 4000):
+    rows, _ = await _walmart_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/walmart-reviews")
+async def walmart_reviews_start(req: WalmartReviewsRequest):
+    """Walmart Reviews Scraper — reviews from walmart.com product URLs."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Walmart product URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "walmart_reviews", "queries": queries, "limit": req.limit,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        walmart_rv.run_job(job_id, queries, req.limit, req.sort or ""),
+        "walmart_reviews", job_id, _walmartrv_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/walmart-reviews/results/{job_id}")
+async def walmart_reviews_results(job_id: str, limit: int = 4000):
+    rows, _ = await _walmartrv_rows(job_id)
     return rows[:limit]
 
 

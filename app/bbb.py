@@ -173,12 +173,7 @@ def search_sync(query: str, limit: int | None = None) -> list[dict]:
         try:
             r = _get(_search_url(query, page))
         except Exception:
-            # rotation found no passing proxy (all tried were 403'd) — surface it on page 1
-            if page == 1 and not settings.PROXY_URL.strip():
-                raise RuntimeError(
-                    "bbb.org blocked every free proxy tried (403) — retry, or set a paid PROXY_URL. "
-                    "No real IP was used.")
-            break
+            break   # no proxy passed this round — finish quietly; the pool already rotated proxies
         if r.status_code != 200:
             break
         page_rows, _total, pages = _parse(r.text)
@@ -300,6 +295,8 @@ async def run_job(job_id: str, queries: list[str], limit: int | None) -> None:
     try:
         for q in queries:
             rows = await search(q, limit)
+            if not rows:                       # free proxies flaky — retry once with fresh proxies
+                rows = await search(q, limit)
             for r in rows:
                 r["job_id"] = job_id
             if rows:

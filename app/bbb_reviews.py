@@ -72,10 +72,7 @@ def search_sync(query: str, limit: int | None = None, sort: str = "recent") -> l
         try:
             html = _proxied_get(_reviews_url(query, page)).text
         except Exception:
-            if page == 1:
-                raise RuntimeError("bbb.org blocked every free proxy tried (403) — retry, or set a "
-                                   "paid PROXY_URL. No real IP was used.")
-            break
+            break   # this proxy round failed — finish quietly; the pool already rotated proxies
         page_rows, pages = _parse_reviews(html, query)
         if not page_rows:
             break
@@ -104,6 +101,8 @@ async def run_job(job_id: str, queries: list[str], limit: int | None, sort: str 
     try:
         for q in queries:
             rows = await search(q, limit, sort)
+            if not rows:                       # free proxies flaky — retry once with fresh proxies
+                rows = await search(q, limit, sort)
             for r in rows:
                 r["job_id"] = job_id
             if rows:

@@ -60,6 +60,32 @@ class G2Request(BaseModel):
     sort: str = Field("", examples=["most_recent"])  # ""|most_recent|most_helpful|highest_rated|lowest_rated
 
 
+class GlassdoorJobsRequest(BaseModel):
+    # one line each: a glassdoor.com job-search URL (SRCH...htm).
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.glassdoor.com/Job/los-angeles-ca-us-python-jobs-SRCH_IL.0,17_IC1146821_KO18,24.htm"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # jobs/query; None = all
+
+
+class GlassdoorReviewsRequest(BaseModel):
+    # one line each: a glassdoor.com company-reviews URL (Reviews/...-Reviews-E<id>.htm).
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.glassdoor.com/Reviews/Amazon-Reviews-E6036.htm"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # reviews/query; None = all
+    sort: str = Field("", examples=["most_recent"])  # ""|most_recent|most_helpful
+
+
+class WalmartProductsRequest(BaseModel):
+    # one line each: a walmart.com product URL (/ip/<slug>/<id>).
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.walmart.com/ip/Homfa-Sofa-Bed/625493716"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # rows/query; None = all
+
+
+class WalmartReviewsRequest(BaseModel):
+    # one line each: a walmart.com product URL (/ip/<slug>/<id>); reviews read from /reviews/product/<id>.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.walmart.com/ip/Blackstone-Griddle/1347629739"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # reviews/query; None = all
+    sort: str = Field("", examples=["most_relevant"])  # ""|most_relevant|top_reviews|newest|oldest|high_rating|low_rating
+
+
 class BBBReviewsRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1)   # a bbb.org reviews/profile URL
     limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/business; None = all

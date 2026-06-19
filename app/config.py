@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     # Empty = use the rotating free US-proxy pool in yp_us.py.
     PROXY_URL: str = ""
 
+    # Optional ScraperAPI key (free tier ~1000 req/month, no card). When set, the G2 Reviews
+    # scraper fetches through ScraperAPI's residential proxies + JS render, which clears G2's
+    # DataDome bot-check (your own IP is never used). Empty = G2 stays on the free proxy pool.
+    SCRAPER_API_KEY: str = ""
+
     MAX_PAGES: int = 50
     MIN_DELAY: float = 1.0
     MAX_DELAY: float = 3.0
