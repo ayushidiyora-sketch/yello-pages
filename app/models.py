@@ -109,6 +109,12 @@ class ExpediaRequest(BaseModel):
     limit: Optional[int] = Field(None, ge=1, le=1000, examples=[10])  # hotels/URL; None = all
 
 
+class ExpediaReviewsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # an expedia.com hotel URL or hotel id
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[100])  # reviews/hotel; None = all
+    sort: str = Field("relevant", examples=["relevant"])  # relevant|recent|highest|lowest
+
+
 class TrustpilotRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1)   # trustpilot URL (category/profile) or company ID
     limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # companies/query; None = all

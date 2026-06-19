@@ -1346,6 +1346,54 @@
   <div id="hrPager"></div>
   </div><!-- /hotelsReviewsView -->
 
+  <div id="expediaReviewsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="erInput" placeholder="https://www.expedia.com/Las-Vegas-Hotels-The-Orleans-Hotel-Casino.h41313.Hotel-Information&#10;41313"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="erFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="erFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('erFile').click()">⬆ Upload file</button>
+          <span class="hint" id="erFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="erLimit" type="number" min="1" placeholder="100" value="100">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="erSort">
+          <option value="relevant" selected>Most relevant</option>
+          <option value="recent">Most recent</option>
+          <option value="highest">Highest guest rating</option>
+          <option value="lowest">Lowest guest rating</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="erStartBtn" onclick="erStart()">⬇ Export Reviews</button>
+      <button class="btn-stop" id="erStopBtn" onclick="erStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="erStatus"></div>
+  <div class="bar" id="erBar"><i></i></div>
+
+  <div class="resbar" id="erResbar" style="display:none">
+    <div class="count" id="erCount"></div>
+    <div class="resbar-controls">
+      <a id="erDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="erDownloadXlsx" style="display:none" onclick="erDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="erResults"></div>
+  <div id="erPager"></div>
+  </div><!-- /expediaReviewsView -->
+
   <div id="homedepotView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -2070,6 +2118,7 @@ function selectService(s, keep, fromHistory){
   document.getElementById('trustpilotSearchView').style.display = vt==='trustpilot_search' ? '' : 'none';
   document.getElementById('hotelsView').style.display = vt==='hotels' ? '' : 'none';
   document.getElementById('hotelsReviewsView').style.display = vt==='hotels_reviews' ? '' : 'none';
+  document.getElementById('expediaReviewsView').style.display = vt==='expedia_reviews' ? '' : 'none';
   document.getElementById('homedepotView').style.display = vt==='homedepot' ? '' : 'none';
   document.getElementById('trustpilotReviewsView').style.display = vt==='trustpilot_reviews' ? '' : 'none';
   document.getElementById('trustpilotMonitoringView').style.display = vt==='trustpilot_monitoring' ? '' : 'none';
@@ -2101,6 +2150,7 @@ function viewType(s){
   if(s.ui === 'trustpilot_search') return 'trustpilot_search';
   if(s.ui === 'hotels') return 'hotels';
   if(s.ui === 'hotels_reviews') return 'hotels_reviews';
+  if(s.ui === 'expedia_reviews') return 'expedia_reviews';
   if(s.ui === 'homedepot') return 'homedepot';
   if(s.ui === 'trustpilot_reviews') return 'trustpilot_reviews';
   if(s.ui === 'trustpilot_monitoring') return 'trustpilot_monitoring';
@@ -5108,6 +5158,160 @@ function hrDownloadExcel(){
   XLSX.writeFile(wb, hrFileName()+'.xlsx');
 }
 /* ---------- end Hotels Reviews ---------- */
+
+/* ---------- Expedia Reviews Scraper ---------- */
+const ER_COLUMNS = ["query","reviewer","rating","date","title","review"];
+const ER_PAGE_SIZE = 15;
+let erTimer=null, erJob=null, _erRows=[], _erDlUrl=null, _erPage=0;
+
+async function erFilePicked(){
+  const f=document.getElementById('erFile').files[0];
+  const nameEl=document.getElementById('erFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('erInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function erSetRunning(on){
+  document.getElementById('erStartBtn').disabled=on;
+  document.getElementById('erStopBtn').disabled=!on;
+  ['erInput','erLimit','erSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function erStart(){
+  const typed=document.getElementById('erInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter an expedia.com hotel URL or hotel id (one per line).'); return; }
+  const lim=parseInt(document.getElementById('erLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/expedia-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, limit:(lim>0?lim:null), sort:document.getElementById('erSort').value})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  erJob=(await r.json()).job_id;
+  _erRows=[]; _erPage=0;
+  document.getElementById('erResbar').style.display='none';
+  document.getElementById('erResults').innerHTML='';
+  document.getElementById('erPager').innerHTML='';
+  document.getElementById('erCount').textContent='';
+  document.getElementById('erBar').style.display='block';
+  document.querySelector('#erBar>i').style.width='30%';
+  erSetRunning(true);
+  if(erTimer) clearInterval(erTimer);
+  erTimer=setInterval(()=>erPoll(erJob),1500);
+  erPoll(erJob);
+}
+
+async function erStop(){ if(erJob){ document.getElementById('erStopBtn').disabled=true; await fetch('/api/stop/'+erJob,{method:'POST'}); } }
+
+async function erPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('erStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' reviews';
+  } else {
+    clearInterval(erTimer); erSetRunning(false);
+    document.getElementById('erBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      erShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function erShowResults(job_id){
+  _erRows=await (await fetch('/api/expedia-reviews/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('erResbar');
+  if(!_erRows.length){
+    document.getElementById('erResults').innerHTML='';
+    document.getElementById('erCount').innerHTML='<span class="empty">No reviews — expedia.com (PerimeterX) blocks free proxies. A paid residential PROXY_URL is required. No real IP was used.</span>';
+    resbar.style.display='flex';
+    document.getElementById('erDownload').style.display='none';
+    document.getElementById('erDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _erPage=0;
+  erRender();
+  document.getElementById('erCount').textContent='Showing '+_erRows.length+' reviews ('+ER_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  erUpdateDownload();
+}
+
+function erStars(n){
+  n=Math.round(parseFloat(n))||0;
+  let s='';
+  for(let i=1;i<=5;i++) s+= i<=n ? '★' : '<span class="off">★</span>';
+  return s;
+}
+function erRender(){
+  const start=_erPage*ER_PAGE_SIZE;
+  let h='';
+  _erRows.slice(start, start+ER_PAGE_SIZE).forEach((r)=>{
+    h+=`<div class="bbr-card">
+      <div class="bbr-name"><span class="ic">👤</span>${esc(r.reviewer||'Guest')}</div>
+      <div class="bbr-date"><b>Date:</b> ${esc(r.date||'')}</div>
+      ${r.rating?`<div class="bbr-stars">${erStars(r.rating)} <span style="color:#64748b">${esc(String(r.rating))}</span></div>`:''}
+      ${r.title?`<div class="bbr-text"><b>${esc(r.title)}</b></div>`:''}
+      <div class="bbr-text">${esc(r.review||'')}</div>
+    </div>`;
+  });
+  document.getElementById('erResults').innerHTML=h;
+  erRenderPager(_erRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function erRenderPager(total){
+  const pg=document.getElementById('erPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/ER_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_erPage=page; erRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_erPage-1,{disabled:_erPage===0}));
+  let s=Math.max(0,_erPage-2), e=Math.min(pages-1,_erPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_erPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_erPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_erPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_erPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_erPage+1,{disabled:_erPage>=pages-1}));
+}
+
+function erFileName(){ return 'expedia-reviews_'+((_erRows[0]&&_erRows[0].query||'results').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function erUpdateDownload(){
+  const dl=document.getElementById('erDownload'), xl=document.getElementById('erDownloadXlsx');
+  if(!_erRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_erDlUrl) URL.revokeObjectURL(_erDlUrl);
+  const rows=_erRows.map(r=>{ const o={}; for(const c of ER_COLUMNS) o[c]=r[c]??''; return o; });
+  _erDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_erDlUrl; dl.setAttribute('download', erFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function erDownloadExcel(){
+  if(!_erRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_erRows.map(r=>{ const o={}; for(const c of ER_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:ER_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Reviews');
+  XLSX.writeFile(wb, erFileName()+'.xlsx');
+}
+/* ---------- end Expedia Reviews ---------- */
 
 /* ---------- Home Depot Products Scraper ---------- */
 const HD_COLUMNS = ["query","name","brand","price","original_price","rating","reviews","model","sku","url","image","availability"];

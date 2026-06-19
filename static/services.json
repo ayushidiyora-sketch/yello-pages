@@ -782,7 +782,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "expedia_reviews"
  },
  {
   "no": "78",
