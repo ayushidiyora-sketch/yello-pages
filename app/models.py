@@ -104,6 +104,52 @@ class BBBReviewsRequest(BaseModel):
     sort: str = Field("recent", examples=["recent"])  # recent | highest | lowest
 
 
+class ExpediaRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # an expedia.com Hotel-Search URL
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[10])  # hotels/URL; None = all
+
+
+class TrustpilotRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # trustpilot URL (category/profile) or company ID
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # companies/query; None = all
+
+
+class TrustpilotSearchRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["real estate"]])  # search keyword(s)
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[100])  # companies/query; None = all
+
+
+class TrustpilotReviewsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # trustpilot /review/ URL or a company domain/id
+    limit: Optional[int] = Field(None, ge=1, le=5000, examples=[100])  # reviews/query; None = all
+    language: str = Field("all", examples=["all"])  # all|en|es|fr|de|it|nl|pt|da|sv|no|fi|pl
+
+
+class TrustpilotMonitorRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # trustpilot /review/ URL or company domain/id
+    frequency: str = Field("weekly", examples=["weekly"])  # daily|weekly|3weeks|monthly|3months
+    email: str = Field("", examples=["info@sensussoft.com"])  # where to send the report
+    threshold: int = Field(3, ge=1, le=5, examples=[3])  # rating <= threshold counts as negative
+    language: str = Field("all", examples=["all"])
+    limit: Optional[int] = Field(200, ge=1, le=5000, examples=[200])  # reviews/query per cycle
+
+
+class HotelsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # a hotels.com Hotel-Search URL
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[10])  # hotels/URL; None = all
+
+
+class HotelsReviewsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # a hotels.com hotel URL
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/hotel; None = all
+    sort: str = Field("relevant", examples=["relevant"])  # relevant|recent|highest|lowest
+
+
+class HomeDepotRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1)   # a homedepot.com /b/, /p/ or /s/ URL or keyword
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[100])  # products/query; None = all
+
+
 class Business(BaseModel):
     job_id: str
     name: str

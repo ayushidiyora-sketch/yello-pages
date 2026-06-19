@@ -8,15 +8,23 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 
 from .db import (jobs, businesses, products, reviews, ebay_products, gresults, bbbresults,
                  g2reviews, bbbreviews, gjobs, gdreviews, walmart_products, walmart_reviews,
-                 youtube_channels, airbnb_reviews, ensure_indexes)
+                 youtube_channels, airbnb_reviews, expedia_results, trustpilot_results,
+                 hotels_results, hotels_reviews, trustpilot_search_results, homedepot_results,
+                 trustpilot_reviews, monitors, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
-                     WalmartReviewsRequest, YouTubeChannelsRequest, AirbnbReviewsRequest)
+                     WalmartReviewsRequest, YouTubeChannelsRequest, AirbnbReviewsRequest,
+                     ExpediaRequest, TrustpilotRequest, HotelsRequest, HotelsReviewsRequest,
+                     TrustpilotSearchRequest, HomeDepotRequest, TrustpilotReviewsRequest,
+                     TrustpilotMonitorRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
-               youtube_channels as yt_channels, airbnb_reviews as airbnb_rv, storage)
+               youtube_channels as yt_channels, airbnb_reviews as airbnb_rv,
+               expedia, trustpilot, hotels, hotels_reviews as hotels_reviews_mod,
+               trustpilot_search, homedepot, trustpilot_reviews as trustpilot_reviews_mod,
+               monitor, storage)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -122,7 +130,9 @@ async def _run_and_archive(coro, service, job_id, fetch):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await ensure_indexes()
+    loop_task = asyncio.create_task(monitor.monitor_loop())  # recurring Trustpilot monitors
     yield
+    loop_task.cancel()
 
 
 app = FastAPI(title="YellowPages US Scraper", lifespan=lifespan)
@@ -643,6 +653,182 @@ async def bbb_reviews_start(req: BBBReviewsRequest):
 @app.get("/api/bbb-reviews/results/{job_id}")
 async def bbb_reviews_results(job_id: str, limit: int = 4000):
     rows = [d async for d in bbbreviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/expedia")
+async def expedia_start(req: ExpediaRequest):
+    """Expedia Search Scraper — hotels from an expedia.com Hotel-Search URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Expedia Hotel-Search URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "expedia", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(expedia.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/expedia/results/{job_id}")
+async def expedia_results_get(job_id: str, limit: int = 2000):
+    rows = [d async for d in expedia_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/trustpilot")
+async def trustpilot_start(req: TrustpilotRequest):
+    """Trustpilot Scraper — companies from a trustpilot.com URL or company ID (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Trustpilot URL or company ID is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "trustpilot", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(trustpilot.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/trustpilot/results/{job_id}")
+async def trustpilot_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in trustpilot_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/trustpilot-search")
+async def trustpilot_search_start(req: TrustpilotSearchRequest):
+    """Trustpilot Search Scraper — companies matching a keyword search (browser-rendered)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one search keyword is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "trustpilot_search", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(trustpilot_search.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/trustpilot-search/results/{job_id}")
+async def trustpilot_search_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in trustpilot_search_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/trustpilot-reviews")
+async def trustpilot_reviews_start(req: TrustpilotReviewsRequest):
+    """Trustpilot Reviews Summary — reviews from a trustpilot.com /review/ page (browser, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Trustpilot /review/ URL or company id is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "trustpilot_reviews", "queries": queries, "limit": req.limit,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(trustpilot_reviews_mod.run_job(job_id, queries, req.limit, req.language))
+    return {"job_id": job_id}
+
+
+@app.get("/api/trustpilot-reviews/results/{job_id}")
+async def trustpilot_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in trustpilot_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/trustpilot-monitoring")
+async def trustpilot_monitoring_start(req: TrustpilotMonitorRequest):
+    """Trustpilot Reviews Monitoring — create a recurring monitor + run the first scan now."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Trustpilot /review/ URL or company id is required")
+    if req.frequency not in monitor.FREQ_DAYS:
+        raise HTTPException(400, f"frequency must be one of {list(monitor.FREQ_DAYS)}")
+    res = await monitor.start_monitor(queries, req.frequency, req.email, req.threshold,
+                                      req.language, req.limit)
+    res["frequency"] = monitor.FREQ_LABEL[req.frequency]
+    return res
+
+
+@app.get("/api/trustpilot-monitoring/{monitor_id}")
+async def trustpilot_monitoring_get(monitor_id: str):
+    doc = await monitors.find_one({"monitor_id": monitor_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "monitor not found")
+    return doc
+
+
+@app.post("/api/hotels")
+async def hotels_start(req: HotelsRequest):
+    """Hotels Search Scraper — hotels from a hotels.com Hotel-Search URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one hotels.com Hotel-Search URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "hotels", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(hotels.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/hotels/results/{job_id}")
+async def hotels_results_get(job_id: str, limit: int = 2000):
+    rows = [d async for d in hotels_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/hotels-reviews")
+async def hotels_reviews_start(req: HotelsReviewsRequest):
+    """Hotels Reviews Scraper — guest reviews from a hotels.com hotel URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one hotels.com hotel URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "hotels_reviews", "queries": queries, "limit": req.limit,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(hotels_reviews_mod.run_job(job_id, queries, req.limit, req.sort))
+    return {"job_id": job_id}
+
+
+@app.get("/api/hotels-reviews/results/{job_id}")
+async def hotels_reviews_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in hotels_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/homedepot")
+async def homedepot_start(req: HomeDepotRequest):
+    """Home Depot Products Scraper — product listings from a homedepot.com URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one homedepot.com URL or keyword is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "homedepot", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(homedepot.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/homedepot/results/{job_id}")
+async def homedepot_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in homedepot_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 @app.post("/api/stop/{job_id}")
 async def stop(job_id: str):
