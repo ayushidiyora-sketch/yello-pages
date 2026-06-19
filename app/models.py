@@ -91,6 +91,13 @@ class YouTubeChannelsRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.youtube.com/@outscraper", "outscraper"]])
 
 
+class AirbnbReviewsRequest(BaseModel):
+    # one line each: an airbnb.com room URL (/rooms/<id>) or a bare listing id.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.airbnb.com/rooms/927539322986647456"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # reviews/query; None = all
+    sort: str = Field("", examples=["most_recent"])  # ""|most_recent|highest|lowest
+
+
 class BBBReviewsRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1)   # a bbb.org reviews/profile URL
     limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/business; None = all

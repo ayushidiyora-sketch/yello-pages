@@ -8,15 +8,15 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 
 from .db import (jobs, businesses, products, reviews, ebay_products, gresults, bbbresults,
                  g2reviews, bbbreviews, gjobs, gdreviews, walmart_products, walmart_reviews,
-                 youtube_channels, ensure_indexes)
+                 youtube_channels, airbnb_reviews, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
-                     WalmartReviewsRequest, YouTubeChannelsRequest)
+                     WalmartReviewsRequest, YouTubeChannelsRequest, AirbnbReviewsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
-               youtube_channels as yt_channels, storage)
+               youtube_channels as yt_channels, airbnb_reviews as airbnb_rv, storage)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -100,6 +100,12 @@ async def _ytchannels_rows(job_id):
     rows = [yt_channels.to_export(d) async for d in youtube_channels.find({"job_id": job_id}, {"_id": 0})]
     rows.sort(key=lambda r: r.get("position") or 0)
     return rows, yt_channels.YOUTUBE_CHANNEL_COLUMNS
+
+
+async def _airbnb_rows(job_id):
+    rows = [airbnb_rv.to_export(d) async for d in airbnb_reviews.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, airbnb_rv.AIRBNB_REVIEW_COLUMNS
 
 
 async def _run_and_archive(coro, service, job_id, fetch):
@@ -589,6 +595,30 @@ async def youtube_channels_start(req: YouTubeChannelsRequest):
 @app.get("/api/youtube-channels/results/{job_id}")
 async def youtube_channels_results(job_id: str, limit: int = 4000):
     rows, _ = await _ytchannels_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/airbnb-reviews")
+async def airbnb_reviews_start(req: AirbnbReviewsRequest):
+    """Airbnb Reviews Scraper — reviews from airbnb.com room URLs or listing ids."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Airbnb room URL or listing id is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "airbnb_reviews", "queries": queries, "limit": req.limit,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        airbnb_rv.run_job(job_id, queries, req.limit, req.sort or ""),
+        "airbnb_reviews", job_id, _airbnb_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/airbnb-reviews/results/{job_id}")
+async def airbnb_reviews_results(job_id: str, limit: int = 4000):
+    rows, _ = await _airbnb_rows(job_id)
     return rows[:limit]
 
 

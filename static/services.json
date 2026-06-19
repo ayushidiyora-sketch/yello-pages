@@ -423,7 +423,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "airbnb_reviews"
  },
  {
   "no": "43",

@@ -1091,6 +1091,54 @@
   <div id="ytcResults"></div>
   <div id="ytcPager"></div>
   </div><!-- /ytcView -->
+
+  <!-- Airbnb Reviews Scraper form (airbnb.com room URLs or listing ids) -->
+  <div id="abrView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="abrInput" placeholder="https://www.airbnb.com/rooms/927539322986647456&#10;1125445123101274851"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="abrFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="abrFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('abrFile').click()">⬆ Upload file</button>
+          <span class="hint" id="abrFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="abrLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty to fetch all.</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="abrSort">
+          <option value="most_recent" selected>Most recent</option>
+          <option value="highest">Highest rated</option>
+          <option value="lowest">Lowest rated</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="abrStartBtn" onclick="abrStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="abrStopBtn" onclick="abrStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="abrStatus"></div>
+  <div class="bar" id="abrBar"><i></i></div>
+
+  <div class="resbar" id="abrResbar" style="display:none">
+    <div class="count" id="abrCount"></div>
+    <div class="resbar-controls">
+      <a id="abrDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="abrDownloadXlsx" style="display:none" onclick="abrDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="abrResults"></div>
+  <div id="abrPager"></div>
+  </div><!-- /abrView -->
    </div><!-- /wrap -->
   </main>
 </div><!-- /app -->
@@ -1538,6 +1586,7 @@ function homeIcon(s){
   if(u==='walmart') return '🛒';
   if(u==='walmart_reviews') return '⭐';
   if(u==='youtube_channels') return '📺';
+  if(u==='airbnb_reviews') return '🏠';
   if(s.live) return '📒';                 // Yellow Pages
   const t = (s.tags && s.tags[0]) || '';
   if(/Lead|Contact|Email/i.test(t)) return '✉️';
@@ -1552,7 +1601,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -1658,6 +1707,7 @@ function selectService(s, keep, fromHistory){
   document.getElementById('wmpView').style.display     = vt==='walmart' ? '' : 'none';
   document.getElementById('wmrView').style.display     = vt==='walmart_reviews' ? '' : 'none';
   document.getElementById('ytcView').style.display     = vt==='youtube_channels' ? '' : 'none';
+  document.getElementById('abrView').style.display     = vt==='airbnb_reviews' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -1680,6 +1730,7 @@ function viewType(s){
   if(s.ui === 'walmart') return 'walmart';
   if(s.ui === 'walmart_reviews') return 'walmart_reviews';
   if(s.ui === 'youtube_channels') return 'youtube_channels';
+  if(s.ui === 'airbnb_reviews') return 'airbnb_reviews';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -3794,6 +3845,165 @@ function ytcDownloadExcel(){
   XLSX.writeFile(wb, ytcFileNameOut()+'.xlsx');
 }
 /* ---------- end YouTube Channels ---------- */
+
+/* ---------- Airbnb Reviews Scraper (airbnb.com) ---------- */
+const ABR_COLUMNS = ["query","listing_id","listing_name","reviewer","reviewer_location","rating","date","comment","host_response","language","position"];
+const ABR_PAGE_SIZE = 10;
+let abrTimer=null, abrJob=null, _abrRows=[], _abrDlUrl=null, _abrPage=0;
+
+async function abrFilePicked(){
+  const f=document.getElementById('abrFile').files[0];
+  const nameEl=document.getElementById('abrFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('abrInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.';
+    } else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function abrSetRunning(on){
+  document.getElementById('abrStartBtn').disabled=on;
+  document.getElementById('abrStopBtn').disabled=!on;
+  ['abrInput','abrLimit','abrSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function abrStart(){
+  const typed=document.getElementById('abrInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Airbnb room URL or listing id, one per line.'); return; }
+  const lim=parseInt(document.getElementById('abrLimit').value,10);
+  const sort=document.getElementById('abrSort').value;
+  let r;
+  try{ r=await fetch('/api/airbnb-reviews',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queries, limit:(lim>0?lim:null), sort})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  abrJob=(await r.json()).job_id;
+  _abrRows=[]; _abrPage=0;
+  document.getElementById('abrResbar').style.display='none';
+  document.getElementById('abrResults').innerHTML='';
+  document.getElementById('abrPager').innerHTML='';
+  document.getElementById('abrCount').textContent='';
+  document.getElementById('abrBar').style.display='block';
+  document.querySelector('#abrBar>i').style.width='30%';
+  abrSetRunning(true);
+  if(abrTimer) clearInterval(abrTimer);
+  abrTimer=setInterval(()=>abrPoll(abrJob),1500);
+  abrPoll(abrJob);
+}
+
+async function abrStop(){ if(abrJob){ document.getElementById('abrStopBtn').disabled=true; await fetch('/api/stop/'+abrJob,{method:'POST'}); } }
+
+async function abrPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('abrStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' reviews';
+  } else {
+    clearInterval(abrTimer); abrSetRunning(false);
+    document.getElementById('abrBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      abrShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function abrShowResults(job_id){
+  _abrRows=await (await fetch('/api/airbnb-reviews/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('abrResbar');
+  if(!_abrRows.length){
+    document.getElementById('abrResults').innerHTML='';
+    document.getElementById('abrCount').innerHTML='<span class="empty">No reviews found — please click Start scraping to try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('abrDownload').style.display='none';
+    document.getElementById('abrDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _abrPage=0;
+  abrRender();
+  document.getElementById('abrCount').textContent='Showing '+_abrRows.length+' reviews ('+ABR_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  abrUpdateDownload();
+}
+
+function abrRender(){
+  const start=_abrPage*ABR_PAGE_SIZE;
+  let h='';
+  _abrRows.slice(start, start+ABR_PAGE_SIZE).forEach((r)=>{
+    const who=[r.reviewer, r.reviewer_location].filter(Boolean).map(esc).join(' · ');
+    const meta=[who?`<span class="who">${who}</span>`:'', r.date?esc(r.date):'', r.language?('🌐 '+esc(r.language)):''].filter(Boolean).join(' · ');
+    const body=r.comment?`<div class="g2-body">${esc(r.comment)}</div>`:'';
+    const resp=r.host_response?`<div class="g2-qa"><b>↩ Host response</b>${esc(r.host_response)}</div>`:'';
+    const prod=r.listing_name?`<div class="g2-foot">Listing: ${esc(r.listing_name)}${r.listing_id?(' · '+esc(r.listing_id)):''}</div>`:'';
+    h+=`<div class="g2-card">
+      <div class="g2-top"><span class="g2-title">${esc(r.reviewer||'Guest')}</span>${g2Stars(r.rating)}</div>
+      <div class="g2-meta">${meta}</div>
+      ${body}
+      ${resp}
+      ${prod}
+    </div>`;
+  });
+  document.getElementById('abrResults').innerHTML=h;
+  abrRenderPager(_abrRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function abrRenderPager(total){
+  const pg=document.getElementById('abrPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/ABR_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_abrPage=page; abrRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_abrPage-1,{disabled:_abrPage===0}));
+  let s=Math.max(0,_abrPage-2), e=Math.min(pages-1,_abrPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_abrPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_abrPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_abrPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_abrPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_abrPage+1,{disabled:_abrPage>=pages-1}));
+}
+
+function abrFileNameOut(){
+  const q=(document.getElementById('abrInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'airbnb_reviews_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function abrUpdateDownload(){
+  const dl=document.getElementById('abrDownload'), xl=document.getElementById('abrDownloadXlsx');
+  if(!_abrRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_abrDlUrl) URL.revokeObjectURL(_abrDlUrl);
+  const rows=_abrRows.map(r=>{ const o={}; for(const c of ABR_COLUMNS) o[c]=r[c]??''; return o; });
+  _abrDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_abrDlUrl; dl.setAttribute('download', abrFileNameOut()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function abrDownloadExcel(){
+  if(!_abrRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_abrRows.map(r=>{ const o={}; for(const c of ABR_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:ABR_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Airbnb Reviews');
+  XLSX.writeFile(wb, abrFileNameOut()+'.xlsx');
+}
+/* ---------- end Airbnb Reviews ---------- */
 /* ---------- end services ---------- */
 
 document.getElementById('region').addEventListener('change', updateRegionHint);
