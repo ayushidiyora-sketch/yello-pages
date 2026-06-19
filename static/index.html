@@ -279,6 +279,19 @@
     .wmp-avail{font-size:12px;color:var(--green);margin-top:4px}
     @media(max-width:640px){.wmp-card{flex-wrap:wrap}.wmp-side{flex-basis:100%;text-align:left;margin-top:6px}}
 
+    /* YouTube channel cards */
+    #ytcResults{display:flex;flex-direction:column;gap:12px;max-width:820px}
+    .ytc-card{display:flex;gap:14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .ytc-avatar{flex:0 0 64px;width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
+    .ytc-main{flex:1;min-width:0}
+    .ytc-name{font-size:17px;font-weight:700;color:var(--ink)}
+    .ytc-name a{color:var(--blue);text-decoration:none}
+    .ytc-name a:hover{text-decoration:underline}
+    .ytc-handle{color:var(--muted);font-weight:500;font-size:14px;margin-left:6px}
+    .ytc-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#3a3f45;margin:5px 0}
+    .ytc-meta b{color:var(--ink)}
+    .ytc-desc{font-size:13px;color:#555;margin-top:6px;line-height:1.45;white-space:pre-line}
+
     /* ---- home / landing page (matches dashboard theme) ---- */
     .home-hero{background:linear-gradient(135deg,#0b1736 0%,#16306e 58%,#1d4ed8 100%);
       color:#fff;border-radius:18px;padding:48px 44px;position:relative;overflow:hidden;
@@ -1043,6 +1056,41 @@
   <div id="wmrResults"></div>
   <div id="wmrPager"></div>
   </div><!-- /wmrView -->
+
+  <!-- YouTube Channels Scraper form (channel URLs or handles) -->
+  <div id="ytcView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="ytcInput" placeholder="https://www.youtube.com/@outscraper&#10;outscraper"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ytcFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ytcFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ytcFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ytcFileName"></span>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ytcStartBtn" onclick="ytcStart()">▶ Start scraping</button>
+      <button class="btn-stop" id="ytcStopBtn" onclick="ytcStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="ytcStatus"></div>
+  <div class="bar" id="ytcBar"><i></i></div>
+
+  <div class="resbar" id="ytcResbar" style="display:none">
+    <div class="count" id="ytcCount"></div>
+    <div class="resbar-controls">
+      <a id="ytcDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ytcDownloadXlsx" style="display:none" onclick="ytcDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ytcResults"></div>
+  <div id="ytcPager"></div>
+  </div><!-- /ytcView -->
    </div><!-- /wrap -->
   </main>
 </div><!-- /app -->
@@ -1489,6 +1537,7 @@ function homeIcon(s){
   if(u==='glassdoor_reviews') return '⭐';
   if(u==='walmart') return '🛒';
   if(u==='walmart_reviews') return '⭐';
+  if(u==='youtube_channels') return '📺';
   if(s.live) return '📒';                 // Yellow Pages
   const t = (s.tags && s.tags[0]) || '';
   if(/Lead|Contact|Email/i.test(t)) return '✉️';
@@ -1503,7 +1552,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -1608,6 +1657,7 @@ function selectService(s, keep, fromHistory){
   document.getElementById('gdrView').style.display     = vt==='glassdoor_reviews' ? '' : 'none';
   document.getElementById('wmpView').style.display     = vt==='walmart' ? '' : 'none';
   document.getElementById('wmrView').style.display     = vt==='walmart_reviews' ? '' : 'none';
+  document.getElementById('ytcView').style.display     = vt==='youtube_channels' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -1629,6 +1679,7 @@ function viewType(s){
   if(s.ui === 'glassdoor_reviews') return 'glassdoor_reviews';
   if(s.ui === 'walmart') return 'walmart';
   if(s.ui === 'walmart_reviews') return 'walmart_reviews';
+  if(s.ui === 'youtube_channels') return 'youtube_channels';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -3575,6 +3626,174 @@ function wmrDownloadExcel(){
   XLSX.writeFile(wb, wmrFileNameOut()+'.xlsx');
 }
 /* ---------- end Walmart Reviews ---------- */
+
+/* ---------- YouTube Channels Scraper (youtube.com) ---------- */
+const YTC_COLUMNS = ["query","title","description","channel_id","channel_url","is_family_safe","vanity_channel_url","keywords","rss_url","thumbnail","primary_links","secondary_links","videos_count","videos_count_parsed","subscribers_count","subscribers_count_parsed","views_count","views_count_parsed","joined","country"];
+const YTC_PAGE_SIZE = 20;
+let ytcTimer=null, ytcJob=null, _ytcRows=[], _ytcDlUrl=null, _ytcPage=0;
+
+async function ytcFilePicked(){
+  const f=document.getElementById('ytcFile').files[0];
+  const nameEl=document.getElementById('ytcFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('ytcInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){
+      nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.';
+    } else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function ytcSetRunning(on){
+  document.getElementById('ytcStartBtn').disabled=on;
+  document.getElementById('ytcStopBtn').disabled=!on;
+  document.getElementById('ytcInput').disabled=on;
+}
+
+async function ytcStart(){
+  const typed=document.getElementById('ytcInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one channel URL or handle, one per line.'); return; }
+  let r;
+  try{ r=await fetch('/api/youtube-channels',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queries})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  ytcJob=(await r.json()).job_id;
+  _ytcRows=[]; _ytcPage=0;
+  document.getElementById('ytcResbar').style.display='none';
+  document.getElementById('ytcResults').innerHTML='';
+  document.getElementById('ytcPager').innerHTML='';
+  document.getElementById('ytcCount').textContent='';
+  document.getElementById('ytcBar').style.display='block';
+  document.querySelector('#ytcBar>i').style.width='30%';
+  ytcSetRunning(true);
+  if(ytcTimer) clearInterval(ytcTimer);
+  ytcTimer=setInterval(()=>ytcPoll(ytcJob),1500);
+  ytcPoll(ytcJob);
+}
+
+async function ytcStop(){ if(ytcJob){ document.getElementById('ytcStopBtn').disabled=true; await fetch('/api/stop/'+ytcJob,{method:'POST'}); } }
+
+async function ytcPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('ytcStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' channels';
+  } else {
+    clearInterval(ytcTimer); ytcSetRunning(false);
+    document.getElementById('ytcBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' channels';
+      ytcShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function ytcShowResults(job_id){
+  _ytcRows=await (await fetch('/api/youtube-channels/results/'+job_id+'?limit=4000')).json();
+  const resbar=document.getElementById('ytcResbar');
+  if(!_ytcRows.length){
+    document.getElementById('ytcResults').innerHTML='';
+    document.getElementById('ytcCount').innerHTML='<span class="empty">No channels found — please click Start scraping to try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('ytcDownload').style.display='none';
+    document.getElementById('ytcDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _ytcPage=0;
+  ytcRender();
+  document.getElementById('ytcCount').textContent='Showing '+_ytcRows.length+' channels ('+YTC_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  ytcUpdateDownload();
+}
+
+function ytcRender(){
+  const start=_ytcPage*YTC_PAGE_SIZE;
+  let h='';
+  _ytcRows.slice(start, start+YTC_PAGE_SIZE).forEach((r)=>{
+    const hm=(r.vanity_channel_url||'').match(/\/(@[\w.-]+)/);
+    const handle=hm?`<span class="ytc-handle">${esc(hm[1])}</span>`:'';
+    const nm=r.channel_url?`<a href="${esc(r.channel_url)}" target="_blank" rel="noopener">${esc(r.title||'')}</a>`:esc(r.title||'');
+    const meta=[
+      r.subscribers_count?`<span><b>${esc(r.subscribers_count)}</b> subscribers</span>`:'',
+      r.videos_count?`<span><b>${esc(r.videos_count)}</b> videos</span>`:'',
+      r.views_count?`<span><b>${esc(r.views_count)}</b></span>`:'',
+      r.joined?`<span>📅 ${esc(r.joined)}</span>`:'',
+      r.country?`<span>🌐 ${esc(r.country)}</span>`:'',
+      r.is_family_safe?`<span>Family-safe: ${esc(r.is_family_safe)}</span>`:''
+    ].filter(Boolean).join('');
+    const links=[r.primary_links, r.secondary_links].filter(Boolean).join(' | ');
+    const avatar=(r.thumbnail&&/^https?:/.test(r.thumbnail))?`<img class="ytc-avatar" src="${esc(r.thumbnail)}" alt="" onerror="this.remove()">`:'';
+    h+=`<div class="ytc-card">
+      ${avatar}
+      <div class="ytc-main">
+        <div class="ytc-name">${nm}${handle}</div>
+        ${meta?`<div class="ytc-meta">${meta}</div>`:''}
+        ${r.description?`<div class="ytc-desc">${esc(r.description.slice(0,400))}</div>`:''}
+        ${links?`<div class="ytc-meta" style="font-size:12px">🔗 ${esc(links)}</div>`:''}
+        ${r.keywords?`<div class="ytc-meta" style="font-size:12px;color:#888">Keywords: ${esc(r.keywords.slice(0,160))}</div>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('ytcResults').innerHTML=h;
+  ytcRenderPager(_ytcRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function ytcRenderPager(total){
+  const pg=document.getElementById('ytcPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/YTC_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_ytcPage=page; ytcRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_ytcPage-1,{disabled:_ytcPage===0}));
+  let s=Math.max(0,_ytcPage-2), e=Math.min(pages-1,_ytcPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_ytcPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_ytcPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_ytcPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_ytcPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_ytcPage+1,{disabled:_ytcPage>=pages-1}));
+}
+
+function ytcFileNameOut(){
+  const q=(document.getElementById('ytcInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'youtube_channels_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function ytcUpdateDownload(){
+  const dl=document.getElementById('ytcDownload'), xl=document.getElementById('ytcDownloadXlsx');
+  if(!_ytcRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_ytcDlUrl) URL.revokeObjectURL(_ytcDlUrl);
+  const rows=_ytcRows.map(r=>{ const o={}; for(const c of YTC_COLUMNS) o[c]=r[c]??''; return o; });
+  _ytcDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_ytcDlUrl; dl.setAttribute('download', ytcFileNameOut()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function ytcDownloadExcel(){
+  if(!_ytcRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_ytcRows.map(r=>{ const o={}; for(const c of YTC_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:YTC_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'YouTube Channels');
+  XLSX.writeFile(wb, ytcFileNameOut()+'.xlsx');
+}
+/* ---------- end YouTube Channels ---------- */
 /* ---------- end services ---------- */
 
 document.getElementById('region').addEventListener('change', updateRegionHint);

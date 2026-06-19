@@ -16,6 +16,7 @@ gjobs = db["gjobs"]            # one doc per scraped Glassdoor job
 gdreviews = db["gdreviews"]    # one doc per scraped Glassdoor company review
 walmart_products = db["walmart_products"]  # one doc per scraped Walmart product
 walmart_reviews = db["walmart_reviews"]    # one doc per scraped Walmart product review
+youtube_channels = db["youtube_channels"]  # one doc per scraped YouTube channel
 bbbreviews = db["bbbreviews"]  # one doc per BBB customer review
 
 
@@ -42,4 +43,5 @@ async def ensure_indexes():
     await gdreviews.create_index("job_id")
     await walmart_products.create_index("job_id")
     await walmart_reviews.create_index("job_id")
+    await youtube_channels.create_index("job_id")
     await bbbreviews.create_index("job_id")

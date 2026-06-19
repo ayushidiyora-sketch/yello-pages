@@ -86,6 +86,11 @@ class WalmartReviewsRequest(BaseModel):
     sort: str = Field("", examples=["most_relevant"])  # ""|most_relevant|top_reviews|newest|oldest|high_rating|low_rating
 
 
+class YouTubeChannelsRequest(BaseModel):
+    # one line each: a channel URL (/@handle, /channel/UC..., /c/Name) or a bare handle/name.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.youtube.com/@outscraper", "outscraper"]])
+
+
 class BBBReviewsRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1)   # a bbb.org reviews/profile URL
     limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/business; None = all

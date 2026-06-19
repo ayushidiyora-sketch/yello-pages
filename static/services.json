@@ -186,11 +186,12 @@
   "no": "19",
   "name": "YouTube Channels Scraper",
   "brand": "Youtube",
-  "description": "",
+  "description": "Returns channel details from a list of channels",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "youtube_channels"
  },
  {
   "no": "20",
