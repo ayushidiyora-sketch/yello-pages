@@ -136,11 +136,12 @@
   "no": "14",
   "name": "Trustpilot Scraper",
   "brand": "Trustpilot",
-  "description": "Returns data from a list of businesses",
+  "description": "Returns companies from a trustpilot.com category/profile URL or company ID",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "trustpilot"
  },
  {
   "no": "15",
@@ -150,7 +151,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "trustpilot_search"
  },
  {
   "no": "16",
@@ -166,11 +168,12 @@
   "no": "17",
   "name": "Trustpilot Reviews Summary",
   "brand": "Trustpilot",
-  "description": "",
+  "description": "Returns reviews from a list of businesses",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "trustpilot_reviews"
  },
  {
   "no": "18",
@@ -468,11 +471,12 @@
   "no": "47",
   "name": "Home Depot Products Scraper",
   "brand": "Home Depot",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "homedepot"
  },
  {
   "no": "48",
@@ -761,11 +765,12 @@
   "no": "76",
   "name": "Expedia Search Scraper",
   "brand": "Expedia",
-  "description": "Returns search results",
+  "description": "Returns hotels from an expedia.com Hotel-Search URL",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "expedia"
  },
  {
   "no": "77",
@@ -1034,11 +1039,12 @@
   "no": "103",
   "name": "Hotels Search Scraper",
   "brand": "Hotels",
-  "description": "Returns search results",
+  "description": "Returns hotels from a hotels.com Hotel-Search URL",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "hotels"
  },
  {
   "no": "104",
@@ -1048,7 +1054,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "hotels_reviews"
  },
  {
   "no": "105",
@@ -1354,11 +1361,12 @@
   "no": "135",
   "name": "Trustpilot Reviews Monitoring",
   "brand": "Trustpilot",
-  "description": "",
+  "description": "Automated data collection with regular email reports",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "trustpilot_monitoring"
  },
  {
   "no": "136",

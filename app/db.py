@@ -13,6 +13,14 @@ gresults = db["gresults"]      # one doc per Google/DDG search result row
 bbbresults = db["bbbresults"]  # one doc per BBB business result row
 g2reviews = db["g2reviews"]    # one doc per scraped G2 product review
 bbbreviews = db["bbbreviews"]  # one doc per BBB customer review
+expedia_results = db["expedia_results"]  # one doc per Expedia hotel result
+trustpilot_results = db["trustpilot_results"]  # one doc per Trustpilot company
+trustpilot_search_results = db["trustpilot_search_results"]  # one doc per Trustpilot search hit
+trustpilot_reviews = db["trustpilot_reviews"]  # one doc per Trustpilot customer review
+monitors = db["monitors"]  # one doc per Trustpilot Reviews Monitoring config (recurring)
+hotels_results = db["hotels_results"]  # one doc per hotels.com hotel result
+hotels_reviews = db["hotels_reviews"]  # one doc per hotels.com guest review
+homedepot_results = db["homedepot_results"]  # one doc per Home Depot product
 
 
 async def ensure_indexes():
@@ -35,3 +43,11 @@ async def ensure_indexes():
     await bbbresults.create_index("job_id")
     await g2reviews.create_index("job_id")
     await bbbreviews.create_index("job_id")
+    await expedia_results.create_index("job_id")
+    await trustpilot_results.create_index("job_id")
+    await trustpilot_search_results.create_index("job_id")
+    await trustpilot_reviews.create_index("job_id")
+    await monitors.create_index("monitor_id", unique=True)
+    await hotels_results.create_index("job_id")
+    await hotels_reviews.create_index("job_id")
+    await homedepot_results.create_index("job_id")

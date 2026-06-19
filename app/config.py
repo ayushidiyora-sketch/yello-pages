@@ -36,5 +36,14 @@ class Settings(BaseSettings):
     # (best-effort, low fill). Adds up to 2 extra fetches per site; set false to skip.
     ENRICH_TEAM: bool = True
 
+    # SMTP for the Trustpilot Reviews Monitoring email reports. Empty SMTP_HOST = email disabled
+    # (the monitor still scrapes and records its state; it just skips sending).
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASS: str = ""
+    SMTP_FROM: str = ""            # falls back to SMTP_USER if empty
+    MONITOR_TICK_SECONDS: int = 60  # how often the scheduler checks for due monitors
+
 
 settings = Settings()
