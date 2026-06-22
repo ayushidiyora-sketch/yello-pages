@@ -25,6 +25,107 @@ _SEED = {"search_terms": "x", "geo_location_terms": "y", "page": "1"}
 # CONSENT cookie + hl=en avoid YouTube's EU consent interstitial
 _HDRS = {"Accept-Language": "en-US,en;q=0.9", "Cookie": "CONSENT=YES+cb; PREF=hl=en&gl=US"}
 
+# ---------------- youtubei API (YouTube's own JSON API — free, no user key) ----------------
+# This is YouTube's public web "innertube" key, embedded in every youtube.com page (same for
+# everyone, NOT a personal API key). We POST to youtubei/v1 to get channel data as JSON instead
+# of scraping the HTML page.
+INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
+_INNERTUBE_CTX = {"client": {"clientName": "WEB", "clientVersion": "2.20240101.00.00",
+                             "hl": "en", "gl": "US"}}
+
+
+def _api_post(endpoint: str, extra: dict):
+    """POST to youtubei/v1/<endpoint> and return the JSON dict. Paid PROXY_URL if set, else direct
+    (it's a public API — no bot block / bans at low volume). None on failure."""
+    url = f"https://www.youtube.com/youtubei/v1/{endpoint}?key={INNERTUBE_KEY}&prettyPrint=false"
+    payload = {"context": _INNERTUBE_CTX, **extra}
+    proxy = settings.PROXY_URL.strip()
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+    try:
+        r = cffi.post(url, data=json.dumps(payload),
+                      headers={"Content-Type": "application/json", **_HDRS},
+                      impersonate="chrome", proxies=proxies,
+                      timeout=settings.REQUEST_TIMEOUT, verify=False)
+        return r.json() if r.status_code == 200 else None
+    except Exception:
+        return None
+
+
+def _resolve_channel_id(query: str) -> str:
+    """Resolve a query to a UC channel id. Direct for channel ids / /channel/ URLs; otherwise use
+    the youtubei resolve_url API on the @handle / name."""
+    q = (query or "").strip()
+    m = re.search(r"/channel/(UC[\w-]+)", q) or re.match(r"^(UC[\w-]{20,})$", q)
+    if m:
+        return m.group(1)
+    d = _api_post("navigation/resolve_url", {"url": _channel_url(q).split("?")[0]})
+    if not d:
+        return ""
+    mm = re.search(r'"browseId"\s*:\s*"(UC[\w-]+)"', json.dumps(d))
+    return mm.group(1) if mm else ""
+
+
+def _channel_id_to_row(cid: str, label: str) -> dict | None:
+    """Browse a channel id via the youtubei API and parse it into a row (reusing parse_channel)."""
+    data = _api_post("browse", {"browseId": cid})
+    if not data:
+        return None
+    # feed the API JSON to the existing parser via the same `ytInitialData = {...};` shape
+    blob = "ytInitialData = " + json.dumps(data) + ";"
+    return parse_channel(blob, label)
+
+
+def _api_channel_rows(query: str) -> list[dict]:
+    """Single channel: resolve a URL/@handle/id to a channel and return its details. []
+    if the API path can't resolve (caller then falls back to the HTML method)."""
+    cid = _resolve_channel_id(query)
+    if not cid:
+        return []
+    row = _channel_id_to_row(cid, query)
+    return [row] if row else []
+
+
+def _is_channel_ref(query: str) -> bool:
+    """True for a direct channel reference (URL / @handle / UC id); False for a search keyword."""
+    q = (query or "").strip()
+    return (q.lower().startswith("http") or q.startswith("@")
+            or bool(re.match(r"^UC[\w-]{20,}$", q)))
+
+
+def _search_channel_ids(keyword: str, limit: int = 10) -> list[str]:
+    """YouTube search (channels filter) -> top channel ids matching a keyword (in order)."""
+    d = _api_post("search", {"query": keyword, "params": "EgIQAg%3D%3D"})  # EgIQAg== = Channels
+    if not d:
+        return []
+    ids = []
+
+    def walk(o):
+        if isinstance(o, dict):
+            cr = o.get("channelRenderer")
+            if isinstance(cr, dict) and cr.get("channelId"):
+                ids.append(cr["channelId"])
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+    walk(d)
+    seen = []
+    for i in ids:
+        if i not in seen:
+            seen.append(i)
+    return seen[:limit]
+
+
+def _api_search_rows(keyword: str, limit: int = 10) -> list[dict]:
+    """Keyword -> top matching channels (full details for each)."""
+    rows = []
+    for cid in _search_channel_ids(keyword, limit):
+        r = _channel_id_to_row(cid, keyword)
+        if r:
+            rows.append(r)
+    return rows
+
 # Full Outscraper YouTube-Channels schema (one row per channel)
 YOUTUBE_CHANNEL_COLUMNS = [
     "query", "title", "description", "channel_id", "channel_url", "is_family_safe",
@@ -212,20 +313,25 @@ def parse_channel(html: str, query: str) -> dict | None:
     av = (cmr.get("avatar") or {}).get("thumbnails") or []
     row["thumbnail"] = (av[-1].get("url") if av else "") or _meta(html, "og:image")
 
-    # subscribers + parsed
-    subs = _count(html, "subscriber")
-    row["subscribers_count"] = subs
-    row["subscribers_count_parsed"] = _to_int(subs)
-
-    # video count: several "X videos" strings exist (incl. stray "1 video"); pick the one nearest
-    # the subscriber count — in the channel header they sit together.
-    subs_i = html.find(subs) if subs else -1
-    vids = [(m.start(), m.group(1).strip())
-            for m in re.finditer(r'"([\d.,]+\s*[KMB]?)\s+videos?"', html)]
-    if vids:
-        vc = (min(vids, key=lambda mv: abs(mv[0] - subs_i))[1] if subs_i >= 0 else vids[0][1])
+    # subscribers + videos: the channel's OWN header shows them together ("X subscribers · Y videos").
+    # Prefer that adjacent pair — robust for both the API JSON and the HTML page. A related/featured
+    # channel lists only a subscriber count (no adjacent video count), so it won't be picked.
+    pair = re.search(r"([\d.,]+\s*[KMB]?)\s+subscribers.{0,300}?([\d.,]+\s*[KMB]?)\s+videos", html, re.S)
+    if pair:
+        subs, vc = pair.group(1).strip(), pair.group(2).strip()
         row["videos_count"] = vc
         row["videos_count_parsed"] = _to_int(vc)
+    else:
+        subs = _count(html, "subscriber")
+        subs_i = html.find(subs) if subs else -1
+        vids = [(m.start(), m.group(1).strip())
+                for m in re.finditer(r'"([\d.,]+\s*[KMB]?)\s+videos?"', html)]
+        if vids:
+            vc = (min(vids, key=lambda mv: abs(mv[0] - subs_i))[1] if subs_i >= 0 else vids[0][1])
+            row["videos_count"] = vc
+            row["videos_count_parsed"] = _to_int(vc)
+    row["subscribers_count"] = subs
+    row["subscribers_count_parsed"] = _to_int(subs)
 
     # views + joined (best-effort — present in the About block when YouTube preloads it)
     vm = re.search(r'"([\d,]+)\s+views"', html)
@@ -252,6 +358,17 @@ def parse_channel(html: str, query: str) -> dict | None:
 # ---------------- scrape + run loop ----------------
 
 def search_sync(query: str) -> list[dict]:
+    # A plain keyword (not a URL/@handle/UC-id) -> SEARCH YouTube and return the top matching
+    # channels; a direct reference -> that one channel.
+    if not _is_channel_ref(query):
+        rows = _api_search_rows(query, 10)
+        if rows:
+            return rows
+    # 1) PRIMARY: YouTube's own youtubei JSON API (free, no user key) — no HTML scraping.
+    rows = _api_channel_rows(query)
+    if rows:
+        return rows
+    # 2) FALLBACK: the HTML page (kept so nothing breaks if the API path can't resolve).
     html = _get_text(_channel_url(query))
     if html is None:
         return []
