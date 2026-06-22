@@ -14,7 +14,7 @@ import json
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -354,11 +354,63 @@ def _txt(node):
     return node.get_text(" ", strip=True) if node else None
 
 
+def _norm_path(url: str) -> str:
+    """Lowercased URL path (no scheme/host/query/trailing-slash) — used to match a JSON-LD
+    listing to its HTML card across domains (.com vs .com.au)."""
+    if not url:
+        return ""
+    try:
+        return urlparse(url).path.rstrip("/").lower()
+    except Exception:
+        return ""
+
+
+def parse_us_jsonld(html: str) -> list[dict]:
+    """Extract the page's embedded schema.org JSON-LD `LocalBusiness` listings — the site's
+    'internal-API data' that Yellow Pages server-renders into `<script type=application/ld+json>`
+    (US & AU). Returns normalized core dicts in page order, or [] when the page has none (so any
+    region/page without it falls back to pure HTML — no regression)."""
+    out = []
+    for m in re.finditer(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', html or "", re.S):
+        try:
+            data = json.loads(m.group(1).strip())
+        except (ValueError, json.JSONDecodeError):
+            continue
+        for o in (data if isinstance(data, list) else [data]):
+            if not isinstance(o, dict) or o.get("@type") != "LocalBusiness" or not o.get("name"):
+                continue
+            addr = o.get("address") if isinstance(o.get("address"), dict) else {}
+            rat = o.get("aggregateRating") if isinstance(o.get("aggregateRating"), dict) else {}
+            hours = o.get("openingHours")
+            if isinstance(hours, list):
+                hours = ", ".join(str(h) for h in hours if h)
+            pc = addr.get("postalCode")
+            rv = rat.get("ratingValue")
+            rc = rat.get("reviewCount")
+            out.append({
+                "name": o.get("name"),
+                "phone": o.get("telephone"),
+                "street": addr.get("streetAddress"),
+                "city": addr.get("addressLocality"),
+                "state": (addr.get("addressRegion") or "").upper() or None,
+                "pincode": str(pc) if pc not in (None, "") else None,
+                "rating": str(rv) if rv not in (None, "") else None,
+                "reviews_count": str(rc) if rc not in (None, "") else None,
+                "hours": hours or None,
+                "source_url": o.get("url"),
+                "_path": _norm_path(o.get("url")),
+            })
+    return out
+
+
 def parse_us_cards(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
     cards = soup.select("div.search-results.organic div.result") or soup.select("div.result")
+    # JSON-LD ("internal-API data") backbone: the same listings as clean structured JSON.
+    ld = parse_us_jsonld(html)
+    ld_by_path = {r["_path"]: r for r in ld if r.get("_path")}
     out = []
-    for c in cards:
+    for idx, c in enumerate(cards):
         name_el = c.select_one("a.business-name")
         name = _txt(name_el)
         if not name:
@@ -427,8 +479,9 @@ def parse_us_cards(html: str) -> list[dict]:
             years = ym.group(0) if ym else None
 
         href = name_el.get("href") if name_el else None
+        source_url = urljoin(BASE, href) if href else None
 
-        out.append({
+        row = {
             "name": name,
             "phone": phone,
             "category": category,        # joined, for display
@@ -448,6 +501,26 @@ def parse_us_cards(html: str) -> list[dict]:
             "image": image,
             "years_in_business": years,
             "description": snippet,
-            "source_url": urljoin(BASE, href) if href else None,
-        })
+            "source_url": source_url,
+        }
+
+        # Merge the JSON-LD ("internal-API") record for this card: match by profile-URL path
+        # (US /mip/, AU /bpp/) then positional fallback. Prefer JSON-LD for the core fields —
+        # it's cleaner/precise (exact ratingValue/reviewCount, normalized address incl. AU
+        # state+postcode) — while HTML keeps the extras JSON-LD lacks (categories/website/…).
+        j = ld_by_path.get(_norm_path(source_url)) or (ld[idx] if idx < len(ld) else None)
+        if j:
+            row["name"] = j.get("name") or row["name"]
+            row["phone"] = j.get("phone") or row["phone"]
+            row["area"] = j.get("street") or row["area"]
+            row["city"] = j.get("city") or row["city"]
+            row["state"] = j.get("state") or row["state"]
+            row["pincode"] = j.get("pincode") or row["pincode"]
+            row["rating"] = j.get("rating") or row["rating"]
+            row["reviews_count"] = j.get("reviews_count") or row["reviews_count"]
+            row["source_url"] = row["source_url"] or j.get("source_url")
+            if j.get("hours"):
+                row["hours"] = j["hours"]
+
+        out.append(row)
     return out
