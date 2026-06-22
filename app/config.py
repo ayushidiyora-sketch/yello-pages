@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     # DataDome bot-check (your own IP is never used). Empty = G2 stays on the free proxy pool.
     SCRAPER_API_KEY: str = ""
 
+    # Airbnb Search: when a paid PROXY_URL is set, fetch via Airbnb's StaysSearch GraphQL API
+    # (faster, clean JSON) instead of the headless HTML crawl. Set false to always use the crawl.
+    AIRBNB_API: bool = True
+
+    # Google Maps Data Scraper uses Google's official Places API (New). Needs a Google Cloud key
+    # with the Places API (New) enabled + billing. Empty = the scraper returns 0 with a setup note.
+    GOOGLE_MAPS_API_KEY: str = ""
+
     MAX_PAGES: int = 50
     MIN_DELAY: float = 1.0
     MAX_DELAY: float = 3.0

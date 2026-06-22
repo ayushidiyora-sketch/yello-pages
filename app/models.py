@@ -98,6 +98,12 @@ class AirbnbReviewsRequest(BaseModel):
     sort: str = Field("", examples=["most_recent"])  # ""|most_recent|highest|lowest
 
 
+class AirbnbSearchRequest(BaseModel):
+    # one line each: an airbnb.com search URL (/s/<place>/homes) or a bare location keyword.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.airbnb.com/s/Paris--France/homes", "Goa, India"]])
+    limit: Optional[int] = Field(None, ge=1, le=1000, examples=[50])  # listings/query; None = all
+
+
 class BBBReviewsRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1)   # a bbb.org reviews/profile URL
     limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/business; None = all
@@ -149,6 +155,28 @@ class HotelsReviewsRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1)   # a hotels.com hotel URL
     limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # reviews/hotel; None = all
     sort: str = Field("relevant", examples=["relevant"])  # relevant|recent|highest|lowest
+
+
+class GoogleMapsRequest(BaseModel):
+    # categories/brands × locations -> "<category> in <location>" search queries.
+    categories: list[str] = Field(..., min_length=1, examples=[["Restaurant", "Doctor"]])
+    locations: list[str] = Field(default_factory=list, examples=[["Gujarat, India"]])
+    limit: Optional[int] = Field(None, ge=1, le=500, examples=[60])  # places/query; None = all (~60 cap)
+    region: str = Field("US", examples=["IN"])      # regionCode bias (ISO-2)
+    language: str = Field("en", examples=["en"])    # languageCode
+    # Advanced: Quick Filters (with_website|without_website|operational|with_phone|good_rating|
+    # bad_rating), a per-query skip offset, and cross-query de-duplication.
+    filters: list[str] = Field(default_factory=list, examples=[["with_website", "operational"]])
+    skip: int = Field(0, ge=0, le=500)
+    dedupe: bool = Field(True)
+
+
+class GoogleMapsDomainsRequest(BaseModel):
+    # one line each: a website domain or URL — find the Google Maps place that owns it.
+    domains: list[str] = Field(..., min_length=1, examples=[["https://sensussoft.com/"]])
+    limit: int = Field(1, ge=1, le=20)              # places/domain (usually 1)
+    region: str = Field("US", examples=["IN"])      # regionCode bias (ISO-2)
+    language: str = Field("en", examples=["en"])
 
 
 class HomeDepotRequest(BaseModel):

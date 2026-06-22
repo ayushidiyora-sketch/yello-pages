@@ -10,21 +10,23 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  g2reviews, bbbreviews, gjobs, gdreviews, walmart_products, walmart_reviews,
                  youtube_channels, airbnb_reviews, expedia_results, trustpilot_results,
                  hotels_results, hotels_reviews, trustpilot_search_results, homedepot_results,
-                 trustpilot_reviews, monitors, expedia_reviews, ensure_indexes)
+                 trustpilot_reviews, monitors, expedia_reviews, airbnb_search_results,
+                 gmaps_results, gmaps_domain_results, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
                      WalmartReviewsRequest, YouTubeChannelsRequest, AirbnbReviewsRequest,
                      ExpediaRequest, TrustpilotRequest, HotelsRequest, HotelsReviewsRequest,
                      TrustpilotSearchRequest, HomeDepotRequest, TrustpilotReviewsRequest,
-                     TrustpilotMonitorRequest, ExpediaReviewsRequest)
+                     TrustpilotMonitorRequest, ExpediaReviewsRequest, AirbnbSearchRequest,
+                     GoogleMapsRequest, GoogleMapsDomainsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
                youtube_channels as yt_channels, airbnb_reviews as airbnb_rv,
                expedia, trustpilot, hotels, hotels_reviews as hotels_reviews_mod,
                trustpilot_search, homedepot, trustpilot_reviews as trustpilot_reviews_mod,
-               monitor, storage, expedia_reviews as expedia_reviews_mod)
+               monitor, storage, expedia_reviews as expedia_reviews_mod, airbnb, gmaps)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -629,6 +631,79 @@ async def airbnb_reviews_start(req: AirbnbReviewsRequest):
 @app.get("/api/airbnb-reviews/results/{job_id}")
 async def airbnb_reviews_results(job_id: str, limit: int = 4000):
     rows, _ = await _airbnb_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/airbnb-search")
+async def airbnb_search_start(req: AirbnbSearchRequest):
+    """Airbnb Search Scraper — listings from an airbnb.com search URL or location (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Airbnb search URL or location is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "airbnb_search", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(airbnb.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/airbnb-search/results/{job_id}")
+async def airbnb_search_results_get(job_id: str, limit: int = 2000):
+    rows = [d async for d in airbnb_search_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps")
+async def gmaps_start(req: GoogleMapsRequest):
+    """Google Maps Data Scraper — places from Google's official Places API (New). API-only.
+    Builds "<category> in <location>" queries from the categories × locations cross-product."""
+    cats = [c.strip() for c in req.categories if c and c.strip()]
+    locs = [l.strip() for l in req.locations if l and l.strip()]
+    if not cats:
+        raise HTTPException(400, "at least one category/brand is required")
+    queries = [f"{c} in {l}" for c in cats for l in locs] if locs else cats
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps", "queries": queries, "categories": cats,
+        "locations": locs, "limit": req.limit, "region": req.region, "language": req.language,
+        "filters": req.filters, "skip": req.skip, "dedupe": req.dedupe,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(gmaps.run_job(job_id, queries, req.limit, req.region, req.language,
+                                      req.filters, req.skip, req.dedupe))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps/results/{job_id}")
+async def gmaps_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gmaps_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-domains")
+async def gmaps_domains_start(req: GoogleMapsDomainsRequest):
+    """Google Maps Search by Domains — find the Google Maps place that owns each domain/URL."""
+    domains = [d.strip() for d in req.domains if d and d.strip()]
+    if not domains:
+        raise HTTPException(400, "at least one domain or URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_domains", "domains": domains, "limit": req.limit,
+        "region": req.region, "language": req.language,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(gmaps.run_job_domains(job_id, domains, req.limit, req.region, req.language))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-domains/results/{job_id}")
+async def gmaps_domains_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gmaps_domain_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

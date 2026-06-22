@@ -406,7 +406,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "airbnb_search"
  },
  {
   "no": "41",
@@ -814,7 +815,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps"
  },
  {
   "no": "81",
@@ -856,7 +858,8 @@
    "Businesses & POI",
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_domains"
  },
  {
   "no": "85",

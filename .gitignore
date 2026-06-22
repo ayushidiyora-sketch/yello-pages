@@ -21,3 +21,9 @@ data/
 .DS_Store
 Thumbs.db
 *.swp
+
+# Local server logs / scratch
+uvicorn.out
+uvicorn.err
+_g2job.txt
+_g2test.py
