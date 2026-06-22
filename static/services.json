@@ -826,7 +826,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_reviews"
  },
  {
   "no": "82",

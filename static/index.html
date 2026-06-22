@@ -205,6 +205,15 @@
     .bbb-card-main{flex:1;min-width:0}
     .bbb-seal{width:104px;height:auto;flex:0 0 auto}
     .bbb-logo{width:74px;height:74px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff;flex:0 0 auto}
+    /* toggle switch (e.g. Plain queries) */
+    .switch-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+    .switch{position:relative;display:inline-block;width:38px;height:20px}
+    .switch input{opacity:0;width:0;height:0}
+    .switch .sl{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:20px;transition:.2s}
+    .switch .sl:before{content:"";position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+    .switch input:checked + .sl{background:var(--yp)}
+    .switch input:checked + .sl:before{transform:translateX(18px)}
+
     /* BBB review cards */
     #bbrResults{max-width:820px}
     .bbr-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 22px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -1575,6 +1584,113 @@
   <div id="erPager"></div>
   </div><!-- /expediaReviewsView -->
 
+  <div id="gmapsReviewsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <label id="gmrQLabel" style="margin:0">Queries (category + city/zip + country, URLs, Google or Places IDs) <span class="req">*</span></label>
+          <span class="switch-row">
+            <label class="switch"><input type="checkbox" id="gmrPlain" checked onchange="gmrTogglePlain()"><span class="sl"></span></label>
+            Plain queries
+          </span>
+        </div>
+
+        <!-- Plain ON: free-text queries -->
+        <div id="gmrPlainBox">
+          <textarea id="gmrInput" placeholder="Real estate agency, Rome, Italy&#10;ChIJu7bMNFV-54gR-lrHScvPRX4&#10;0x886916e8bc273979:0x5141fcb11460b226&#10;https://www.google.com/maps/place/?q=place_id:ChIJu7bMNFV-54gR-lrHScvPRX4"></textarea>
+        </div>
+
+        <!-- Plain OFF: structured categories + locations -->
+        <div id="gmrStructBox" style="display:none">
+          <div style="margin-bottom:10px">
+            <label>Categories / brands <span class="req">*</span></label>
+            <input id="gmrCats" type="text" list="gmrCatList" placeholder="Select or enter categories — e.g. doctor, restaurant" autocomplete="off">
+            <datalist id="gmrCatList"></datalist>
+            <span class="hint" id="gmrCatHint">Type to search the Google Maps category list. Comma-separated for multiple.</span>
+          </div>
+          <div>
+            <label>Locations <span class="req">*</span></label>
+            <input id="gmrLocs" type="text" placeholder="Rome, Italy; New York, NY; London, UK">
+            <span class="hint">Comma or semicolon separated (city + country/zip).</span>
+          </div>
+        </div>
+
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gmrFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gmrFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gmrFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gmrFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="gmrSort">
+          <option value="newest" selected>Newest</option>
+          <option value="relevant">Most relevant</option>
+          <option value="highest">Highest rating</option>
+          <option value="lowest">Lowest rating</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Reviews limit per one place</label>
+        <input id="gmrLimit" type="number" min="0" value="250">
+        <span class="hint">0 = unlimited.</span>
+      </div>
+      <div class="field">
+        <label>Places per one query search</label>
+        <input id="gmrPlaces" type="number" min="1" value="1">
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gmrLang">
+          <option value="en" selected>English (en)</option>
+          <option value="fr">Français (fr)</option>
+          <option value="es">Español (es)</option>
+          <option value="de">Deutsch (de)</option>
+          <option value="it">Italiano (it)</option>
+          <option value="pt">Português (pt)</option>
+          <option value="nl">Nederlands (nl)</option>
+          <option value="hi">हिन्दी (hi)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <input id="gmrCountry" type="text" placeholder="e.g. us, in, it">
+      </div>
+      <div class="field">
+        <label>Reviews query search</label>
+        <input id="gmrRq" type="text" placeholder="Amazing | great">
+      </div>
+      <div class="field">
+        <label>Reviews filtering</label>
+        <select id="gmrFiltering">
+          <option value="all" selected>All</option>
+          <option value="with_text">With text</option>
+          <option value="with_response">With owner response</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gmrStartBtn" onclick="gmrStart()">⬇ Export Reviews</button>
+      <button class="btn-stop" id="gmrStopBtn" onclick="gmrStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gmrStatus"></div>
+  <div class="bar" id="gmrBar"><i></i></div>
+
+  <div class="resbar" id="gmrResbar" style="display:none">
+    <div class="count" id="gmrCount"></div>
+    <div class="resbar-controls">
+      <a id="gmrDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gmrDownloadXlsx" style="display:none" onclick="gmrDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gmrResults"></div>
+  <div id="gmrPager"></div>
+  </div><!-- /gmapsReviewsView -->
+
   <div id="homedepotView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -2306,6 +2422,8 @@ function selectService(s, keep, fromHistory){
   document.getElementById('hotelsView').style.display = vt==='hotels' ? '' : 'none';
   document.getElementById('hotelsReviewsView').style.display = vt==='hotels_reviews' ? '' : 'none';
   document.getElementById('expediaReviewsView').style.display = vt==='expedia_reviews' ? '' : 'none';
+  document.getElementById('gmapsReviewsView').style.display = vt==='gmaps_reviews' ? '' : 'none';
+  if(vt==='gmaps_reviews') gmrLoadCategories();
   document.getElementById('homedepotView').style.display = vt==='homedepot' ? '' : 'none';
   document.getElementById('trustpilotReviewsView').style.display = vt==='trustpilot_reviews' ? '' : 'none';
   document.getElementById('trustpilotMonitoringView').style.display = vt==='trustpilot_monitoring' ? '' : 'none';
@@ -2341,6 +2459,7 @@ function viewType(s){
   if(s.ui === 'hotels') return 'hotels';
   if(s.ui === 'hotels_reviews') return 'hotels_reviews';
   if(s.ui === 'expedia_reviews') return 'expedia_reviews';
+  if(s.ui === 'gmaps_reviews') return 'gmaps_reviews';
   if(s.ui === 'homedepot') return 'homedepot';
   if(s.ui === 'trustpilot_reviews') return 'trustpilot_reviews';
   if(s.ui === 'trustpilot_monitoring') return 'trustpilot_monitoring';
@@ -5948,6 +6067,203 @@ function erDownloadExcel(){
   XLSX.writeFile(wb, erFileName()+'.xlsx');
 }
 /* ---------- end Expedia Reviews ---------- */
+
+/* ---------- Google Maps Reviews Scraper ---------- */
+const GMR_COLUMNS = ["query","place_name","place_id","reviewer","rating","date","review","owner_response","likes","language"];
+const GMR_PAGE_SIZE = 15;
+let gmrTimer=null, gmrJob=null, _gmrRows=[], _gmrDlUrl=null, _gmrPage=0;
+
+async function gmrFilePicked(){
+  const f=document.getElementById('gmrFile').files[0];
+  const nameEl=document.getElementById('gmrFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gmrInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',').slice(0,3).join(',').trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+let _gmrCatsLoaded=false;
+async function gmrLoadCategories(){
+  if(_gmrCatsLoaded) return;
+  _gmrCatsLoaded=true;
+  try{
+    const cats=await (await fetch('/api/gmaps-categories')).json();
+    const dl=document.getElementById('gmrCatList');
+    dl.innerHTML=cats.map(c=>'<option value="'+String(c).replace(/"/g,'&quot;')+'">').join('');
+    const hint=document.getElementById('gmrCatHint');
+    if(hint) hint.textContent='Type to search '+cats.length+' Google Maps categories. Comma-separated for multiple.';
+  }catch(e){ _gmrCatsLoaded=false; }
+}
+
+function gmrTogglePlain(){
+  const plain=document.getElementById('gmrPlain').checked;
+  document.getElementById('gmrPlainBox').style.display = plain ? '' : 'none';
+  document.getElementById('gmrStructBox').style.display = plain ? 'none' : '';
+  document.getElementById('gmrQLabel').innerHTML = plain
+    ? 'Queries (category + city/zip + country, URLs, Google or Places IDs) <span class="req">*</span>'
+    : 'Categories / brands + Locations <span class="req">*</span>';
+}
+
+function gmrSetRunning(on){
+  document.getElementById('gmrStartBtn').disabled=on;
+  document.getElementById('gmrStopBtn').disabled=!on;
+  ['gmrInput','gmrCats','gmrLocs','gmrPlain','gmrSort','gmrLimit','gmrPlaces','gmrLang','gmrCountry','gmrRq','gmrFiltering'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+function gmrBuildQueries(){
+  if(document.getElementById('gmrPlain').checked){
+    const t=document.getElementById('gmrInput').value.trim();
+    return t?t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  }
+  // structured: every category × every location -> "category, location"
+  const cats=document.getElementById('gmrCats').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const locs=document.getElementById('gmrLocs').value.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  cats.forEach(c=>locs.forEach(l=>out.push(c+', '+l)));
+  return out;
+}
+
+async function gmrStart(){
+  const queries=gmrBuildQueries();
+  if(!queries.length){ alert(document.getElementById('gmrPlain').checked ? 'Enter a place query, URL, or Google/Places/feature id (one per line).' : 'Enter at least one category and one location.'); return; }
+  const body={
+    queries,
+    sort:document.getElementById('gmrSort').value,
+    limit:parseInt(document.getElementById('gmrLimit').value,10)||0,
+    places_limit:parseInt(document.getElementById('gmrPlaces').value,10)||1,
+    language:document.getElementById('gmrLang').value,
+    country:document.getElementById('gmrCountry').value.trim(),
+    reviews_query:document.getElementById('gmrRq').value.trim(),
+    reviews_filtering:document.getElementById('gmrFiltering').value
+  };
+  let r;
+  try{ r=await fetch('/api/gmaps-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gmrJob=(await r.json()).job_id;
+  _gmrRows=[]; _gmrPage=0;
+  document.getElementById('gmrResbar').style.display='none';
+  document.getElementById('gmrResults').innerHTML='';
+  document.getElementById('gmrPager').innerHTML='';
+  document.getElementById('gmrCount').textContent='';
+  document.getElementById('gmrBar').style.display='block';
+  document.querySelector('#gmrBar>i').style.width='30%';
+  gmrSetRunning(true);
+  if(gmrTimer) clearInterval(gmrTimer);
+  gmrTimer=setInterval(()=>gmrPoll(gmrJob),1500);
+  gmrPoll(gmrJob);
+}
+
+async function gmrStop(){ if(gmrJob){ document.getElementById('gmrStopBtn').disabled=true; await fetch('/api/stop/'+gmrJob,{method:'POST'}); } }
+
+async function gmrPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gmrStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' reviews';
+  } else {
+    clearInterval(gmrTimer); gmrSetRunning(false);
+    document.getElementById('gmrBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      gmrShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gmrShowResults(job_id){
+  _gmrRows=await (await fetch('/api/gmaps-reviews/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gmrResbar');
+  if(!_gmrRows.length){
+    document.getElementById('gmrResults').innerHTML='';
+    document.getElementById('gmrCount').innerHTML='<span class="empty">No reviews — Google Maps reviews come from the internal RPC (proxy-only). Provide a place feature id / URL; the RPC parser is being finalized.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gmrDownload').style.display='none';
+    document.getElementById('gmrDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gmrPage=0;
+  gmrRender();
+  document.getElementById('gmrCount').textContent='Showing '+_gmrRows.length+' reviews ('+GMR_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gmrUpdateDownload();
+}
+
+function gmrStars(n){
+  n=Math.round(parseFloat(n))||0;
+  let s='';
+  for(let i=1;i<=5;i++) s+= i<=n ? '★' : '<span class="off">★</span>';
+  return s;
+}
+function gmrRender(){
+  const start=_gmrPage*GMR_PAGE_SIZE;
+  let h='';
+  _gmrRows.slice(start, start+GMR_PAGE_SIZE).forEach((r)=>{
+    h+=`<div class="bbr-card">
+      <div class="bbr-name"><span class="ic">👤</span>${esc(r.reviewer||'Anonymous')}${r.place_name?` · <span style="color:#64748b">${esc(r.place_name)}</span>`:''}</div>
+      <div class="bbr-date"><b>Date:</b> ${esc(String(r.date||''))}${r.language?(' · '+esc(r.language)):''}</div>
+      <div class="bbr-stars">${gmrStars(r.rating)}</div>
+      <div class="bbr-text">${esc(r.review||'')}</div>
+      ${r.owner_response?`<div class="bbr-resp"><b>Owner response:</b> ${esc(r.owner_response)}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('gmrResults').innerHTML=h;
+  gmrRenderPager(_gmrRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gmrRenderPager(total){
+  const pg=document.getElementById('gmrPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GMR_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gmrPage=page; gmrRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gmrPage-1,{disabled:_gmrPage===0}));
+  let s=Math.max(0,_gmrPage-2), e=Math.min(pages-1,_gmrPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gmrPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gmrPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gmrPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gmrPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gmrPage+1,{disabled:_gmrPage>=pages-1}));
+}
+
+function gmrFileName(){ return 'gmaps-reviews_'+((_gmrRows[0]&&_gmrRows[0].query||'results').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function gmrUpdateDownload(){
+  const dl=document.getElementById('gmrDownload'), xl=document.getElementById('gmrDownloadXlsx');
+  if(!_gmrRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gmrDlUrl) URL.revokeObjectURL(_gmrDlUrl);
+  const rows=_gmrRows.map(r=>{ const o={}; for(const c of GMR_COLUMNS) o[c]=r[c]??''; return o; });
+  _gmrDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gmrDlUrl; dl.setAttribute('download', gmrFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gmrDownloadExcel(){
+  if(!_gmrRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gmrRows.map(r=>{ const o={}; for(const c of GMR_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GMR_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Maps Reviews');
+  XLSX.writeFile(wb, gmrFileName()+'.xlsx');
+}
+/* ---------- end Google Maps Reviews ---------- */
 
 /* ---------- Home Depot Products Scraper ---------- */
 const HD_COLUMNS = ["query","name","brand","price","original_price","rating","reviews","model","sku","url","image","availability"];

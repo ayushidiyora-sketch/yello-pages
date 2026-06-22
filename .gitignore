@@ -12,7 +12,7 @@ venv/
 # Scraped output (data, not code)
 exports/
 data/
-*.xlsx
+
 
 # Logs
 *.log
