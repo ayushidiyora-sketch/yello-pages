@@ -115,6 +115,19 @@ class ExpediaReviewsRequest(BaseModel):
     sort: str = Field("relevant", examples=["relevant"])  # relevant|recent|highest|lowest
 
 
+class GMapsReviewsRequest(BaseModel):
+    # query: "category, city, country" / a Maps URL / Google or Places ID / a feature id (0x..:0x..)
+    queries: list[str] = Field(..., min_length=1, examples=[["Real estate agency, Rome, Italy"]])
+    sort: str = Field("newest", examples=["newest"])  # newest|relevant|highest|lowest
+    limit: Optional[int] = Field(250, ge=0, le=10000, examples=[250])  # reviews/place; 0 = unlimited
+    places_limit: int = Field(1, ge=1, le=100, examples=[1])  # places per one query search
+    language: str = Field("en", examples=["en"])
+    country: str = Field("", examples=[""])
+    reviews_query: str = Field("", examples=[""])     # filter reviews by text
+    filtering: str = Field("any", examples=["any"])
+    reviews_filtering: str = Field("all", examples=["all"])
+
+
 class TrustpilotRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1)   # trustpilot URL (category/profile) or company ID
     limit: Optional[int] = Field(None, ge=1, le=2000, examples=[50])  # companies/query; None = all

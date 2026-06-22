@@ -10,21 +10,22 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  g2reviews, bbbreviews, gjobs, gdreviews, walmart_products, walmart_reviews,
                  youtube_channels, airbnb_reviews, expedia_results, trustpilot_results,
                  hotels_results, hotels_reviews, trustpilot_search_results, homedepot_results,
-                 trustpilot_reviews, monitors, expedia_reviews, ensure_indexes)
+                 trustpilot_reviews, monitors, expedia_reviews, gmaps_reviews, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
                      WalmartReviewsRequest, YouTubeChannelsRequest, AirbnbReviewsRequest,
                      ExpediaRequest, TrustpilotRequest, HotelsRequest, HotelsReviewsRequest,
                      TrustpilotSearchRequest, HomeDepotRequest, TrustpilotReviewsRequest,
-                     TrustpilotMonitorRequest, ExpediaReviewsRequest)
+                     TrustpilotMonitorRequest, ExpediaReviewsRequest, GMapsReviewsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
                youtube_channels as yt_channels, airbnb_reviews as airbnb_rv,
                expedia, trustpilot, hotels, hotels_reviews as hotels_reviews_mod,
                trustpilot_search, homedepot, trustpilot_reviews as trustpilot_reviews_mod,
-               monitor, storage, expedia_reviews as expedia_reviews_mod)
+               monitor, storage, expedia_reviews as expedia_reviews_mod,
+               gmaps_reviews as gmaps_reviews_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -830,6 +831,35 @@ async def expedia_reviews_start(req: ExpediaReviewsRequest):
 async def expedia_reviews_results_get(job_id: str, limit: int = 3000):
     rows = [d async for d in expedia_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
+
+
+@app.post("/api/gmaps-reviews")
+async def gmaps_reviews_start(req: GMapsReviewsRequest):
+    """Google Maps Reviews Scraper — reviews from Google Maps places (internal RPC, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one place query / URL / id is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_reviews", "queries": queries, "sort": req.sort,
+        "limit": req.limit, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    lim = None if (req.limit or 0) == 0 else req.limit
+    asyncio.create_task(gmaps_reviews_mod.run_job(job_id, queries, req.sort, lim, req.language))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-reviews/results/{job_id}")
+async def gmaps_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.get("/api/gmaps-categories")
+async def gmaps_categories():
+    """Google Maps category list (from app/categories.xlsx) for the Categories/brands dropdown."""
+    return gmaps_reviews_mod.categories()
 
 
 @app.post("/api/homedepot")

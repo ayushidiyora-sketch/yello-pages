@@ -50,5 +50,9 @@ class Settings(BaseSettings):
     SMTP_FROM: str = ""            # falls back to SMTP_USER if empty
     MONITOR_TICK_SECONDS: int = 60  # how often the scheduler checks for due monitors
 
+    # SerpApi key for the Google Maps Reviews Scraper (serpapi.com). Empty = that service errors
+    # with a clear "set SERPAPI_KEY" message. Free plan: 250 searches/month.
+    SERPAPI_KEY: str = ""
+
 
 settings = Settings()

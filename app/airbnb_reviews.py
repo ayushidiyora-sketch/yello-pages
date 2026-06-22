@@ -344,7 +344,7 @@ def _capture_op(url: str) -> dict | None:
                 pg.wait_for_timeout(1000)
             cap["listing_name"] = (pg.title() or "").split(" - ")[0].strip()
             br.close()
-    except Exception:
+    except Exception:   
         return None
     return cap if cap.get("hash") else None
 
