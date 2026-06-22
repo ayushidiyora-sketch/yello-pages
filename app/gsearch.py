@@ -198,6 +198,91 @@ def _parse(html: str, query: str, start_pos: int) -> list[dict]:
 
 MAX_PAGES = 15  # safety cap when limit is blank ("all")
 
+# ---------------- DuckDuckGo's free JSON API (links.duckduckgo.com/d.js) ----------------
+# This is the same internal API DuckDuckGo's own frontend uses — free, no key (just a `vqd`
+# token obtained from a first request). We read JSON results instead of parsing the HTML page.
+LINKS = "https://links.duckduckgo.com/d.js"
+
+
+def _strip_tags(s: str) -> str:
+    import re, html
+    return html.unescape(re.sub(r"<[^>]+>", "", s or "")).strip()
+
+
+def _vqd(query: str) -> str:
+    """One-time token DuckDuckGo requires before serving JSON results (free, from the home page)."""
+    import re
+    for _attempt in range(3):
+        r = yp_us.pooled_get("https://duckduckgo.com/", {"q": query, "ia": "web"}, timeout=15)
+        if r is not None and r.status_code == 200:
+            m = re.search(r'vqd=["\']?([\d-]+)', r.text)
+            if m:
+                return m.group(1)
+    return ""
+
+
+def _extract_array(text: str):
+    """Pull the results array out of `DDG.pageLayout.load('d', [ ... ]);` (string-aware)."""
+    import json as _json
+    i = text.find("load('d',")
+    i = text.find("[", i) if i >= 0 else -1
+    if i < 0:
+        return None
+    depth, instr, esc = 0, False, False
+    for j in range(i, len(text)):
+        c = text[j]
+        if instr:
+            esc = (c == "\\" and not esc)
+            if c == '"' and not esc:
+                instr = False
+        elif c == '"':
+            instr = True
+        elif c == "[":
+            depth += 1
+        elif c == "]":
+            depth -= 1
+            if depth == 0:
+                try:
+                    return _json.loads(text[i:j + 1])
+                except Exception:
+                    return None
+    return None
+
+
+def _json_search(query: str, kl: str, df: str, limit: int | None) -> list[dict]:
+    """Fetch results from DuckDuckGo's free JSON API. Returns organic rows (no HTML). [] on failure
+    so the caller falls back to the HTML endpoint."""
+    vqd = _vqd(query)
+    if not vqd:
+        return []
+    rows, pos, s = [], 0, 0
+    for _page in range(MAX_PAGES):
+        params = {"q": query, "kl": kl, "l": kl, "vqd": vqd, "s": str(s)}
+        if df:
+            params["df"] = df
+        arr = None
+        for _attempt in range(4):
+            r = yp_us.pooled_get(LINKS, params, timeout=20)
+            if r is not None and r.status_code == 200 and '"u":' in r.text:
+                arr = _extract_array(r.text)
+                if arr is not None:
+                    break
+        if not arr:
+            break
+        results = [it for it in arr if isinstance(it, dict) and it.get("u") and it.get("t")]
+        if not results:
+            break
+        for it in results:
+            pos += 1
+            rows.append({"query": query, "link": it.get("u", ""),
+                         "title": _strip_tags(it.get("t", "")),
+                         "description": _strip_tags(it.get("a", "")),
+                         "question": "", "position": pos, "type": "organic"})
+        s += len(results)
+        if limit and len(rows) >= limit:
+            break
+    return rows
+
 
 def search_sync(query: str, limit: int | None = None, date_range: str = "",
                 region: str = "us", language: str = "en") -> list[dict]:
@@ -208,8 +293,10 @@ def search_sync(query: str, limit: int | None = None, date_range: str = "",
         return []
     df = DATE_MAP.get((date_range or "").strip().lower(), "")
     kl = _kl(region, language)
-    rows, pos, s = [], 0, 0
-    for _page in range(MAX_PAGES):
+    # PRIMARY: DuckDuckGo's free JSON API. Fall back to the HTML endpoint only if it returns nothing.
+    rows = _json_search(query, kl, df, limit)
+    pos, s = 0, 0
+    for _page in (range(MAX_PAGES) if not rows else []):
         params = {"q": query, "kl": kl}
         if df:
             params["df"] = df
