@@ -28,6 +28,9 @@ hotels_results = db["hotels_results"]  # one doc per hotels.com hotel result
 hotels_reviews = db["hotels_reviews"]  # one doc per hotels.com guest review
 homedepot_results = db["homedepot_results"]  # one doc per Home Depot product
 expedia_reviews = db["expedia_reviews"]  # one doc per expedia.com guest review
+airbnb_search_results = db["airbnb_search_results"]  # one doc per airbnb.com search listing
+gmaps_results = db["gmaps_results"]  # one doc per Google Maps place (Places API)
+gmaps_domain_results = db["gmaps_domain_results"]  # one doc per place found by domain
 
 
 async def ensure_indexes():
@@ -65,3 +68,6 @@ async def ensure_indexes():
     await hotels_reviews.create_index("job_id")
     await homedepot_results.create_index("job_id")
     await expedia_reviews.create_index("job_id")
+    await airbnb_search_results.create_index("job_id")
+    await gmaps_results.create_index("job_id")
+    await gmaps_domain_results.create_index("job_id")

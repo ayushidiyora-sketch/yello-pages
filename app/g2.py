@@ -138,9 +138,16 @@ def _is_real_g2(html: str | None) -> bool:
     )
 
 
-def _headless_get_sync(url: str, proxy: str | None) -> str | None:
-    """Render the page in headless Chrome so Cloudflare's JS challenge can run and the reviews
-    load. Routed through `proxy` when given (NEVER the real IP). Returns HTML or None."""
+def _headless_get_sync(url: str, proxy: str | None,
+                       goto_timeout: int = 45000, challenge_rounds: int = 6,
+                       headed: bool = False) -> str | None:
+    """Render the page in Chrome so Cloudflare's JS challenge can run and the reviews load.
+    Routed through `proxy` when given; `proxy=None` renders on this machine's own IP (free
+    fallback — a residential IP clears DataDome far more often than a free datacenter proxy).
+    `headed=True` opens a VISIBLE browser window, which DataDome blocks far less than headless —
+    used for the direct attempt. `goto_timeout`/`challenge_rounds` cap how long to wait (kept
+    short for the usually DataDome-blocked free proxies, full for the direct attempt). Returns
+    HTML or None."""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -150,17 +157,17 @@ def _headless_get_sync(url: str, proxy: str | None) -> str | None:
         launch_proxy = {"server": proxy if proxy.startswith("http") else "http://" + proxy}
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(channel="chrome", headless=True, proxy=launch_proxy,
+            browser = p.chromium.launch(channel="chrome", headless=not headed, proxy=launch_proxy,
                                         args=["--no-sandbox", "--disable-blink-features=AutomationControlled"])
             ctx = browser.new_context(locale="en-US",
                                       user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                                   "AppleWebKit/537.36 (KHTML, like Gecko) "
                                                   "Chrome/124.0 Safari/537.36"))
             page = ctx.new_page()
-            page.goto(url, timeout=45000, wait_until="domcontentloaded")
+            page.goto(url, timeout=goto_timeout, wait_until="domcontentloaded")
             # Cloudflare "Just a moment" interstitial runs JS then redirects — wait for the real
             # review markup to appear (poll a few times so the challenge has time to clear).
-            for _ in range(6):
+            for _ in range(challenge_rounds):
                 try:
                     if page.query_selector('[itemprop="review"]'):
                         break
@@ -233,14 +240,26 @@ async def _fetch_html(url: str, stopped=None) -> str | None:
         if _is_real_g2(html):
             return html
         return await asyncio.to_thread(_get_text, url)      # curl via paid proxy
-    # free pool: try headless through a few warm proxies, then curl rotation
-    for px in await asyncio.to_thread(_warm_proxies, 4):
+    # --- free routes (no paid proxy) ---
+    # 1) headless render through a couple of free proxies (anonymous). Short per-attempt budget:
+    #    free datacenter IPs are almost always DataDome-blocked, so don't sink ~60s into each.
+    for px in await asyncio.to_thread(_warm_proxies, 2):
         if stopped and stopped():
             return None
-        html = await asyncio.to_thread(_headless_get_sync, url, px)
+        html = await asyncio.to_thread(_headless_get_sync, url, px, 25000, 3)
         if _is_real_g2(html):
             return html
-    return await asyncio.to_thread(_get_text, url)
+    # 2) plain curl rotation through the free pool (only wins if G2 serves reviews un-challenged)
+    html = await asyncio.to_thread(_get_text, url)
+    if _is_real_g2(html):
+        return html
+    # 3) last resort, still FREE: render directly on this machine's IP in a VISIBLE (headed)
+    #    Chrome window. Not anonymous — G2 sees the real IP — but a residential IP + a headed
+    #    browser is the combination DataDome blocks least, so it's the best free shot at data.
+    if stopped and stopped():
+        return None
+    html = await asyncio.to_thread(_headless_get_sync, url, None, 45000, 8, True)
+    return html if _is_real_g2(html) else None
 
 
 # ---------------- URL building ----------------
@@ -479,9 +498,15 @@ async def run_job(job_id: str, queries: list[str], limit: int | None, sort: str 
             await jobs.update_one({"job_id": job_id}, {"$set": {"total_scraped": total}})
 
         STOP_REQUESTS.discard(job_id)
-        await jobs.update_one({"job_id": job_id}, {"$set": {
+        done_fields = {
             "status": "stopped" if stopped() else "done",
-            "total_scraped": total, "finished_at": datetime.utcnow()}})
+            "total_scraped": total, "finished_at": datetime.utcnow()}
+        if not total and not stopped():
+            done_fields["note"] = (
+                "G2 returned 0 reviews — its DataDome bot-wall blocked the free proxies and the "
+                "direct render. For reliable results set SCRAPER_API_KEY (free tier) or a paid "
+                "residential PROXY_URL in .env.")
+        await jobs.update_one({"job_id": job_id}, {"$set": done_fields})
     except Exception as e:
         STOP_REQUESTS.discard(job_id)
         await jobs.update_one({"job_id": job_id}, {"$set": {
