@@ -833,11 +833,12 @@
   "no": "82",
   "name": "Google Maps Reviews Monitoring",
   "brand": "Google",
-  "description": "",
+  "description": "Automated data collection with regular email reports",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_monitoring"
  },
  {
   "no": "83",
@@ -870,7 +871,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_contrib"
  },
  {
   "no": "86",
@@ -880,7 +882,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_photos"
  },
  {
   "no": "87",
@@ -890,17 +893,19 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_traffic"
  },
  {
   "no": "88",
   "name": "Google Maps Directory Places",
   "brand": "Google",
-  "description": "",
+  "description": "Returns search results",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_directory"
  },
  {
   "no": "89",
@@ -910,7 +915,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gnews"
  },
  {
   "no": "90",
@@ -920,7 +926,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gimages"
  },
  {
   "no": "91",
@@ -930,7 +937,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gvideos"
  },
  {
   "no": "92",

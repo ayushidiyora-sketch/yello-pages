@@ -48,6 +48,68 @@ class GSearchRequest(BaseModel):
     uule: Optional[str] = Field("", examples=[""])             # Google-only geo code (ignored on DDG)
 
 
+class GNewsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["Business news"]])
+    limit: Optional[int] = Field(None, ge=0, le=1000, examples=[100])  # articles/query; None/0 = all
+    country: str = Field("us", examples=["us"])
+    date_range: Optional[str] = Field("", examples=["any"])    # any|hour|day|week|month|year
+    language: str = Field("en", examples=["en"])
+
+
+class TrafficPair(BaseModel):
+    start: str = Field("", examples=["17.8805168994, -76.9060696994"])
+    stop: str = Field("", examples=["17.8810785996, -76.9055896991"])
+
+
+class GMapsTrafficRequest(BaseModel):
+    pairs: list[TrafficPair] = Field(..., min_length=1)   # Start->Stop location pairs
+    time_from: str = Field("", examples=["2026-06-23T14:00"])
+    time_to: str = Field("", examples=["2026-06-23T14:59"])
+    interval_min: int = Field(60, ge=1, le=1440, examples=[60])
+    travel_mode: str = Field("best", examples=["best"])   # best|driving|transit|walking|cycling|flights
+
+
+class GImagesRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["Wallpaper"]])
+    limit: Optional[int] = Field(None, ge=0, le=2000, examples=[100])  # images/query; None/0 = all
+    country: str = Field("us", examples=["us"])
+    language: str = Field("en", examples=["en"])
+
+
+class GVideosRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["Wallpaper"]])
+    limit: Optional[int] = Field(None, ge=0, le=2000, examples=[100])  # videos/query; None/0 = all
+    country: str = Field("us", examples=["us"])
+    language: str = Field("en", examples=["en"])
+
+
+class GMapsDirectoryRequest(BaseModel):
+    # query: "category, city" / a Maps search URL / a place_id (ChIJ..) / a feature id (0x..:0x..)
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.google.com/maps/search/restaurants+near+New+York,+NY"]])
+    limit: Optional[int] = Field(100, ge=1, le=5000, examples=[100])  # places/query; None = all
+    language: str = Field("en", examples=["en"])
+
+
+class GMapsContribRequest(BaseModel):
+    # each line: a Google Maps contributor ID (e.g. 116992800507045820329) or a /contrib/<id> URL
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.google.com/maps/contrib/109743434949154249800/reviews"]])
+    limit: Optional[int] = Field(100, ge=1, le=5000, examples=[100])  # reviews/contributor; None=all
+    language: str = Field("en", examples=["en"])
+
+
+class GMapsPhotosRequest(BaseModel):
+    # query: "category, city, country" / a Maps URL / Google or Places ID / a feature id (0x..:0x..)
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.google.com/maps/place/?q=place_id:ChIJu7bMNFV-54gR-lrHScvPRX4"]])
+    limit: Optional[int] = Field(250, ge=0, le=10000, examples=[250])  # photos/place; 0 = all
+    places_limit: int = Field(1, ge=1, le=100, examples=[1])  # places per one query (premium)
+    language: str = Field("en", examples=["en"])
+    country: str = Field("", examples=[""])
+    filtering: str = Field("any", examples=["any"])
+
+
 class BBBRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1, examples=[["auto sellers"]])  # term or bbb.org URL
     limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # rows/query; None = all
@@ -132,6 +194,17 @@ class GMapsReviewsRequest(BaseModel):
     reviews_query: str = Field("", examples=[""])     # filter reviews by text
     filtering: str = Field("any", examples=["any"])
     reviews_filtering: str = Field("all", examples=["all"])
+
+
+class GMapsMonitorRequest(BaseModel):
+    # query: "category, city, country" / a Maps URL / a Google Places ID (ChIJ..)
+    queries: list[str] = Field(..., min_length=1, examples=[["McDonald's, Sydney"]])
+    frequency: str = Field("weekly", examples=["weekly"])  # daily|weekly|3weeks|monthly|3months
+    email: str = Field("", examples=["info@sensussoft.com"])  # where to send the report
+    threshold: int = Field(3, ge=1, le=5, examples=[3])  # rating <= threshold counts as negative
+    sort: str = Field("newest", examples=["newest"])  # newest|relevant|highest|lowest
+    language: str = Field("en", examples=["en"])
+    limit: Optional[int] = Field(100, ge=1, le=5000, examples=[100])  # reviews/place per cycle
 
 
 class TrustpilotRequest(BaseModel):
