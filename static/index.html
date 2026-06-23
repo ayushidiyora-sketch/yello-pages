@@ -750,6 +750,352 @@
   <div id="gPager"></div>
   </div><!-- /gsearchView -->
 
+  <div id="gnewsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries to search <span class="req">*</span></label>
+        <textarea id="gnInput" placeholder="Business news&#10;Tech news&#10;Outscraper"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gnFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gnFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gnFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gnFileName"></span>
+        </div>
+        <span class="hint">News comes from Google News through the proxy pool (paid <code>PROXY_URL</code> if set, else the free pool — the real IP is never used).</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gnLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty for all articles (Google News gives up to ~100 per query).</span>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <select id="gnCountry"></select>
+      </div>
+      <div class="field">
+        <label>Date range</label>
+        <select id="gnDate">
+          <option value="" selected>Any time</option>
+          <option value="hour">Past hour</option>
+          <option value="day">Past 24 hours</option>
+          <option value="week">Past week</option>
+          <option value="month">Past month</option>
+          <option value="year">Past year</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gnLang"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gnStartBtn" onclick="gnStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gnStopBtn" onclick="gnStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gnStatus"></div>
+  <div class="bar" id="gnBar"><i></i></div>
+
+  <div class="resbar" id="gnResbar" style="display:none">
+    <div class="count" id="gnCount"></div>
+    <div class="resbar-controls">
+      <a id="gnDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gnDownloadXlsx" style="display:none" onclick="gnDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gnResults"></div>
+  <div id="gnPager"></div>
+  </div><!-- /gnewsView -->
+
+  <div id="gimagesView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries to search <span class="req">*</span></label>
+        <textarea id="giInput" placeholder="Wallpaper&#10;Skyscraper&#10;Yacht"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="giFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="giFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('giFile').click()">⬆ Upload file</button>
+          <span class="hint" id="giFileName"></span>
+        </div>
+        <span class="hint">Image results via Bing image search through the proxy pool (DuckDuckGo's image API is blocked and Google Images is anti-bot; Bing is the reliable free source) — the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="giLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <select id="giCountry">
+          <option value="us" selected>United States (US)</option>
+          <option value="gb">United Kingdom (GB)</option>
+          <option value="ca">Canada (CA)</option>
+          <option value="au">Australia (AU)</option>
+          <option value="in">India (IN)</option>
+          <option value="de">Germany (DE)</option>
+          <option value="fr">France (FR)</option>
+          <option value="es">Spain (ES)</option>
+          <option value="it">Italy (IT)</option>
+          <option value="br">Brazil (BR)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="giLang">
+          <option value="en" selected>English (en)</option>
+          <option value="fr">French (fr)</option>
+          <option value="es">Spanish (es)</option>
+          <option value="de">German (de)</option>
+          <option value="it">Italian (it)</option>
+          <option value="pt">Portuguese (pt)</option>
+          <option value="nl">Dutch (nl)</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="giStartBtn" onclick="giStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="giStopBtn" onclick="giStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="giStatus"></div>
+  <div class="bar" id="giBar"><i></i></div>
+
+  <div class="resbar" id="giResbar" style="display:none">
+    <div class="count" id="giCount"></div>
+    <div class="resbar-controls">
+      <a id="giDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="giDownloadXlsx" style="display:none" onclick="giDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="giResults"></div>
+  <div id="giPager"></div>
+  </div><!-- /gimagesView -->
+
+  <div id="gvideosView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries to search <span class="req">*</span></label>
+        <textarea id="gvInput" placeholder="wallpaper&#10;cooking recipes&#10;python tutorial"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gvFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gvFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gvFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gvFileName"></span>
+        </div>
+        <span class="hint">Google video search through your paid residential <code>PROXY_URL</code> (Google blocks free/datacenter IPs); falls back to Bing video search on the free pool. The real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gvLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <select id="gvCountry"></select>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gvLang"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gvStartBtn" onclick="gvStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gvStopBtn" onclick="gvStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gvStatus"></div>
+  <div class="bar" id="gvBar"><i></i></div>
+
+  <div class="resbar" id="gvResbar" style="display:none">
+    <div class="count" id="gvCount"></div>
+    <div class="resbar-controls">
+      <a id="gvDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gvDownloadXlsx" style="display:none" onclick="gvDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gvResults"></div>
+  <div id="gvPager"></div>
+  </div><!-- /gvideosView -->
+
+  <div id="gmapsTrafficView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <label style="margin:0">Locations <span class="req">*</span></label>
+          <span class="switch-row">
+            <label class="switch"><input type="checkbox" id="gmtPlain" onchange="gmtTogglePlain()"><span class="sl"></span></label>
+            Plain queries
+          </span>
+        </div>
+
+        <!-- Plain OFF: Add Start/Stop location-pair cards -->
+        <div id="gmtStructBox">
+          <button type="button" class="btn-upload" style="margin:6px 0" onclick="gmtAddPair()">＋ Add</button>
+          <div id="gmtPairs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"></div>
+        </div>
+
+        <!-- Plain ON: free-text queries (start &lt;tab/4 spaces&gt; stop, one pair per line) -->
+        <div id="gmtPlainBox" style="display:none">
+          <label class="hint" style="display:block;margin-bottom:4px">Queries, Coordinates or Places split by a tab or 4 spaces — one Start→Stop pair per line</label>
+          <textarea id="gmtInput" placeholder="17.8805168994, -76.9060696994    17.8810785996, -76.9055896991&#10;Intersection of 19th Ave and Santiago St, San Francisco    Intersection of 19th Ave and Irving St, San Francisco"></textarea>
+        </div>
+      </div>
+      <div class="field">
+        <label>Time frame (from) <span class="req">*</span></label>
+        <input id="gmtFrom" type="datetime-local">
+      </div>
+      <div class="field">
+        <label>Time frame (to) <span class="req">*</span></label>
+        <input id="gmtTo" type="datetime-local">
+      </div>
+      <div class="field">
+        <label>Time interval (min) <span class="req">*</span></label>
+        <input id="gmtInterval" type="number" min="1" value="60">
+      </div>
+      <div class="field">
+        <label>Travel Mode</label>
+        <select id="gmtMode">
+          <option value="best" selected>Best</option>
+          <option value="driving">Driving</option>
+          <option value="transit">Transit</option>
+          <option value="walking">Walking</option>
+          <option value="cycling">Cycling</option>
+          <option value="flights">Flights</option>
+        </select>
+      </div>
+      <div class="field full">
+        <span class="hint">Returns directions between two points. Scrapes Google Maps through your paid residential <code>PROXY_URL</code> in <code>.env</code> (free proxies are blocked). Each time slot is one sampled row (current traffic — per-interval future traffic needs the paid Directions API). No real IP is used.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gmtStartBtn" onclick="gmtStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gmtStopBtn" onclick="gmtStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gmtStatus"></div>
+  <div class="bar" id="gmtBar"><i></i></div>
+
+  <div class="resbar" id="gmtResbar" style="display:none">
+    <div class="count" id="gmtCount"></div>
+    <div class="resbar-controls">
+      <a id="gmtDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gmtDownloadXlsx" style="display:none" onclick="gmtDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gmtResults"></div>
+  </div><!-- /gmapsTrafficView -->
+
+  <div id="gmapsDirectoryView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries to search <span class="req">*</span></label>
+        <textarea id="gdpInput" placeholder="restaurants near New York, NY&#10;ChIJu7bMNFV-54gR-lrHScvPRX4&#10;0x886916e8bc273979:0x5141fcb11460b226&#10;https://www.google.com/maps/search/restaurants+near+New+York,+NY"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gdpFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gdpFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gdpFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gdpFileName"></span>
+        </div>
+        <span class="hint">Returns the places from a Google Maps search/place. Scrapes through your paid residential <code>PROXY_URL</code> in <code>.env</code> (free proxies are blocked) — the real IP is never used. Accepts a "category, city" query, a Maps URL, a place_id (ChIJ…), or a feature id (0x…:0x…).</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gdpLimit" type="number" min="1" value="100">
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gdpLang">
+          <option value="en" selected>English (en)</option>
+          <option value="fr">Français (fr)</option>
+          <option value="es">Español (es)</option>
+          <option value="de">Deutsch (de)</option>
+          <option value="it">Italiano (it)</option>
+          <option value="pt">Português (pt)</option>
+          <option value="hi">हिन्दी (hi)</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gdpStartBtn" onclick="gdpStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gdpStopBtn" onclick="gdpStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gdpStatus"></div>
+  <div class="bar" id="gdpBar"><i></i></div>
+
+  <div class="resbar" id="gdpResbar" style="display:none">
+    <div class="count" id="gdpCount"></div>
+    <div class="resbar-controls">
+      <a id="gdpDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gdpDownloadXlsx" style="display:none" onclick="gdpDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gdpResults"></div>
+  </div><!-- /gmapsDirectoryView -->
+
+  <div id="gmapsContribView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Contributor IDs or URLs <span class="req">*</span></label>
+        <textarea id="gmcInput" placeholder="116992800507045820329&#10;https://www.google.com/maps/contrib/109743434949154249800/reviews"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gmcFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gmcFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gmcFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gmcFileName"></span>
+        </div>
+        <span class="hint">Returns every review a contributor (Local Guide) has left. Scrapes Google Maps through your paid residential <code>PROXY_URL</code> in <code>.env</code> (free proxies are blocked by Google). No real IP is used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gmcLimit" type="number" min="1" value="100">
+        <span class="hint">Reviews per contributor. Leave blank-ish (0) for all.</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gmcLang">
+          <option value="en" selected>English (en)</option>
+          <option value="fr">French (fr)</option>
+          <option value="es">Spanish (es)</option>
+          <option value="de">German (de)</option>
+          <option value="it">Italian (it)</option>
+          <option value="pt">Portuguese (pt)</option>
+          <option value="nl">Dutch (nl)</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gmcStartBtn" onclick="gmcStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gmcStopBtn" onclick="gmcStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gmcStatus"></div>
+  <div class="bar" id="gmcBar"><i></i></div>
+
+  <div class="resbar" id="gmcResbar" style="display:none">
+    <div class="count" id="gmcCount"></div>
+    <div class="resbar-controls">
+      <a id="gmcDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gmcDownloadXlsx" style="display:none" onclick="gmcDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gmcResults"></div>
+  <div id="gmcPager"></div>
+  </div><!-- /gmapsContribView -->
+
   <!-- BBB Business Scraper form (bbb.org) -->
   <div id="bbbView" style="display:none">
   <div class="panel">
@@ -1622,6 +1968,7 @@
           <button type="button" class="btn-upload" onclick="document.getElementById('gmrFile').click()">⬆ Upload file</button>
           <span class="hint" id="gmrFileName"></span>
         </div>
+        <span class="hint">Scrapes Google Maps directly through your paid residential <code>PROXY_URL</code> in <code>.env</code> (Google blocks free/datacenter IPs). Returns <b>all reviews</b> via scroll. Accepts a place_id (ChIJ…), feature id (0x…:0x…), a Maps URL, or a "category, city" query.</span>
       </div>
       <div class="field">
         <label>Sorting</label>
@@ -1690,6 +2037,100 @@
   <div id="gmrResults"></div>
   <div id="gmrPager"></div>
   </div><!-- /gmapsReviewsView -->
+
+  <div id="gmapsPhotosView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <label id="gmpQLabel" style="margin:0">Queries (category + city/zip + country, URLs, Google or Places IDs) <span class="req">*</span></label>
+          <span class="switch-row">
+            <label class="switch"><input type="checkbox" id="gmpPlain" checked onchange="gmpTogglePlain()"><span class="sl"></span></label>
+            Plain queries
+          </span>
+        </div>
+
+        <!-- Plain ON: free-text queries -->
+        <div id="gmpPlainBox">
+          <textarea id="gmpInput" placeholder="Real estate agency, Rome, Italy&#10;ChIJu7bMNFV-54gR-lrHScvPRX4&#10;0x886916e8bc273979:0x5141fcb11460b226&#10;https://www.google.com/maps/place/?q=place_id:ChIJu7bMNFV-54gR-lrHScvPRX4"></textarea>
+        </div>
+
+        <!-- Plain OFF: structured categories + locations -->
+        <div id="gmpStructBox" style="display:none">
+          <div style="margin-bottom:10px">
+            <label>Categories / brands <span class="req">*</span></label>
+            <input id="gmpCats" type="text" list="gmpCatList" placeholder="Select or enter categories — e.g. doctor, restaurant" autocomplete="off">
+            <datalist id="gmpCatList"></datalist>
+            <span class="hint" id="gmpCatHint">Type to search the Google Maps category list. Comma-separated for multiple.</span>
+          </div>
+          <div>
+            <label>Locations <span class="req">*</span></label>
+            <input id="gmpLocs" type="text" placeholder="Rome, Italy; New York, NY; London, UK">
+            <span class="hint">Comma or semicolon separated (city + country/zip).</span>
+          </div>
+        </div>
+
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gmpFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gmpFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gmpFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gmpFileName"></span>
+        </div>
+        <span class="hint">Returns photos from places on Google Maps. Scrapes directly through your paid residential <code>PROXY_URL</code> in <code>.env</code> (Google blocks free/datacenter IPs). No real IP is used.</span>
+      </div>
+      <div class="field">
+        <label>Photos limit per one place</label>
+        <input id="gmpLimit" type="number" min="0" value="250">
+        <span class="hint">0 = unlimited.</span>
+      </div>
+      <div class="field">
+        <label>Places per one query search</label>
+        <input id="gmpPlaces" type="number" min="1" value="1" disabled>
+        <span class="hint">Premium — one place per query for now.</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gmpLang">
+          <option value="en" selected>English (en)</option>
+          <option value="fr">Français (fr)</option>
+          <option value="es">Español (es)</option>
+          <option value="de">Deutsch (de)</option>
+          <option value="it">Italiano (it)</option>
+          <option value="pt">Português (pt)</option>
+          <option value="nl">Nederlands (nl)</option>
+          <option value="hi">हिन्दी (hi)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <input id="gmpCountry" type="text" placeholder="e.g. us, in, it">
+      </div>
+      <div class="field">
+        <label>Filtering</label>
+        <select id="gmpFiltering" disabled>
+          <option value="any" selected>Any</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gmpStartBtn" onclick="gmpStart()">⬇ Download Photos</button>
+      <button class="btn-stop" id="gmpStopBtn" onclick="gmpStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gmpStatus"></div>
+  <div class="bar" id="gmpBar"><i></i></div>
+
+  <div class="resbar" id="gmpResbar" style="display:none">
+    <div class="count" id="gmpCount"></div>
+    <div class="resbar-controls">
+      <a id="gmpDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gmpDownloadXlsx" style="display:none" onclick="gmpDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gmpResults"></div>
+  <div id="gmpPager"></div>
+  </div><!-- /gmapsPhotosView -->
 
   <div id="homedepotView" style="display:none">
   <div class="panel">
@@ -1840,6 +2281,61 @@
   <div id="tmoResults"></div>
   <div id="tmoPager"></div>
   </div><!-- /trustpilotMonitoringView -->
+
+  <div id="gmapsMonitoringView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries (category + city or zip + country), URLs, Google or Places IDs <span class="req">*</span></label>
+        <textarea id="gmoInput" placeholder="McDonald's, Sydney&#10;ChIJu7bMNFV-54gR-lrHScvPRX4&#10;https://www.google.com/maps/place/?q=place_id:ChIJu7bMNFV-54gR-lrHScvPRX4"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gmoFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gmoFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gmoFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gmoFileName"></span>
+        </div>
+        <span class="hint">Scrapes Google Maps through your paid residential <code>PROXY_URL</code> in <code>.env</code> (free proxies are blocked by Google). Pulls all reviews each cycle.</span>
+      </div>
+      <div class="field">
+        <label>Monitoring Frequency</label>
+        <select id="gmoFreq">
+          <option value="daily">Once a day</option>
+          <option value="weekly" selected>Once a week</option>
+          <option value="3weeks">Once every 3 weeks</option>
+          <option value="monthly">Once a month</option>
+          <option value="3months">Once every 3 months</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Email for Notifications</label>
+        <input id="gmoEmail" type="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Negative Review Threshold</label>
+        <input id="gmoThreshold" type="number" min="1" max="5" value="3">
+        <span class="hint">Reviews rated at or below this are flagged negative.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gmoStartBtn" onclick="gmoStart()">🔍 Start Monitoring</button>
+      <button class="btn-stop" id="gmoStopBtn" onclick="gmoStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gmoStatus"></div>
+  <div class="bar" id="gmoBar"><i></i></div>
+  <div id="gmoBanner"></div>
+
+  <div class="resbar" id="gmoResbar" style="display:none">
+    <div class="count" id="gmoCount"></div>
+    <div class="resbar-controls">
+      <a id="gmoDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gmoDownloadXlsx" style="display:none" onclick="gmoDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gmoResults"></div>
+  <div id="gmoPager"></div>
+  </div><!-- /gmapsMonitoringView -->
 
    </div><!-- /wrap -->
   </main>
@@ -2306,7 +2802,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -2427,6 +2923,18 @@ function selectService(s, keep, fromHistory){
   document.getElementById('homedepotView').style.display = vt==='homedepot' ? '' : 'none';
   document.getElementById('trustpilotReviewsView').style.display = vt==='trustpilot_reviews' ? '' : 'none';
   document.getElementById('trustpilotMonitoringView').style.display = vt==='trustpilot_monitoring' ? '' : 'none';
+  document.getElementById('gmapsMonitoringView').style.display = vt==='gmaps_monitoring' ? '' : 'none';
+  document.getElementById('gnewsView').style.display = vt==='gnews' ? '' : 'none';
+  if(vt==='gnews') gnInit();
+  document.getElementById('gmapsContribView').style.display = vt==='gmaps_contrib' ? '' : 'none';
+  document.getElementById('gmapsPhotosView').style.display = vt==='gmaps_photos' ? '' : 'none';
+  if(vt==='gmaps_photos') gmpLoadCategories();
+  document.getElementById('gimagesView').style.display = vt==='gimages' ? '' : 'none';
+  document.getElementById('gmapsTrafficView').style.display = vt==='gmaps_traffic' ? '' : 'none';
+  if(vt==='gmaps_traffic') gmtInit();
+  document.getElementById('gmapsDirectoryView').style.display = vt==='gmaps_directory' ? '' : 'none';
+  document.getElementById('gvideosView').style.display = vt==='gvideos' ? '' : 'none';
+  if(vt==='gvideos') gvInit();
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -2463,6 +2971,14 @@ function viewType(s){
   if(s.ui === 'homedepot') return 'homedepot';
   if(s.ui === 'trustpilot_reviews') return 'trustpilot_reviews';
   if(s.ui === 'trustpilot_monitoring') return 'trustpilot_monitoring';
+  if(s.ui === 'gmaps_monitoring') return 'gmaps_monitoring';
+  if(s.ui === 'gnews') return 'gnews';
+  if(s.ui === 'gmaps_contrib') return 'gmaps_contrib';
+  if(s.ui === 'gmaps_photos') return 'gmaps_photos';
+  if(s.ui === 'gimages') return 'gimages';
+  if(s.ui === 'gmaps_traffic') return 'gmaps_traffic';
+  if(s.ui === 'gmaps_directory') return 'gmaps_directory';
+  if(s.ui === 'gvideos') return 'gvideos';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -3276,6 +3792,1083 @@ function gDownloadExcel(){
   XLSX.writeFile(wb, gFileName()+'.xlsx');
 }
 /* ---------- end Google Search ---------- */
+
+/* ---------- Google Search News Scraper ---------- */
+const GNEWS_COLUMNS = ["query","title","source","date","link","snippet","image"];
+const GN_PAGE_SIZE = 15;
+let gnTimer=null, gnJob=null, _gnRows=[], _gnDlUrl=null, _gnPage=0;
+
+async function gnFilePicked(){
+  const f=document.getElementById('gnFile').files[0];
+  const nameEl=document.getElementById('gnFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gnInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+const GN_COUNTRIES=[["us","United States"],["gb","United Kingdom"],["ca","Canada"],["au","Australia"],["in","India"],["ie","Ireland"],["za","South Africa"],["ng","Nigeria"],["ke","Kenya"],["gh","Ghana"],["ug","Uganda"],["tz","Tanzania"],["pk","Pakistan"],["bd","Bangladesh"],["lk","Sri Lanka"],["ph","Philippines"],["sg","Singapore"],["my","Malaysia"],["id","Indonesia"],["th","Thailand"],["vn","Vietnam"],["hk","Hong Kong"],["tw","Taiwan"],["jp","Japan"],["kr","South Korea"],["cn","China"],["nz","New Zealand"],["fr","France"],["de","Germany"],["es","Spain"],["it","Italy"],["pt","Portugal"],["nl","Netherlands"],["be","Belgium"],["ch","Switzerland"],["at","Austria"],["se","Sweden"],["no","Norway"],["dk","Denmark"],["fi","Finland"],["pl","Poland"],["cz","Czechia"],["sk","Slovakia"],["hu","Hungary"],["ro","Romania"],["bg","Bulgaria"],["gr","Greece"],["ru","Russia"],["ua","Ukraine"],["tr","Turkey"],["il","Israel"],["sa","Saudi Arabia"],["ae","UAE"],["eg","Egypt"],["ma","Morocco"],["mx","Mexico"],["br","Brazil"],["ar","Argentina"],["cl","Chile"],["co","Colombia"],["pe","Peru"],["ve","Venezuela"]];
+const GN_LANGUAGES=[["en","English"],["es","Spanish"],["fr","French"],["de","German"],["it","Italian"],["pt","Portuguese"],["nl","Dutch"],["hi","Hindi"],["bn","Bengali"],["ta","Tamil"],["te","Telugu"],["mr","Marathi"],["gu","Gujarati"],["kn","Kannada"],["ml","Malayalam"],["pa","Punjabi"],["ur","Urdu"],["ar","Arabic"],["he","Hebrew"],["ru","Russian"],["uk","Ukrainian"],["pl","Polish"],["cs","Czech"],["sk","Slovak"],["hu","Hungarian"],["ro","Romanian"],["bg","Bulgarian"],["el","Greek"],["tr","Turkish"],["sv","Swedish"],["no","Norwegian"],["da","Danish"],["fi","Finnish"],["id","Indonesian"],["ms","Malay"],["th","Thai"],["vi","Vietnamese"],["ja","Japanese"],["ko","Korean"],["zh","Chinese"],["fa","Persian"],["sw","Swahili"],["sr","Serbian"],["hr","Croatian"]];
+function gnInit(){
+  const c=document.getElementById('gnCountry');
+  if(c && !c.options.length){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+  const l=document.getElementById('gnLang');
+  if(l && !l.options.length){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+}
+
+function gnSetRunning(on){
+  document.getElementById('gnStartBtn').disabled=on;
+  document.getElementById('gnStopBtn').disabled=!on;
+  ['gnInput','gnLimit','gnCountry','gnDate','gnLang'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gnStart(){
+  const typed=document.getElementById('gnInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('gnLimit').value,10);
+  const body={
+    queries,
+    limit: (lim>0?lim:0),
+    country: document.getElementById('gnCountry').value,
+    date_range: document.getElementById('gnDate').value,
+    language: document.getElementById('gnLang').value,
+  };
+  let r;
+  try{ r=await fetch('/api/gnews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gnJob=(await r.json()).job_id;
+  _gnRows=[]; _gnPage=0;
+  document.getElementById('gnResbar').style.display='none';
+  document.getElementById('gnResults').innerHTML='';
+  document.getElementById('gnPager').innerHTML='';
+  document.getElementById('gnCount').textContent='';
+  document.getElementById('gnBar').style.display='block';
+  document.querySelector('#gnBar>i').style.width='30%';
+  gnSetRunning(true);
+  if(gnTimer) clearInterval(gnTimer);
+  gnTimer=setInterval(()=>gnPoll(gnJob),1500);
+  gnPoll(gnJob);
+}
+
+async function gnStop(){ if(gnJob){ document.getElementById('gnStopBtn').disabled=true; await fetch('/api/stop/'+gnJob,{method:'POST'}); } }
+
+async function gnPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gnStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching news… '+got+' articles';
+  } else {
+    clearInterval(gnTimer); gnSetRunning(false);
+    document.getElementById('gnBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' articles';
+      gnShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gnShowResults(job_id){
+  _gnRows=await (await fetch('/api/gnews-results/'+job_id+'?limit=2000')).json();
+  const resbar=document.getElementById('gnResbar');
+  if(!_gnRows.length){
+    document.getElementById('gnResults').innerHTML='';
+    document.getElementById('gnCount').innerHTML='<span class="empty">No news — the proxies may have been rate-limited, or set a PROXY_URL. Try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gnDownload').style.display='none';
+    document.getElementById('gnDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gnPage=0;
+  gnRender();
+  document.getElementById('gnCount').textContent='Showing '+_gnRows.length+' articles ('+GN_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gnUpdateDownload();
+}
+
+function gnHost(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return ''; } }
+function gnRender(){
+  const start=_gnPage*GN_PAGE_SIZE;
+  let h='';
+  for(const r of _gnRows.slice(start, start+GN_PAGE_SIZE)){
+    const host=gnHost(r.link);
+    const fav=`https://www.google.com/s2/favicons?domain=${esc(host||'news.google.com')}&sz=32`;
+    const img=r.image?`<img src="${esc(r.image)}" loading="lazy" style="width:130px;height:96px;object-fit:cover;border-radius:10px;flex:none;background:#eee" onerror="this.style.display='none'">`:'';
+    h+=`<div style="display:flex;gap:16px;padding:14px 2px;border-bottom:1px solid #eee">
+      <div style="flex:1;min-width:0">
+        <div class="gres-site" style="display:flex;align-items:center;gap:6px;color:#5f6368;font-size:13px">
+          <img src="${fav}" style="width:16px;height:16px;border-radius:3px" onerror="this.style.visibility='hidden'"> ${esc(r.source||host||r.query)}</div>
+        <a class="gres-title" href="${esc(r.link||'#')}" target="_blank" rel="noopener" style="display:block;font-size:17px;font-weight:600;line-height:1.35;margin:5px 0 6px">${esc(r.title||r.link||'')}</a>
+        <div class="gres-desc" style="color:#444;font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.snippet||'')}</div>
+        <div class="gres-url" style="color:#70757a;font-size:12px;margin-top:6px">${esc(r.date||'')}</div>
+      </div>
+      ${img}
+    </div>`;
+  }
+  document.getElementById('gnResults').innerHTML=h;
+  gnRenderPager(_gnRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gnRenderPager(total){
+  const pg=document.getElementById('gnPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GN_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gnPage=page; gnRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gnPage-1,{disabled:_gnPage===0}));
+  let s=Math.max(0,_gnPage-2), e=Math.min(pages-1,_gnPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gnPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gnPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gnPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gnPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gnPage+1,{disabled:_gnPage>=pages-1}));
+}
+
+function gnFileName(){
+  const q=(document.getElementById('gnInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'google-news_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+function gnUpdateDownload(){
+  const dl=document.getElementById('gnDownload'), xl=document.getElementById('gnDownloadXlsx');
+  if(!_gnRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gnDlUrl) URL.revokeObjectURL(_gnDlUrl);
+  const rows=_gnRows.map(r=>{ const o={}; for(const c of GNEWS_COLUMNS) o[c]=r[c]??''; return o; });
+  _gnDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gnDlUrl; dl.setAttribute('download', gnFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gnDownloadExcel(){
+  if(!_gnRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gnRows.map(r=>{ const o={}; for(const c of GNEWS_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GNEWS_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'News');
+  XLSX.writeFile(wb, gnFileName()+'.xlsx');
+}
+/* ---------- end Google Search News ---------- */
+
+/* ---------- Google Search Images Scraper ---------- */
+const GIMG_COLUMNS = ["query","title","image","thumbnail","source","link","width","height"];
+const GI_PAGE_SIZE = 60;
+let giTimer=null, giJob=null, _giRows=[], _giDlUrl=null, _giPage=0;
+
+async function giFilePicked(){
+  const f=document.getElementById('giFile').files[0];
+  const nameEl=document.getElementById('giFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('giInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function giSetRunning(on){
+  document.getElementById('giStartBtn').disabled=on;
+  document.getElementById('giStopBtn').disabled=!on;
+  ['giInput','giLimit','giCountry','giLang'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function giStart(){
+  const typed=document.getElementById('giInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('giLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), country:document.getElementById('giCountry').value, language:document.getElementById('giLang').value };
+  let r;
+  try{ r=await fetch('/api/gimages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  giJob=(await r.json()).job_id;
+  _giRows=[]; _giPage=0;
+  document.getElementById('giResbar').style.display='none';
+  document.getElementById('giResults').innerHTML='';
+  document.getElementById('giPager').innerHTML='';
+  document.getElementById('giCount').textContent='';
+  document.getElementById('giBar').style.display='block';
+  document.querySelector('#giBar>i').style.width='30%';
+  giSetRunning(true);
+  if(giTimer) clearInterval(giTimer);
+  giTimer=setInterval(()=>giPoll(giJob),1500);
+  giPoll(giJob);
+}
+
+async function giStop(){ if(giJob){ document.getElementById('giStopBtn').disabled=true; await fetch('/api/stop/'+giJob,{method:'POST'}); } }
+
+async function giPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('giStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching images… '+got+' found';
+  } else {
+    clearInterval(giTimer); giSetRunning(false);
+    document.getElementById('giBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' images';
+      giShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function giShowResults(job_id){
+  _giRows=await (await fetch('/api/gimages-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('giResbar');
+  if(!_giRows.length){
+    document.getElementById('giResults').innerHTML='';
+    document.getElementById('giCount').innerHTML='<span class="empty">No images — the proxies may have been rate-limited. Try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('giDownload').style.display='none';
+    document.getElementById('giDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _giPage=0;
+  giRender();
+  document.getElementById('giCount').textContent='Showing '+_giRows.length+' images ('+GI_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  giUpdateDownload();
+}
+
+function giRender(){
+  const start=_giPage*GI_PAGE_SIZE;
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
+  for(const r of _giRows.slice(start, start+GI_PAGE_SIZE)){
+    const full=esc(r.image||''), thumb=esc(r.thumbnail||r.image||'');
+    h+=`<a href="${full}" target="_blank" rel="noopener" title="${esc(r.title||'')}"><img src="${thumb}" loading="lazy" style="width:100%;height:120px;object-fit:cover;border-radius:8px;background:#eee" onerror="this.style.opacity=.2"></a>`;
+  }
+  h+='</div>';
+  document.getElementById('giResults').innerHTML=h;
+  giRenderPager(_giRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function giRenderPager(total){
+  const pg=document.getElementById('giPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GI_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_giPage=page; giRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_giPage-1,{disabled:_giPage===0}));
+  let s=Math.max(0,_giPage-2), e=Math.min(pages-1,_giPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_giPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_giPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_giPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_giPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_giPage+1,{disabled:_giPage>=pages-1}));
+}
+
+function giFileName(){
+  const q=(document.getElementById('giInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'google-images_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+function giUpdateDownload(){
+  const dl=document.getElementById('giDownload'), xl=document.getElementById('giDownloadXlsx');
+  if(!_giRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_giDlUrl) URL.revokeObjectURL(_giDlUrl);
+  const rows=_giRows.map(r=>{ const o={}; for(const c of GIMG_COLUMNS) o[c]=r[c]??''; return o; });
+  _giDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_giDlUrl; dl.setAttribute('download', giFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function giDownloadExcel(){
+  if(!_giRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_giRows.map(r=>{ const o={}; for(const c of GIMG_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GIMG_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Images');
+  XLSX.writeFile(wb, giFileName()+'.xlsx');
+}
+/* ---------- end Google Search Images ---------- */
+
+/* ---------- Google Search Videos Scraper ---------- */
+const GVID_COLUMNS = ["query","title","duration","source","video_url","thumbnail"];
+const GV_PAGE_SIZE = 48;
+let gvTimer=null, gvJob=null, _gvRows=[], _gvDlUrl=null, _gvPage=0;
+
+function gvInit(){
+  const c=document.getElementById('gvCountry');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+  const l=document.getElementById('gvLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+}
+
+async function gvFilePicked(){
+  const f=document.getElementById('gvFile').files[0];
+  const nameEl=document.getElementById('gvFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gvInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gvSetRunning(on){
+  document.getElementById('gvStartBtn').disabled=on;
+  document.getElementById('gvStopBtn').disabled=!on;
+  ['gvInput','gvLimit','gvCountry','gvLang'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gvStart(){
+  const typed=document.getElementById('gvInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('gvLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), country:document.getElementById('gvCountry').value, language:document.getElementById('gvLang').value };
+  let r;
+  try{ r=await fetch('/api/gvideos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gvJob=(await r.json()).job_id;
+  _gvRows=[]; _gvPage=0;
+  document.getElementById('gvResbar').style.display='none';
+  document.getElementById('gvResults').innerHTML='';
+  document.getElementById('gvPager').innerHTML='';
+  document.getElementById('gvCount').textContent='';
+  document.getElementById('gvBar').style.display='block';
+  document.querySelector('#gvBar>i').style.width='30%';
+  gvSetRunning(true);
+  if(gvTimer) clearInterval(gvTimer);
+  gvTimer=setInterval(()=>gvPoll(gvJob),1500);
+  gvPoll(gvJob);
+}
+
+async function gvStop(){ if(gvJob){ document.getElementById('gvStopBtn').disabled=true; await fetch('/api/stop/'+gvJob,{method:'POST'}); } }
+
+async function gvPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gvStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching videos… '+got+' found';
+  } else {
+    clearInterval(gvTimer); gvSetRunning(false);
+    document.getElementById('gvBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' videos';
+      gvShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gvShowResults(job_id){
+  _gvRows=await (await fetch('/api/gvideos-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('gvResbar');
+  if(!_gvRows.length){
+    document.getElementById('gvResults').innerHTML='';
+    document.getElementById('gvCount').innerHTML='<span class="empty">No videos — the proxies may have been rate-limited. Try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gvDownload').style.display='none';
+    document.getElementById('gvDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gvPage=0;
+  gvRender();
+  document.getElementById('gvCount').textContent='Showing '+_gvRows.length+' videos ('+GV_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gvUpdateDownload();
+}
+
+function gvRender(){
+  const start=_gvPage*GV_PAGE_SIZE;
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">';
+  for(const r of _gvRows.slice(start, start+GV_PAGE_SIZE)){
+    const thumb=esc(r.thumbnail||'');
+    const du=r.duration?`<span style="position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.8);color:#fff;font-size:11px;padding:1px 5px;border-radius:4px">${esc(r.duration)}</span>`:'';
+    h+=`<a href="${esc(r.video_url||'#')}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+      <div style="position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:16/9">
+        <img src="${thumb}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
+        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)">▶</span>${du}
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-top:6px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.title||'')}</div>
+      <div style="font-size:12px;color:#70757a;margin-top:2px">${esc(r.source||'')}</div>
+    </a>`;
+  }
+  h+='</div>';
+  document.getElementById('gvResults').innerHTML=h;
+  gvRenderPager(_gvRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gvRenderPager(total){
+  const pg=document.getElementById('gvPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GV_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gvPage=page; gvRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gvPage-1,{disabled:_gvPage===0}));
+  let s=Math.max(0,_gvPage-2), e=Math.min(pages-1,_gvPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gvPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gvPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gvPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gvPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gvPage+1,{disabled:_gvPage>=pages-1}));
+}
+
+function gvFileName(){
+  const q=(document.getElementById('gvInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'google-videos_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+function gvUpdateDownload(){
+  const dl=document.getElementById('gvDownload'), xl=document.getElementById('gvDownloadXlsx');
+  if(!_gvRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gvDlUrl) URL.revokeObjectURL(_gvDlUrl);
+  const rows=_gvRows.map(r=>{ const o={}; for(const c of GVID_COLUMNS) o[c]=r[c]??''; return o; });
+  _gvDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gvDlUrl; dl.setAttribute('download', gvFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gvDownloadExcel(){
+  if(!_gvRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gvRows.map(r=>{ const o={}; for(const c of GVID_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GVID_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Videos');
+  XLSX.writeFile(wb, gvFileName()+'.xlsx');
+}
+/* ---------- end Google Search Videos ---------- */
+
+/* ---------- Google Maps Traffic Scraper ---------- */
+const GMT_COLUMNS = ["start","stop","travel_mode","sample_time","duration","distance"];
+let gmtTimer=null, gmtJob=null, _gmtRows=[], _gmtDlUrl=null;
+
+function gmtInit(){
+  if(!document.getElementById('gmtPairs').children.length){ gmtAddPair(); }
+}
+function gmtAddPair(){
+  const wrap=document.createElement('div');
+  wrap.className='gmt-pair';
+  wrap.style.cssText='border:1px solid #e5e7eb;border-radius:10px;padding:12px';
+  wrap.innerHTML=`
+    <label>Start location <span class="req">*</span></label>
+    <input type="text" class="gmt-start" placeholder="Intersection / address / lat, lng">
+    <label style="margin-top:8px">Stop location <span class="req">*</span></label>
+    <input type="text" class="gmt-stop" placeholder="Intersection / address / lat, lng">
+    <div style="text-align:right;margin-top:6px"><a href="#" class="gmt-del" style="color:#2563eb;font-size:13px">🗑 Delete</a></div>`;
+  wrap.querySelector('.gmt-del').onclick=(e)=>{e.preventDefault(); wrap.remove();};
+  document.getElementById('gmtPairs').appendChild(wrap);
+}
+function gmtTogglePlain(){
+  const plain=document.getElementById('gmtPlain').checked;
+  document.getElementById('gmtPlainBox').style.display = plain ? '' : 'none';
+  document.getElementById('gmtStructBox').style.display = plain ? 'none' : '';
+}
+function gmtBuildPairs(){
+  if(document.getElementById('gmtPlain').checked){
+    const t=document.getElementById('gmtInput').value.trim();
+    if(!t) return [];
+    return t.split(/\r?\n/).map(line=>{
+      const parts=line.split(/\t|\s{4,}/).map(s=>s.trim()).filter(Boolean);
+      return parts.length>=2 ? {start:parts[0], stop:parts.slice(1).join(' ')} : null;
+    }).filter(Boolean);
+  }
+  return [...document.querySelectorAll('#gmtPairs .gmt-pair')].map(p=>({
+    start:p.querySelector('.gmt-start').value.trim(),
+    stop:p.querySelector('.gmt-stop').value.trim()
+  })).filter(p=>p.start && p.stop);
+}
+
+function gmtSetRunning(on){
+  document.getElementById('gmtStartBtn').disabled=on;
+  document.getElementById('gmtStopBtn').disabled=!on;
+  ['gmtPlain','gmtInput','gmtFrom','gmtTo','gmtInterval','gmtMode'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gmtStart(){
+  const pairs=gmtBuildPairs();
+  if(!pairs.length){ alert('Add at least one Start + Stop location pair.'); return; }
+  const body={
+    pairs,
+    time_from:document.getElementById('gmtFrom').value,
+    time_to:document.getElementById('gmtTo').value,
+    interval_min:parseInt(document.getElementById('gmtInterval').value,10)||60,
+    travel_mode:document.getElementById('gmtMode').value
+  };
+  let r;
+  try{ r=await fetch('/api/gmaps-traffic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gmtJob=(await r.json()).job_id;
+  _gmtRows=[];
+  document.getElementById('gmtResbar').style.display='none';
+  document.getElementById('gmtResults').innerHTML='';
+  document.getElementById('gmtCount').textContent='';
+  document.getElementById('gmtBar').style.display='block';
+  document.querySelector('#gmtBar>i').style.width='30%';
+  gmtSetRunning(true);
+  if(gmtTimer) clearInterval(gmtTimer);
+  gmtTimer=setInterval(()=>gmtPoll(gmtJob),1500);
+  gmtPoll(gmtJob);
+}
+
+async function gmtStop(){ if(gmtJob){ document.getElementById('gmtStopBtn').disabled=true; await fetch('/api/stop/'+gmtJob,{method:'POST'}); } }
+
+async function gmtPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gmtStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping directions… '+got+' samples';
+  } else {
+    clearInterval(gmtTimer); gmtSetRunning(false);
+    document.getElementById('gmtBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' samples';
+      gmtShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gmtShowResults(job_id){
+  _gmtRows=await (await fetch('/api/gmaps-traffic-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gmtResbar');
+  if(!_gmtRows.length){
+    document.getElementById('gmtResults').innerHTML='';
+    document.getElementById('gmtCount').innerHTML='<span class="empty">No directions — set a residential PROXY_URL in .env, or the panel DOM changed (selectors may need tuning).</span>';
+    resbar.style.display='flex';
+    document.getElementById('gmtDownload').style.display='none';
+    document.getElementById('gmtDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  let h='<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr>'+
+    ['Start','Stop','Mode','Sample time','Duration','Distance'].map(c=>'<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e5e7eb">'+c+'</th>').join('')+'</tr></thead><tbody>';
+  for(const r of _gmtRows){
+    h+='<tr>'+[r.start,r.stop,r.travel_mode,r.sample_time,r.duration,r.distance].map(v=>'<td style="padding:6px 8px;border-bottom:1px solid #f1f1f1">'+esc(String(v??''))+'</td>').join('')+'</tr>';
+  }
+  h+='</tbody></table>';
+  document.getElementById('gmtResults').innerHTML=h;
+  document.getElementById('gmtCount').textContent='Showing '+_gmtRows.length+' samples.';
+  gmtUpdateDownload();
+}
+
+function gmtFileName(){ return 'gmaps-traffic_'+((_gmtRows[0]&&_gmtRows[0].start||'results').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30)); }
+function gmtUpdateDownload(){
+  const dl=document.getElementById('gmtDownload'), xl=document.getElementById('gmtDownloadXlsx');
+  if(!_gmtRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gmtDlUrl) URL.revokeObjectURL(_gmtDlUrl);
+  const rows=_gmtRows.map(r=>{ const o={}; for(const c of GMT_COLUMNS) o[c]=r[c]??''; return o; });
+  _gmtDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gmtDlUrl; dl.setAttribute('download', gmtFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gmtDownloadExcel(){
+  if(!_gmtRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gmtRows.map(r=>{ const o={}; for(const c of GMT_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GMT_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Traffic');
+  XLSX.writeFile(wb, gmtFileName()+'.xlsx');
+}
+/* ---------- end Google Maps Traffic ---------- */
+
+/* ---------- Google Maps Directory Places ---------- */
+const GDP_COLUMNS = ["query","name","category","address","rating","reviews","place_id","maps_url"];
+let gdpTimer=null, gdpJob=null, _gdpRows=[], _gdpDlUrl=null;
+
+async function gdpFilePicked(){
+  const f=document.getElementById('gdpFile').files[0];
+  const nameEl=document.getElementById('gdpFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gdpInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gdpSetRunning(on){
+  document.getElementById('gdpStartBtn').disabled=on;
+  document.getElementById('gdpStopBtn').disabled=!on;
+  ['gdpInput','gdpLimit','gdpLang'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gdpStart(){
+  const typed=document.getElementById('gdpInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a "category, city" query, Maps URL, or place_id (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('gdpLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), language:document.getElementById('gdpLang').value };
+  let r;
+  try{ r=await fetch('/api/gmaps-directory',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gdpJob=(await r.json()).job_id;
+  _gdpRows=[];
+  document.getElementById('gdpResbar').style.display='none';
+  document.getElementById('gdpResults').innerHTML='';
+  document.getElementById('gdpCount').textContent='';
+  document.getElementById('gdpBar').style.display='block';
+  document.querySelector('#gdpBar>i').style.width='30%';
+  gdpSetRunning(true);
+  if(gdpTimer) clearInterval(gdpTimer);
+  gdpTimer=setInterval(()=>gdpPoll(gdpJob),1500);
+  gdpPoll(gdpJob);
+}
+
+async function gdpStop(){ if(gdpJob){ document.getElementById('gdpStopBtn').disabled=true; await fetch('/api/stop/'+gdpJob,{method:'POST'}); } }
+
+async function gdpPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gdpStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping places… '+got+' found';
+  } else {
+    clearInterval(gdpTimer); gdpSetRunning(false);
+    document.getElementById('gdpBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' places';
+      gdpShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gdpShowResults(job_id){
+  _gdpRows=await (await fetch('/api/gmaps-directory-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gdpResbar');
+  if(!_gdpRows.length){
+    document.getElementById('gdpResults').innerHTML='';
+    document.getElementById('gdpCount').innerHTML='<span class="empty">No places — set a residential PROXY_URL in .env, or the feed DOM changed (selectors may need tuning).</span>';
+    resbar.style.display='flex';
+    document.getElementById('gdpDownload').style.display='none';
+    document.getElementById('gdpDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  let h='<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr>'+
+    ['Name','Category','Address','Rating','Reviews'].map(c=>'<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e5e7eb">'+c+'</th>').join('')+'</tr></thead><tbody>';
+  for(const r of _gdpRows){
+    const nm = r.maps_url ? '<a href="'+esc(r.maps_url)+'" target="_blank" rel="noopener">'+esc(r.name||'')+'</a>' : esc(r.name||'');
+    h+='<tr>'+
+      '<td style="padding:6px 8px;border-bottom:1px solid #f1f1f1">'+nm+'</td>'+
+      [r.category,r.address,r.rating,r.reviews].map(v=>'<td style="padding:6px 8px;border-bottom:1px solid #f1f1f1">'+esc(String(v??''))+'</td>').join('')+'</tr>';
+  }
+  h+='</tbody></table>';
+  document.getElementById('gdpResults').innerHTML=h;
+  document.getElementById('gdpCount').textContent='Showing '+_gdpRows.length+' places.';
+  gdpUpdateDownload();
+}
+
+function gdpFileName(){ return 'gmaps-directory_'+((_gdpRows[0]&&_gdpRows[0].query||'results').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30)); }
+function gdpUpdateDownload(){
+  const dl=document.getElementById('gdpDownload'), xl=document.getElementById('gdpDownloadXlsx');
+  if(!_gdpRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gdpDlUrl) URL.revokeObjectURL(_gdpDlUrl);
+  const rows=_gdpRows.map(r=>{ const o={}; for(const c of GDP_COLUMNS) o[c]=r[c]??''; return o; });
+  _gdpDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gdpDlUrl; dl.setAttribute('download', gdpFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gdpDownloadExcel(){
+  if(!_gdpRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gdpRows.map(r=>{ const o={}; for(const c of GDP_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GDP_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Places');
+  XLSX.writeFile(wb, gdpFileName()+'.xlsx');
+}
+/* ---------- end Google Maps Directory Places ---------- */
+
+/* ---------- Google Maps Contributor Reviews Scraper ---------- */
+const GMCR_COLUMNS = ["contributor","place_name","rating","date","review","owner_response","likes","language"];
+const GMC_PAGE_SIZE = 15;
+let gmcTimer=null, gmcJob=null, _gmcRows=[], _gmcDlUrl=null, _gmcPage=0;
+
+async function gmcFilePicked(){
+  const f=document.getElementById('gmcFile').files[0];
+  const nameEl=document.getElementById('gmcFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gmcInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste IDs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gmcSetRunning(on){
+  document.getElementById('gmcStartBtn').disabled=on;
+  document.getElementById('gmcStopBtn').disabled=!on;
+  ['gmcInput','gmcLimit','gmcLang'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gmcStart(){
+  const typed=document.getElementById('gmcInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a contributor ID or /contrib/<id> URL (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('gmcLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), language:document.getElementById('gmcLang').value };
+  let r;
+  try{ r=await fetch('/api/gmaps-contrib',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gmcJob=(await r.json()).job_id;
+  _gmcRows=[]; _gmcPage=0;
+  document.getElementById('gmcResbar').style.display='none';
+  document.getElementById('gmcResults').innerHTML='';
+  document.getElementById('gmcPager').innerHTML='';
+  document.getElementById('gmcCount').textContent='';
+  document.getElementById('gmcBar').style.display='block';
+  document.querySelector('#gmcBar>i').style.width='30%';
+  gmcSetRunning(true);
+  if(gmcTimer) clearInterval(gmcTimer);
+  gmcTimer=setInterval(()=>gmcPoll(gmcJob),1500);
+  gmcPoll(gmcJob);
+}
+
+async function gmcStop(){ if(gmcJob){ document.getElementById('gmcStopBtn').disabled=true; await fetch('/api/stop/'+gmcJob,{method:'POST'}); } }
+
+async function gmcPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gmcStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping contributor reviews… '+got+' reviews';
+  } else {
+    clearInterval(gmcTimer); gmcSetRunning(false);
+    document.getElementById('gmcBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      gmcShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gmcShowResults(job_id){
+  _gmcRows=await (await fetch('/api/gmaps-contrib-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gmcResbar');
+  if(!_gmcRows.length){
+    document.getElementById('gmcResults').innerHTML='';
+    document.getElementById('gmcCount').innerHTML='<span class="empty">No reviews — set a residential PROXY_URL in .env, or the page DOM changed (selectors may need tuning).</span>';
+    resbar.style.display='flex';
+    document.getElementById('gmcDownload').style.display='none';
+    document.getElementById('gmcDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gmcPage=0;
+  gmcRender();
+  document.getElementById('gmcCount').textContent='Showing '+_gmcRows.length+' reviews ('+GMC_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gmcUpdateDownload();
+}
+
+function gmcStars(n){
+  n=Math.round(parseFloat(n))||0;
+  let s=''; for(let i=1;i<=5;i++) s+= i<=n ? '★' : '<span class="off">★</span>'; return s;
+}
+function gmcRender(){
+  const start=_gmcPage*GMC_PAGE_SIZE;
+  let h='';
+  for(const r of _gmcRows.slice(start, start+GMC_PAGE_SIZE)){
+    h+=`<div class="bbr-card">
+      <div class="bbr-name"><span class="ic">📍</span>${esc(r.place_name||'(place)')}</div>
+      <div class="bbr-date"><b>Date:</b> ${esc(String(r.date||''))}${r.language?(' · '+esc(r.language)):''}${r.likes?(' · 👍 '+esc(r.likes)):''}</div>
+      <div class="bbr-stars">${gmcStars(r.rating)}</div>
+      <div class="bbr-text">${esc(r.review||'')}</div>
+      ${r.owner_response?`<div class="bbr-resp"><b>Owner response:</b> ${esc(r.owner_response)}</div>`:''}
+    </div>`;
+  }
+  document.getElementById('gmcResults').innerHTML=h;
+  gmcRenderPager(_gmcRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gmcRenderPager(total){
+  const pg=document.getElementById('gmcPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GMC_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gmcPage=page; gmcRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gmcPage-1,{disabled:_gmcPage===0}));
+  let s=Math.max(0,_gmcPage-2), e=Math.min(pages-1,_gmcPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gmcPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gmcPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gmcPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gmcPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gmcPage+1,{disabled:_gmcPage>=pages-1}));
+}
+
+function gmcFileName(){ return 'gmaps-contributor_'+((_gmcRows[0]&&_gmcRows[0].contributor||'results').toString().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function gmcUpdateDownload(){
+  const dl=document.getElementById('gmcDownload'), xl=document.getElementById('gmcDownloadXlsx');
+  if(!_gmcRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gmcDlUrl) URL.revokeObjectURL(_gmcDlUrl);
+  const rows=_gmcRows.map(r=>{ const o={}; for(const c of GMCR_COLUMNS) o[c]=r[c]??''; return o; });
+  _gmcDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gmcDlUrl; dl.setAttribute('download', gmcFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gmcDownloadExcel(){
+  if(!_gmcRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gmcRows.map(r=>{ const o={}; for(const c of GMCR_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GMCR_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Contributor');
+  XLSX.writeFile(wb, gmcFileName()+'.xlsx');
+}
+/* ---------- end Google Maps Contributor Reviews ---------- */
+
+/* ---------- Google Maps Photos Scraper ---------- */
+const GMP_COLUMNS = ["query","place_name","place_id","photo_url"];
+const GMP_PAGE_SIZE = 60;
+let gmpTimer=null, gmpJob=null, _gmpRows=[], _gmpDlUrl=null, _gmpPage=0, _gmpCatsLoaded=false;
+
+async function gmpLoadCategories(){
+  if(_gmpCatsLoaded) return;
+  _gmpCatsLoaded=true;
+  try{
+    const cats=await (await fetch('/api/gmaps-categories')).json();
+    document.getElementById('gmpCatList').innerHTML=cats.map(c=>'<option value="'+String(c).replace(/"/g,'&quot;')+'">').join('');
+    const hint=document.getElementById('gmpCatHint');
+    if(hint) hint.textContent='Type to search '+cats.length+' Google Maps categories. Comma-separated for multiple.';
+  }catch(e){ _gmpCatsLoaded=false; }
+}
+
+function gmpTogglePlain(){
+  const plain=document.getElementById('gmpPlain').checked;
+  document.getElementById('gmpPlainBox').style.display = plain ? '' : 'none';
+  document.getElementById('gmpStructBox').style.display = plain ? 'none' : '';
+  document.getElementById('gmpQLabel').innerHTML = plain
+    ? 'Queries (category + city/zip + country, URLs, Google or Places IDs) <span class="req">*</span>'
+    : 'Categories / brands + Locations <span class="req">*</span>';
+}
+
+async function gmpFilePicked(){
+  const f=document.getElementById('gmpFile').files[0];
+  const nameEl=document.getElementById('gmpFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gmpInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    document.getElementById('gmpPlain').checked=true; gmpTogglePlain();
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gmpSetRunning(on){
+  document.getElementById('gmpStartBtn').disabled=on;
+  document.getElementById('gmpStopBtn').disabled=!on;
+  ['gmpInput','gmpCats','gmpLocs','gmpPlain','gmpLimit','gmpLang','gmpCountry'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+function gmpBuildQueries(){
+  if(document.getElementById('gmpPlain').checked){
+    const t=document.getElementById('gmpInput').value.trim();
+    return t?t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  }
+  const cats=document.getElementById('gmpCats').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const locs=document.getElementById('gmpLocs').value.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+  const out=[]; cats.forEach(c=>locs.forEach(l=>out.push(c+', '+l))); return out;
+}
+
+async function gmpStart(){
+  const queries=gmpBuildQueries();
+  if(!queries.length){ alert(document.getElementById('gmpPlain').checked ? 'Enter a place query, URL, or Google/Places/feature id (one per line).' : 'Enter at least one category and one location.'); return; }
+  const body={
+    queries,
+    limit:parseInt(document.getElementById('gmpLimit').value,10)||0,
+    language:document.getElementById('gmpLang').value,
+    country:document.getElementById('gmpCountry').value.trim()
+  };
+  let r;
+  try{ r=await fetch('/api/gmaps-photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gmpJob=(await r.json()).job_id;
+  _gmpRows=[]; _gmpPage=0;
+  document.getElementById('gmpResbar').style.display='none';
+  document.getElementById('gmpResults').innerHTML='';
+  document.getElementById('gmpPager').innerHTML='';
+  document.getElementById('gmpCount').textContent='';
+  document.getElementById('gmpBar').style.display='block';
+  document.querySelector('#gmpBar>i').style.width='30%';
+  gmpSetRunning(true);
+  if(gmpTimer) clearInterval(gmpTimer);
+  gmpTimer=setInterval(()=>gmpPoll(gmpJob),1500);
+  gmpPoll(gmpJob);
+}
+
+async function gmpStop(){ if(gmpJob){ document.getElementById('gmpStopBtn').disabled=true; await fetch('/api/stop/'+gmpJob,{method:'POST'}); } }
+
+async function gmpPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gmpStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Collecting photos… '+got+' found';
+  } else {
+    clearInterval(gmpTimer); gmpSetRunning(false);
+    document.getElementById('gmpBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' photos';
+      gmpShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gmpShowResults(job_id){
+  _gmpRows=await (await fetch('/api/gmaps-photos-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gmpResbar');
+  if(!_gmpRows.length){
+    document.getElementById('gmpResults').innerHTML='';
+    document.getElementById('gmpCount').innerHTML='<span class="empty">No photos — set a residential PROXY_URL in .env, or the gallery DOM changed (selectors may need tuning).</span>';
+    resbar.style.display='flex';
+    document.getElementById('gmpDownload').style.display='none';
+    document.getElementById('gmpDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gmpPage=0;
+  gmpRender();
+  document.getElementById('gmpCount').textContent='Showing '+_gmpRows.length+' photos ('+GMP_PAGE_SIZE+' per page · download JSON/Excel for all URLs).';
+  gmpUpdateDownload();
+}
+
+function gmpRender(){
+  const start=_gmpPage*GMP_PAGE_SIZE;
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
+  for(const r of _gmpRows.slice(start, start+GMP_PAGE_SIZE)){
+    const u=esc(r.photo_url||'');
+    h+=`<a href="${u}" target="_blank" rel="noopener" title="${esc(r.place_name||'')}"><img src="${u}" loading="lazy" style="width:100%;height:120px;object-fit:cover;border-radius:8px;background:#eee" onerror="this.style.opacity=.2"></a>`;
+  }
+  h+='</div>';
+  document.getElementById('gmpResults').innerHTML=h;
+  gmpRenderPager(_gmpRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gmpRenderPager(total){
+  const pg=document.getElementById('gmpPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GMP_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gmpPage=page; gmpRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gmpPage-1,{disabled:_gmpPage===0}));
+  let s=Math.max(0,_gmpPage-2), e=Math.min(pages-1,_gmpPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gmpPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gmpPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gmpPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gmpPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gmpPage+1,{disabled:_gmpPage>=pages-1}));
+}
+
+function gmpFileName(){ return 'gmaps-photos_'+((_gmpRows[0]&&_gmpRows[0].place_name||'results').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function gmpUpdateDownload(){
+  const dl=document.getElementById('gmpDownload'), xl=document.getElementById('gmpDownloadXlsx');
+  if(!_gmpRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gmpDlUrl) URL.revokeObjectURL(_gmpDlUrl);
+  const rows=_gmpRows.map(r=>{ const o={}; for(const c of GMP_COLUMNS) o[c]=r[c]??''; return o; });
+  _gmpDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gmpDlUrl; dl.setAttribute('download', gmpFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gmpDownloadExcel(){
+  if(!_gmpRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gmpRows.map(r=>{ const o={}; for(const c of GMP_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GMP_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Photos');
+  XLSX.writeFile(wb, gmpFileName()+'.xlsx');
+}
+/* ---------- end Google Maps Photos ---------- */
 
 /* ---------- BBB Business Scraper (bbb.org) ---------- */
 const BBB_COLUMNS = ["query","profile_id","url","name","type_of_entity","contact_information","num_employees","primary_category","all_categories","category","licenses","years_in_business","business_start","website","social_media","email","additional_emails","phone","fax_numbers","additional_phone","displayed_address","address","city","state","postalcode","country","service_area","accredited","rating","average_rating","reviews_total","images"];
@@ -6736,6 +8329,176 @@ function tmoDownloadExcel(){
   XLSX.writeFile(wb, tmoFileName()+'.xlsx');
 }
 /* ---------- end Trustpilot Monitoring ---------- */
+
+/* ---------- Google Maps Reviews Monitoring ---------- */
+const GMO_COLUMNS = ["query","place_name","place_id","reviewer","rating","date","review","owner_response","likes","language"];
+const GMO_PAGE_SIZE = 15;
+let gmoTimer=null, gmoJob=null, _gmoRows=[], _gmoDlUrl=null, _gmoPage=0, _gmoThreshold=3, _gmoInfo=null;
+
+async function gmoFilePicked(){
+  const f=document.getElementById('gmoFile').files[0];
+  const nameEl=document.getElementById('gmoFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gmoInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gmoSetRunning(on){
+  document.getElementById('gmoStartBtn').disabled=on;
+  document.getElementById('gmoStopBtn').disabled=!on;
+  ['gmoInput','gmoFreq','gmoEmail','gmoThreshold'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gmoStart(){
+  const typed=document.getElementById('gmoInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a place_id, Maps URL, or "category, city" query (one per line).'); return; }
+  const email=document.getElementById('gmoEmail').value.trim();
+  if(!email){ alert('Enter an email for the monitoring report.'); return; }
+  _gmoThreshold=parseInt(document.getElementById('gmoThreshold').value,10)||3;
+  let r;
+  try{ r=await fetch('/api/gmaps-monitoring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, frequency:document.getElementById('gmoFreq').value, email, threshold:_gmoThreshold, sort:'newest', language:'en'})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  _gmoInfo=await r.json(); gmoJob=_gmoInfo.job_id;
+  _gmoRows=[]; _gmoPage=0;
+  document.getElementById('gmoBanner').innerHTML='';
+  document.getElementById('gmoResbar').style.display='none';
+  document.getElementById('gmoResults').innerHTML='';
+  document.getElementById('gmoPager').innerHTML='';
+  document.getElementById('gmoCount').textContent='';
+  document.getElementById('gmoBar').style.display='block';
+  document.querySelector('#gmoBar>i').style.width='30%';
+  gmoSetRunning(true);
+  if(gmoTimer) clearInterval(gmoTimer);
+  gmoTimer=setInterval(()=>gmoPoll(gmoJob),1500);
+  gmoPoll(gmoJob);
+}
+
+async function gmoStop(){ if(gmoJob){ document.getElementById('gmoStopBtn').disabled=true; await fetch('/api/stop/'+gmoJob,{method:'POST'}); } }
+
+async function gmoPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gmoStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Running first scan… '+got+' reviews';
+  } else {
+    clearInterval(gmoTimer); gmoSetRunning(false);
+    document.getElementById('gmoBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ First scan done':'⏹ Stopped')+' — '+got+' reviews';
+      gmoShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+      gmoBanner(0,0,s.error||'');
+    }
+  }
+}
+
+function gmoBanner(total, negatives, err){
+  const freq=document.getElementById('gmoFreq').selectedOptions[0].text;
+  const email=document.getElementById('gmoEmail').value.trim();
+  document.getElementById('gmoBanner').innerHTML=
+    `<div class="status done" style="margin-bottom:14px">✅ <b>Monitoring active</b> — ${esc(freq)}, alerts to <b>${esc(email)}</b>, negative if rating ≤ ${_gmoThreshold}.`+
+    (total?` This scan: <b style="color:#c0392b">${negatives}</b> negative of ${total} reviews. An email report was attempted (needs SMTP configured in .env).`:` First scan returned no reviews${err?(' — '+esc(err)):' (set GOOGLE_MAPS_API_KEY in .env)'}. The monitor is saved and will retry on schedule.`)+
+    `</div>`;
+}
+
+async function gmoShowResults(job_id){
+  _gmoRows=await (await fetch('/api/gmaps-reviews/results/'+job_id+'?limit=5000')).json();
+  const negs=_gmoRows.filter(r=>(parseFloat(r.rating)||0)<=_gmoThreshold).length;
+  gmoBanner(_gmoRows.length, negs, '');
+  const resbar=document.getElementById('gmoResbar');
+  if(!_gmoRows.length){
+    document.getElementById('gmoResults').innerHTML='';
+    document.getElementById('gmoCount').innerHTML='<span class="empty">No reviews this scan. The monitor is saved; check that GOOGLE_MAPS_API_KEY is set in .env.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gmoDownload').style.display='none';
+    document.getElementById('gmoDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gmoPage=0;
+  gmoRender();
+  document.getElementById('gmoCount').textContent='Showing '+_gmoRows.length+' reviews ('+negs+' negative · '+GMO_PAGE_SIZE+' per page · download for the full set).';
+  gmoUpdateDownload();
+}
+
+function gmoStars(n){
+  n=Math.round(parseFloat(n))||0;
+  let s='';
+  for(let i=1;i<=5;i++) s+= i<=n ? '★' : '<span class="off">★</span>';
+  return s;
+}
+function gmoRender(){
+  const start=_gmoPage*GMO_PAGE_SIZE;
+  let h='';
+  _gmoRows.slice(start, start+GMO_PAGE_SIZE).forEach((r)=>{
+    const neg=(parseFloat(r.rating)||0)<=_gmoThreshold;
+    h+=`<div class="bbr-card"${neg?' style="border-left:4px solid #e74c3c"':''}>
+      <div class="bbr-name"><span class="ic">👤</span>${esc(r.reviewer||'Anonymous')}${neg?' <span style="color:#c0392b;font-size:12px;font-weight:600">NEGATIVE</span>':''}</div>
+      <div class="bbr-date"><b>Date:</b> ${esc(String(r.date||'').slice(0,10))}${r.language?(' · '+esc(r.language)):''}${r.place_name?(' · '+esc(r.place_name)):''}</div>
+      <div class="bbr-stars">${gmoStars(r.rating)}</div>
+      <div class="bbr-text">${esc(r.review||'')}</div>
+      ${r.owner_response?`<div class="bbr-resp"><b>Owner response:</b> ${esc(r.owner_response)}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('gmoResults').innerHTML=h;
+  gmoRenderPager(_gmoRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gmoRenderPager(total){
+  const pg=document.getElementById('gmoPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GMO_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gmoPage=page; gmoRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gmoPage-1,{disabled:_gmoPage===0}));
+  let s=Math.max(0,_gmoPage-2), e=Math.min(pages-1,_gmoPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gmoPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gmoPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gmoPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gmoPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gmoPage+1,{disabled:_gmoPage>=pages-1}));
+}
+
+function gmoFileName(){ return 'gmaps-monitoring_'+((_gmoRows[0]&&_gmoRows[0].place_name||'results').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function gmoUpdateDownload(){
+  const dl=document.getElementById('gmoDownload'), xl=document.getElementById('gmoDownloadXlsx');
+  if(!_gmoRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gmoDlUrl) URL.revokeObjectURL(_gmoDlUrl);
+  const rows=_gmoRows.map(r=>{ const o={}; for(const c of GMO_COLUMNS) o[c]=r[c]??''; return o; });
+  _gmoDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gmoDlUrl; dl.setAttribute('download', gmoFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gmoDownloadExcel(){
+  if(!_gmoRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gmoRows.map(r=>{ const o={}; for(const c of GMO_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GMO_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Monitoring');
+  XLSX.writeFile(wb, gmoFileName()+'.xlsx');
+}
+/* ---------- end Google Maps Monitoring ---------- */
 /* ---------- end services ---------- */
 
 document.getElementById('region').addEventListener('change', updateRegionHint);

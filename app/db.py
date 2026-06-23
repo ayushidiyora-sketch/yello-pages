@@ -32,6 +32,13 @@ airbnb_search_results = db["airbnb_search_results"]  # one doc per airbnb.com se
 gmaps_results = db["gmaps_results"]  # one doc per Google Maps place (Places API)
 gmaps_domain_results = db["gmaps_domain_results"]  # one doc per place found by domain
 gmaps_reviews = db["gmaps_reviews"]  # one doc per Google Maps place review
+gnews_results = db["gnews_results"]  # one doc per Google News article (Search News Scraper)
+gimages_results = db["gimages_results"]  # one doc per image result (Search Images Scraper)
+gvideos_results = db["gvideos_results"]  # one doc per video result (Search Videos Scraper)
+gmaps_contrib_reviews = db["gmaps_contrib_reviews"]  # one doc per contributor's review (Contributor Reviews)
+gmaps_photos = db["gmaps_photos"]  # one doc per place photo URL (Google Maps Photos Scraper)
+gmaps_traffic = db["gmaps_traffic"]  # one doc per route sample (Google Maps Traffic Scraper)
+gmaps_directory = db["gmaps_directory"]  # one doc per place (Google Maps Directory Places)
 
 
 async def ensure_indexes():
@@ -73,3 +80,10 @@ async def ensure_indexes():
     await gmaps_results.create_index("job_id")
     await gmaps_domain_results.create_index("job_id")
     await gmaps_reviews.create_index("job_id")
+    await gnews_results.create_index("job_id")
+    await gimages_results.create_index("job_id")
+    await gvideos_results.create_index("job_id")
+    await gmaps_contrib_reviews.create_index("job_id")
+    await gmaps_photos.create_index("job_id")
+    await gmaps_traffic.create_index("job_id")
+    await gmaps_directory.create_index("job_id")

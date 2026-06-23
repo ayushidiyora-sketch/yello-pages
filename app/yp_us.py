@@ -43,9 +43,10 @@ _BAD: set[str] = set()
 _LOCK = threading.Lock()  # guards _GOOD / _BAD (page fetches run concurrently)
 
 
-def _impersonated_get(url: str, params: dict, proxy: str | None, timeout: int | None = None):
+def _impersonated_get(url: str, params: dict, proxy: str | None, timeout: int | None = None,
+                      headers: dict | None = None):
     proxies = {"http": proxy, "https": proxy} if proxy else None
-    return cffi.get(url, params=params, impersonate="chrome", proxies=proxies,
+    return cffi.get(url, params=params, impersonate="chrome", proxies=proxies, headers=headers,
                     timeout=timeout or settings.REQUEST_TIMEOUT, verify=False)
 
 
@@ -248,13 +249,14 @@ def fetch_detail_sync(url: str) -> str | None:
     return None
 
 
-def pooled_get(url: str, params: dict | None = None, timeout: int | None = None):
+def pooled_get(url: str, params: dict | None = None, timeout: int | None = None,
+               headers: dict | None = None):
     """Fetch ANY url through a proxy — the paid PROXY_URL if set, else a warm free-pool proxy.
     Used to keep ALL traffic (enrichment, AU/CA, SEC, DoH-DNS) off the real IP. Best-effort:
     returns the response object, or None if no proxy delivered one."""
     if settings.PROXY_URL.strip():
         try:
-            return _impersonated_get(url, params or {}, settings.PROXY_URL.strip(), timeout)
+            return _impersonated_get(url, params or {}, settings.PROXY_URL.strip(), timeout, headers)
         except Exception:
             return None
     with _LOCK:
@@ -265,7 +267,7 @@ def pooled_get(url: str, params: dict | None = None, timeout: int | None = None)
             warm = list(_GOOD)
     for px in warm[:6]:
         try:
-            r = _impersonated_get(url, params or {}, px, timeout or PROBE_TIMEOUT)
+            r = _impersonated_get(url, params or {}, px, timeout or PROBE_TIMEOUT, headers)
             if r.status_code < 500:
                 _mark_good(px)
                 return r

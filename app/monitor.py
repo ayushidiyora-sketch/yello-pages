@@ -1,21 +1,26 @@
-"""Trustpilot Reviews Monitoring engine — recurring proxy-only review scrapes + email reports.
+"""Reviews Monitoring engine — recurring review scrapes + email reports (Trustpilot & Google Maps).
 
 A monitor doc lives in the `monitors` collection (config + last-run state). A background loop
-(`monitor_loop`, launched on startup) re-runs each monitor at its frequency, scrapes reviews through
-the proxy-only path (`trustpilot_reviews.search` — real IP never used), flags reviews with
-`rating <= threshold` as negative, and emails an HTML report. Survives restarts (state in Mongo).
+(`monitor_loop`, launched on startup) re-runs each monitor at its frequency, scrapes reviews via the
+scraper for its `kind` (Trustpilot proxy-only, or Google Maps official Places API), flags reviews
+with `rating <= threshold` as negative, and emails an HTML report. Survives restarts (state in Mongo).
 """
 import asyncio
 import uuid
 from datetime import datetime, timedelta
 from html import escape
 
-from . import trustpilot_reviews
 from .emailer import send_email
 
 FREQ_DAYS = {"daily": 1, "weekly": 7, "3weeks": 21, "monthly": 30, "3months": 90}
 FREQ_LABEL = {"daily": "once a day", "weekly": "once a week", "3weeks": "once every 3 weeks",
               "monthly": "once a month", "3months": "once every 3 months"}
+
+# per-kind wiring: human label + which field carries the business/place name in a scraped row.
+_KIND = {
+    "trustpilot": {"label": "Trustpilot", "name_field": "business"},
+    "gmaps": {"label": "Google Maps", "name_field": "place_name"},
+}
 
 
 def _next_run(freq: str, frm: datetime) -> datetime:
@@ -29,7 +34,7 @@ def _is_negative(r: dict, threshold: int) -> bool:
         return False
 
 
-def _report_html(business, freq, threshold, total, negatives) -> str:
+def _report_html(label, business, freq, threshold, total, negatives) -> str:
     rows = "".join(
         f"<tr><td style='padding:4px 8px;border:1px solid #eee'>{escape(str(n.get('reviewer') or 'Anonymous'))}</td>"
         f"<td style='padding:4px 8px;border:1px solid #eee'>{escape(str(n.get('rating') or ''))}★</td>"
@@ -38,7 +43,7 @@ def _report_html(business, freq, threshold, total, negatives) -> str:
         for n in negatives[:50]
     ) or "<tr><td colspan='4' style='padding:8px'>No negative reviews this cycle. 🎉</td></tr>"
     return f"""<div style="font-family:Arial,sans-serif;color:#222">
-      <h2>Trustpilot monitoring report</h2>
+      <h2>{escape(label)} monitoring report</h2>
       <p><b>Business:</b> {escape(str(business or '—'))}<br>
          <b>Frequency:</b> {escape(FREQ_LABEL.get(freq, freq))}<br>
          <b>Reviews scanned:</b> {total}<br>
@@ -50,45 +55,57 @@ def _report_html(business, freq, threshold, total, negatives) -> str:
         <th style="padding:4px 8px;border:1px solid #eee">Review</th></tr></thead>
         <tbody>{rows}</tbody>
       </table>
-      <p style="color:#888;font-size:12px">Sent by Live Scraper · Trustpilot Reviews Monitoring</p>
+      <p style="color:#888;font-size:12px">Sent by Live Scraper · {escape(label)} Reviews Monitoring</p>
     </div>"""
 
 
-async def _scrape(queries, limit, language) -> list[dict]:
+async def _scrape(kind, queries, limit, language, sort) -> list[dict]:
     rows = []
-    for q in queries:
-        rows += await trustpilot_reviews.search(q, limit, language)
+    if kind == "gmaps":
+        from . import gmaps_reviews
+        for q in queries:
+            rows += await gmaps_reviews.search(q, sort, limit, language)
+    else:
+        from . import trustpilot_reviews
+        for q in queries:
+            rows += await trustpilot_reviews.search(q, limit, language)
     return rows
 
 
 async def run_monitor(mon: dict, job_id: str | None = None) -> dict:
-    """One monitoring cycle: scrape (proxy-only) → store → email → update the monitor doc."""
-    from .db import jobs, trustpilot_reviews as tr_coll, monitors
+    """One monitoring cycle: scrape → store → email → update the monitor doc."""
+    from .db import jobs, monitors
+    from .db import trustpilot_reviews as tr_coll, gmaps_reviews as gm_coll
+    kind = mon.get("kind", "trustpilot")
+    info = _KIND.get(kind, _KIND["trustpilot"])
+    coll = gm_coll if kind == "gmaps" else tr_coll
     mid = mon["monitor_id"]
     queries = mon["queries"]
-    limit = mon.get("limit") or 200
-    language = mon.get("language", "all")
+    limit = mon.get("limit") or (100 if kind == "gmaps" else 200)
+    language = mon.get("language", "en" if kind == "gmaps" else "all")
+    sort = mon.get("sort", "newest")
     threshold = mon.get("threshold", 3)
     email = mon.get("email")
     freq = mon.get("frequency", "weekly")
     job_id = job_id or uuid.uuid4().hex
     now = datetime.utcnow()
     await jobs.update_one({"job_id": job_id}, {"$set": {
-        "job_id": job_id, "kind": "trustpilot_monitoring", "monitor_id": mid, "queries": queries,
+        "job_id": job_id, "kind": f"{kind}_monitoring", "monitor_id": mid, "queries": queries,
         "status": "running", "total_scraped": 0, "started_at": now, "finished_at": None}}, upsert=True)
     try:
-        rows = await _scrape(queries, limit, language)
+        rows = await _scrape(kind, queries, limit, language, sort)
         for r in rows:
             r["job_id"] = job_id
         if rows:
-            await tr_coll.insert_many(rows)
+            await coll.insert_many(rows)
         negatives = [r for r in rows if _is_negative(r, threshold)]
-        business = rows[0].get("business") if rows else None
+        business = rows[0].get(info["name_field"]) if rows else None
         emailed = "skipped (no reviews scraped)"
         if rows:
-            subject = f"Trustpilot monitoring: {business or queries[0]} — {len(negatives)} negative review(s)"
+            subject = f"{info['label']} monitoring: {business or queries[0]} — {len(negatives)} negative review(s)"
             ok, detail = await send_email(email, subject,
-                                          _report_html(business, freq, threshold, len(rows), negatives))
+                                          _report_html(info["label"], business, freq, threshold,
+                                                       len(rows), negatives))
             emailed = f"sent to {email}" if ok else f"not sent — {detail}"
         await jobs.update_one({"job_id": job_id}, {"$set": {
             "status": "done", "total_scraped": len(rows), "finished_at": datetime.utcnow()}})
@@ -106,13 +123,15 @@ async def run_monitor(mon: dict, job_id: str | None = None) -> dict:
         return {"error": str(e)}
 
 
-async def start_monitor(queries, frequency, email, threshold, language="all", limit=200) -> dict:
+async def start_monitor(queries, frequency, email, threshold, language="all", limit=200,
+                        kind="trustpilot", sort="newest") -> dict:
     """Create a monitor and kick off its immediate first run (returns the run's job_id to poll)."""
     from .db import monitors
     mid = uuid.uuid4().hex
     now = datetime.utcnow()
-    doc = {"monitor_id": mid, "queries": queries, "frequency": frequency, "email": email,
-           "threshold": threshold, "language": language, "limit": limit, "status": "active",
+    doc = {"monitor_id": mid, "kind": kind, "queries": queries, "frequency": frequency,
+           "email": email, "threshold": threshold, "language": language, "sort": sort,
+           "limit": limit, "status": "active",
            "created_at": now, "next_run": _next_run(frequency, now), "last_run": None,
            "last_job_id": None, "last_total": None, "last_negatives": None, "last_emailed": None,
            "last_error": None}

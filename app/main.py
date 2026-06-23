@@ -11,7 +11,9 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  youtube_channels, airbnb_reviews, expedia_results, trustpilot_results,
                  hotels_results, hotels_reviews, trustpilot_search_results, homedepot_results,
                  trustpilot_reviews, monitors, expedia_reviews, airbnb_search_results,
-                 gmaps_results, gmaps_domain_results, gmaps_reviews, ensure_indexes)
+                 gmaps_results, gmaps_domain_results, gmaps_reviews, gnews_results,
+                 gmaps_contrib_reviews, gmaps_photos, gimages_results, gmaps_traffic,
+                 gmaps_directory, gvideos_results, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
@@ -19,7 +21,9 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      ExpediaRequest, TrustpilotRequest, HotelsRequest, HotelsReviewsRequest,
                      TrustpilotSearchRequest, HomeDepotRequest, TrustpilotReviewsRequest,
                      TrustpilotMonitorRequest, ExpediaReviewsRequest, AirbnbSearchRequest,
-                     GoogleMapsRequest, GoogleMapsDomainsRequest, GMapsReviewsRequest)
+                     GoogleMapsRequest, GoogleMapsDomainsRequest, GMapsReviewsRequest,
+                     GMapsMonitorRequest, GNewsRequest, GMapsContribRequest, GMapsPhotosRequest,
+                     GImagesRequest, GMapsTrafficRequest, GMapsDirectoryRequest, GVideosRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -27,7 +31,9 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                expedia, trustpilot, hotels, hotels_reviews as hotels_reviews_mod,
                trustpilot_search, homedepot, trustpilot_reviews as trustpilot_reviews_mod,
                monitor, storage, expedia_reviews as expedia_reviews_mod, airbnb, gmaps,
-               gmaps_reviews as gmaps_reviews_mod)
+               gmaps_reviews as gmaps_reviews_mod, gnews, gmaps_contrib,
+               gmaps_photos as gmaps_photos_mod, gimages, gmaps_traffic as gmaps_traffic_mod,
+               gmaps_directory as gmaps_directory_mod, gvideos)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -65,6 +71,41 @@ async def _yp_rows(job_id):
 async def _gsearch_rows(job_id):
     rows = [d async for d in gresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, None
+
+
+async def _gnews_rows(job_id):
+    rows = [d async for d in gnews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gnews.GNEWS_COLUMNS
+
+
+async def _gimages_rows(job_id):
+    rows = [d async for d in gimages_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gimages.GIMG_COLUMNS
+
+
+async def _gvideos_rows(job_id):
+    rows = [d async for d in gvideos_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gvideos.GVID_COLUMNS
+
+
+async def _gmaps_traffic_rows(job_id):
+    rows = [d async for d in gmaps_traffic.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_traffic_mod.GMT_COLUMNS
+
+
+async def _gmaps_directory_rows(job_id):
+    rows = [d async for d in gmaps_directory.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_directory_mod.GMD_COLUMNS
+
+
+async def _gmaps_contrib_rows(job_id):
+    rows = [d async for d in gmaps_contrib_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_contrib.GMCR_COLUMNS
+
+
+async def _gmaps_photos_rows(job_id):
+    rows = [d async for d in gmaps_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_photos_mod.GMP_COLUMNS
 
 
 async def _bbb_rows(job_id):
@@ -842,6 +883,29 @@ async def trustpilot_monitoring_get(monitor_id: str):
     return doc
 
 
+@app.post("/api/gmaps-monitoring")
+async def gmaps_monitoring_start(req: GMapsMonitorRequest):
+    """Google Maps Reviews Monitoring — create a recurring monitor + run the first scan now.
+    Reuses the Google Maps Reviews scraper (official Places API, max 5 reviews/place)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one place_id, Maps URL, or 'category, city' query is required")
+    if req.frequency not in monitor.FREQ_DAYS:
+        raise HTTPException(400, f"frequency must be one of {list(monitor.FREQ_DAYS)}")
+    res = await monitor.start_monitor(queries, req.frequency, req.email, req.threshold,
+                                      req.language, req.limit, kind="gmaps", sort=req.sort)
+    res["frequency"] = monitor.FREQ_LABEL[req.frequency]
+    return res
+
+
+@app.get("/api/gmaps-monitoring/{monitor_id}")
+async def gmaps_monitoring_get(monitor_id: str):
+    doc = await monitors.find_one({"monitor_id": monitor_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "monitor not found")
+    return doc
+
+
 @app.post("/api/hotels")
 async def hotels_start(req: HotelsRequest):
     """Hotels Search Scraper — hotels from a hotels.com Hotel-Search URL (proxy-only)."""
@@ -935,6 +999,183 @@ async def gmaps_reviews_results_get(job_id: str, limit: int = 5000):
 async def gmaps_categories():
     """Google Maps category list (from app/categories.xlsx) for the Categories/brands dropdown."""
     return gmaps_reviews_mod.categories()
+
+
+@app.post("/api/gnews")
+async def gnews_start(req: GNewsRequest):
+    """Google Search News Scraper — news articles for a query via Google News RSS (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    lim = None if (req.limit or 0) == 0 else req.limit
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gnews", "queries": queries, "limit": lim,
+        "country": req.country, "date_range": req.date_range, "language": req.language,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gnews.run_job(job_id, queries, lim, req.date_range or "", req.country, req.language),
+        "google_news", job_id, _gnews_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gnews-results/{job_id}")
+async def gnews_results_get(job_id: str, limit: int = 2000):
+    rows = [d async for d in gnews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gimages")
+async def gimages_start(req: GImagesRequest):
+    """Google Search Images Scraper — image results via DuckDuckGo's image JSON API (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gimages", "queries": queries, "limit": lim,
+        "country": req.country, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gimages.run_job(job_id, queries, lim, req.country, req.language),
+        "google_images", job_id, _gimages_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gimages-results/{job_id}")
+async def gimages_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gimages_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gvideos")
+async def gvideos_start(req: GVideosRequest):
+    """Google Search Videos Scraper — video results via Bing video search (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gvideos", "queries": queries, "limit": lim,
+        "country": req.country, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gvideos.run_job(job_id, queries, lim, req.country, req.language),
+        "google_videos", job_id, _gvideos_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gvideos-results/{job_id}")
+async def gvideos_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gvideos_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-traffic")
+async def gmaps_traffic_start(req: GMapsTrafficRequest):
+    """Google Maps Traffic Scraper — directions (travel time + distance) between two points (proxy-only)."""
+    pairs = [{"start": (p.start or "").strip(), "stop": (p.stop or "").strip()}
+             for p in req.pairs if (p.start or "").strip() and (p.stop or "").strip()]
+    if not pairs:
+        raise HTTPException(400, "at least one Start + Stop location pair is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_traffic", "pairs": pairs, "travel_mode": req.travel_mode,
+        "time_from": req.time_from, "time_to": req.time_to, "interval_min": req.interval_min,
+        "status": "running", "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_traffic_mod.run_job(job_id, pairs, req.time_from, req.time_to, req.interval_min,
+                                  req.travel_mode),
+        "google_maps_traffic", job_id, _gmaps_traffic_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-traffic-results/{job_id}")
+async def gmaps_traffic_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_traffic.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-directory")
+async def gmaps_directory_start(req: GMapsDirectoryRequest):
+    """Google Maps Directory Places — business listings from a search/place (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one 'category, city' query, Maps URL, or place_id is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_directory", "queries": queries, "limit": lim,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_directory_mod.run_job(job_id, queries, lim, req.language),
+        "google_maps_directory", job_id, _gmaps_directory_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-directory-results/{job_id}")
+async def gmaps_directory_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_directory.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-contrib")
+async def gmaps_contrib_start(req: GMapsContribRequest):
+    """Google Maps Contributor Reviews Scraper — all reviews a contributor left (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one contributor ID or /contrib/<id> URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_contrib", "queries": queries, "limit": lim,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_contrib.run_job(job_id, queries, lim, req.language),
+        "google_maps_contrib", job_id, _gmaps_contrib_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-contrib-results/{job_id}")
+async def gmaps_contrib_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_contrib_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-photos")
+async def gmaps_photos_start(req: GMapsPhotosRequest):
+    """Google Maps Photos Scraper — all photos from a place (proxy-only, free DOM scrape)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one place_id, Maps URL, or 'category, city' query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_photos", "queries": queries, "limit": lim,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_photos_mod.run_job(job_id, queries, lim, req.language),
+        "google_maps_photos", job_id, _gmaps_photos_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-photos-results/{job_id}")
+async def gmaps_photos_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
 
 
 @app.post("/api/homedepot")
