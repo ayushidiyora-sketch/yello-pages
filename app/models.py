@@ -83,6 +83,28 @@ class GVideosRequest(BaseModel):
     language: str = Field("en", examples=["en"])
 
 
+class GEventsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["beer festivals minnesota"]])
+    limit: Optional[int] = Field(1, ge=1, le=20, examples=[1])   # pages/query (~10 events per page)
+    country: str = Field("us", examples=["us"])
+    language: str = Field("en", examples=["en"])
+
+
+class GTrendsRequest(BaseModel):
+    # one line each: a query; use "term1 | term2" to compare terms.
+    queries: list[str] = Field(..., min_length=1, examples=[["tesla | toyota"]])
+    geo: str = Field("", examples=["US"])               # country code; "" = Worldwide
+    timeframe: str = Field("Past 12 months", examples=["Past 12 months"])
+    resolution: str = Field("COUNTRY", examples=["REGION"])   # COUNTRY|REGION|CITY|DMA
+
+
+class GCareersRequest(BaseModel):
+    # one line each: a careers.google.com/jobs/results/ search URL (or a bare keyword).
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://careers.google.com/jobs/results/?location=Los Angeles, CA, USA"]])
+    limit: Optional[int] = Field(None, ge=0, le=1000, examples=[10])  # jobs/query; None/0 = all
+
+
 class GMapsDirectoryRequest(BaseModel):
     # query: "category, city" / a Maps search URL / a place_id (ChIJ..) / a feature id (0x..:0x..)
     queries: list[str] = Field(..., min_length=1,

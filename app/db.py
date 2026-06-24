@@ -39,6 +39,9 @@ gmaps_contrib_reviews = db["gmaps_contrib_reviews"]  # one doc per contributor's
 gmaps_photos = db["gmaps_photos"]  # one doc per place photo URL (Google Maps Photos Scraper)
 gmaps_traffic = db["gmaps_traffic"]  # one doc per route sample (Google Maps Traffic Scraper)
 gmaps_directory = db["gmaps_directory"]  # one doc per place (Google Maps Directory Places)
+gevents_results = db["gevents_results"]  # one doc per event result (Google Search Events Scraper)
+gcareers_results = db["gcareers_results"]  # one doc per Google Careers job (Google Search Careers)
+gtrends_results = db["gtrends_results"]  # one doc per region/term interest value (Google Trends)
 
 
 async def ensure_indexes():
@@ -87,3 +90,6 @@ async def ensure_indexes():
     await gmaps_photos.create_index("job_id")
     await gmaps_traffic.create_index("job_id")
     await gmaps_directory.create_index("job_id")
+    await gevents_results.create_index("job_id")
+    await gcareers_results.create_index("job_id")
+    await gtrends_results.create_index("job_id")

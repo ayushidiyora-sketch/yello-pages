@@ -948,7 +948,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gevents"
  },
  {
   "no": "93",
@@ -968,7 +969,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gcareers"
  },
  {
   "no": "95",
@@ -988,7 +990,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gtrends"
  },
  {
   "no": "97",

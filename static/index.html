@@ -924,6 +924,151 @@
   <div id="gvPager"></div>
   </div><!-- /gvideosView -->
 
+  <div id="geventsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries to search <span class="req">*</span></label>
+        <textarea id="geInput" placeholder="beer festivals minnesota&#10;concerts in new york&#10;food festivals chicago"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="geFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="geFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('geFile').click()">⬆ Upload file</button>
+          <span class="hint" id="geFileName"></span>
+        </div>
+        <span class="hint">Google events search through your paid residential <code>PROXY_URL</code> (Google blocks free/datacenter IPs); on the free pool it is often challenged and returns 0. The real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Pages limit per one query</label>
+        <input id="geLimit" type="number" min="1" max="20" value="1">
+        <span class="hint">~10 events per page.</span>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <select id="geCountry"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="geStartBtn" onclick="geStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="geStopBtn" onclick="geStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="geStatus"></div>
+  <div class="bar" id="geBar"><i></i></div>
+
+  <div class="resbar" id="geResbar" style="display:none">
+    <div class="count" id="geCount"></div>
+    <div class="resbar-controls">
+      <a id="geDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="geDownloadXlsx" style="display:none" onclick="geDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="geResults"></div>
+  <div id="gePager"></div>
+  </div><!-- /geventsView -->
+
+  <div id="gcareersView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Links to Google Careers searches <span class="req">*</span></label>
+        <textarea id="gcInput" placeholder="https://careers.google.com/jobs/results/?distance=50&amp;has_remote=true&amp;location=Los%20Angeles,%20CA,%20USA"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gcFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gcFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gcFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gcFileName"></span>
+        </div>
+        <span class="hint">One careers.google.com/jobs/results/ search URL per line (a bare keyword also works). Fetched through the proxy pool — paid <code>PROXY_URL</code> if set, else the free pool; the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gcLimit" type="number" min="1" placeholder="all">
+        <span class="hint">Number of jobs to return. Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gcStartBtn" onclick="gcStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gcStopBtn" onclick="gcStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gcStatus"></div>
+  <div class="bar" id="gcBar"><i></i></div>
+
+  <div class="resbar" id="gcResbar" style="display:none">
+    <div class="count" id="gcCount"></div>
+    <div class="resbar-controls">
+      <a id="gcDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gcDownloadXlsx" style="display:none" onclick="gcDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gcResults"></div>
+  <div id="gcPager"></div>
+  </div><!-- /gcareersView -->
+
+  <div id="gtrendsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="gtInput" placeholder="tesla&#10;tesla | toyota"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gtFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gtFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gtFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gtFileName"></span>
+        </div>
+        <span class="hint">One query per line; use <code>term1 | term2</code> to compare terms. Interest-by-region from Google Trends' free API, through the proxy pool (paid <code>PROXY_URL</code> if set, else free pool); the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Geo</label>
+        <select id="gtGeo"></select>
+      </div>
+      <div class="field">
+        <label>Timeframe</label>
+        <select id="gtTimeframe">
+          <option>Past 4 hours</option>
+          <option selected>Past day</option>
+          <option>Past 7 days</option>
+          <option>Past 30 days</option>
+          <option>Past 90 days</option>
+          <option>Past 12 months</option>
+          <option>Past 5 years</option>
+          <option>2004 - present</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Resolution</label>
+        <select id="gtResolution">
+          <option selected>CITY</option>
+          <option>COUNTRY</option>
+          <option>DMA</option>
+          <option>REGION</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gtStartBtn" onclick="gtStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gtStopBtn" onclick="gtStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gtStatus"></div>
+  <div class="bar" id="gtBar"><i></i></div>
+
+  <div class="resbar" id="gtResbar" style="display:none">
+    <div class="count" id="gtCount"></div>
+    <div class="resbar-controls">
+      <a id="gtDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gtDownloadXlsx" style="display:none" onclick="gtDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gtResults"></div>
+  <div id="gtPager"></div>
+  </div><!-- /gtrendsView -->
+
   <div id="gmapsTrafficView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -2802,7 +2947,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -2935,6 +3080,11 @@ function selectService(s, keep, fromHistory){
   document.getElementById('gmapsDirectoryView').style.display = vt==='gmaps_directory' ? '' : 'none';
   document.getElementById('gvideosView').style.display = vt==='gvideos' ? '' : 'none';
   if(vt==='gvideos') gvInit();
+  document.getElementById('geventsView').style.display = vt==='gevents' ? '' : 'none';
+  if(vt==='gevents') geInit();
+  document.getElementById('gcareersView').style.display = vt==='gcareers' ? '' : 'none';
+  document.getElementById('gtrendsView').style.display = vt==='gtrends' ? '' : 'none';
+  if(vt==='gtrends') gtInit();
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -2979,6 +3129,9 @@ function viewType(s){
   if(s.ui === 'gmaps_traffic') return 'gmaps_traffic';
   if(s.ui === 'gmaps_directory') return 'gmaps_directory';
   if(s.ui === 'gvideos') return 'gvideos';
+  if(s.ui === 'gevents') return 'gevents';
+  if(s.ui === 'gcareers') return 'gcareers';
+  if(s.ui === 'gtrends') return 'gtrends';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -4277,6 +4430,484 @@ function gvDownloadExcel(){
   XLSX.writeFile(wb, gvFileName()+'.xlsx');
 }
 /* ---------- end Google Search Videos ---------- */
+
+/* ---------- Google Search Events Scraper ---------- */
+const GEVENTS_COLUMNS = ["query","title","date","venue","address","link","description","thumbnail"];
+const GE_PAGE_SIZE = 30;
+let geTimer=null, geJob=null, _geRows=[], _geDlUrl=null, _gePage=0;
+
+function geInit(){
+  const c=document.getElementById('geCountry');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+}
+
+async function geFilePicked(){
+  const f=document.getElementById('geFile').files[0];
+  const nameEl=document.getElementById('geFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('geInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function geSetRunning(on){
+  document.getElementById('geStartBtn').disabled=on;
+  document.getElementById('geStopBtn').disabled=!on;
+  ['geInput','geLimit','geCountry'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function geStart(){
+  const typed=document.getElementById('geInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('geLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:1), country:document.getElementById('geCountry').value, language:'en' };
+  let r;
+  try{ r=await fetch('/api/gevents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  geJob=(await r.json()).job_id;
+  _geRows=[]; _gePage=0;
+  document.getElementById('geResbar').style.display='none';
+  document.getElementById('geResults').innerHTML='';
+  document.getElementById('gePager').innerHTML='';
+  document.getElementById('geCount').textContent='';
+  document.getElementById('geBar').style.display='block';
+  document.querySelector('#geBar>i').style.width='30%';
+  geSetRunning(true);
+  if(geTimer) clearInterval(geTimer);
+  geTimer=setInterval(()=>gePoll(geJob),1500);
+  gePoll(geJob);
+}
+
+async function geStop(){ if(geJob){ document.getElementById('geStopBtn').disabled=true; await fetch('/api/stop/'+geJob,{method:'POST'}); } }
+
+async function gePoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('geStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching events… '+got+' found';
+  } else {
+    clearInterval(geTimer); geSetRunning(false);
+    document.getElementById('geBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' events';
+      geShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function geShowResults(job_id){
+  _geRows=await (await fetch('/api/gevents-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('geResbar');
+  if(!_geRows.length){
+    document.getElementById('geResults').innerHTML='';
+    document.getElementById('geCount').innerHTML='<span class="empty">No events — Google blocks free/datacenter IPs, so set a paid residential PROXY_URL and try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('geDownload').style.display='none';
+    document.getElementById('geDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gePage=0;
+  geRender();
+  document.getElementById('geCount').textContent='Showing '+_geRows.length+' events ('+GE_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  geUpdateDownload();
+}
+
+function geRender(){
+  const start=_gePage*GE_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _geRows.slice(start, start+GE_PAGE_SIZE)){
+    const thumb=esc(r.thumbnail||'');
+    const img=thumb?`<img src="${thumb}" loading="lazy" style="width:96px;height:96px;object-fit:cover;border-radius:8px;flex:0 0 auto" onerror="this.style.display='none'">`:'';
+    const place=[r.venue,r.address].filter(Boolean).map(esc).join(' · ');
+    const titleHtml=r.link
+      ? `<a href="${esc(r.link)}" target="_blank" rel="noopener" style="color:#1a0dab;text-decoration:none">${esc(r.title||'')}</a>`
+      : esc(r.title||'');
+    h+=`<div style="display:flex;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      ${img}
+      <div style="min-width:0">
+        <div style="font-size:15px;font-weight:600;line-height:1.3">${titleHtml}</div>
+        ${r.date?`<div style="font-size:13px;color:#c47f00;margin-top:3px">📅 ${esc(r.date)}</div>`:''}
+        ${place?`<div style="font-size:13px;color:#70757a;margin-top:2px">📍 ${place}</div>`:''}
+        ${r.description?`<div style="font-size:13px;color:#3c4043;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.description)}</div>`:''}
+      </div>
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('geResults').innerHTML=h;
+  geRenderPager(_geRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function geRenderPager(total){
+  const pg=document.getElementById('gePager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GE_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gePage=page; geRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gePage-1,{disabled:_gePage===0}));
+  let s=Math.max(0,_gePage-2), e=Math.min(pages-1,_gePage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gePage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gePage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gePage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gePage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gePage+1,{disabled:_gePage>=pages-1}));
+}
+
+function geFileName(){
+  const q=(document.getElementById('geInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'google-events_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+function geUpdateDownload(){
+  const dl=document.getElementById('geDownload'), xl=document.getElementById('geDownloadXlsx');
+  if(!_geRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_geDlUrl) URL.revokeObjectURL(_geDlUrl);
+  const rows=_geRows.map(r=>{ const o={}; for(const c of GEVENTS_COLUMNS) o[c]=r[c]??''; return o; });
+  _geDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_geDlUrl; dl.setAttribute('download', geFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function geDownloadExcel(){
+  if(!_geRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_geRows.map(r=>{ const o={}; for(const c of GEVENTS_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GEVENTS_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Events');
+  XLSX.writeFile(wb, geFileName()+'.xlsx');
+}
+/* ---------- end Google Search Events ---------- */
+
+/* ---------- Google Search Careers Scraper ---------- */
+const GCAREERS_COLUMNS = ["query","title","company","location","apply_url","posted","qualifications","responsibilities","description","job_id"];
+const GC_PAGE_SIZE = 25;
+let gcTimer=null, gcJob=null, _gcRows=[], _gcDlUrl=null, _gcPage=0;
+
+async function gcFilePicked(){
+  const f=document.getElementById('gcFile').files[0];
+  const nameEl=document.getElementById('gcFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('gcInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste links or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gcSetRunning(on){
+  document.getElementById('gcStartBtn').disabled=on;
+  document.getElementById('gcStopBtn').disabled=!on;
+  ['gcInput','gcLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gcStart(){
+  const typed=document.getElementById('gcInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one careers.google.com search link (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('gcLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:1) };
+  let r;
+  try{ r=await fetch('/api/gcareers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gcJob=(await r.json()).job_id;
+  _gcRows=[]; _gcPage=0;
+  document.getElementById('gcResbar').style.display='none';
+  document.getElementById('gcResults').innerHTML='';
+  document.getElementById('gcPager').innerHTML='';
+  document.getElementById('gcCount').textContent='';
+  document.getElementById('gcBar').style.display='block';
+  document.querySelector('#gcBar>i').style.width='30%';
+  gcSetRunning(true);
+  if(gcTimer) clearInterval(gcTimer);
+  gcTimer=setInterval(()=>gcPoll(gcJob),1500);
+  gcPoll(gcJob);
+}
+
+async function gcStop(){ if(gcJob){ document.getElementById('gcStopBtn').disabled=true; await fetch('/api/stop/'+gcJob,{method:'POST'}); } }
+
+async function gcPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gcStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching jobs… '+got+' found';
+  } else {
+    clearInterval(gcTimer); gcSetRunning(false);
+    document.getElementById('gcBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' jobs';
+      gcShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gcShowResults(job_id){
+  _gcRows=await (await fetch('/api/gcareers-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('gcResbar');
+  if(!_gcRows.length){
+    document.getElementById('gcResults').innerHTML='';
+    document.getElementById('gcCount').innerHTML='<span class="empty">No jobs — check the careers.google.com link, or the proxies may have been rate-limited. Try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gcDownload').style.display='none';
+    document.getElementById('gcDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gcPage=0;
+  gcRender();
+  document.getElementById('gcCount').textContent='Showing '+_gcRows.length+' jobs ('+GC_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gcUpdateDownload();
+}
+
+function gcRender(){
+  const start=_gcPage*GC_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _gcRows.slice(start, start+GC_PAGE_SIZE)){
+    const titleHtml=r.apply_url
+      ? `<a href="${esc(r.apply_url)}" target="_blank" rel="noopener" style="color:#1a0dab;text-decoration:none">${esc(r.title||'')}</a>`
+      : esc(r.title||'');
+    h+=`<div style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      <div style="font-size:15px;font-weight:600;line-height:1.3">${titleHtml}</div>
+      <div style="font-size:13px;color:#70757a;margin-top:3px">${esc(r.company||'Google')}${r.location?' · 📍 '+esc(r.location):''}${r.posted?' · 🗓 '+esc(r.posted):''}</div>
+      ${r.qualifications?`<div style="font-size:13px;color:#3c4043;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.qualifications)}</div>`:''}
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('gcResults').innerHTML=h;
+  gcRenderPager(_gcRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gcRenderPager(total){
+  const pg=document.getElementById('gcPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GC_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gcPage=page; gcRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gcPage-1,{disabled:_gcPage===0}));
+  let s=Math.max(0,_gcPage-2), e=Math.min(pages-1,_gcPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gcPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gcPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gcPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gcPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gcPage+1,{disabled:_gcPage>=pages-1}));
+}
+
+function gcFileName(){
+  const q=(document.getElementById('gcInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'google-careers_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function gcUpdateDownload(){
+  const dl=document.getElementById('gcDownload'), xl=document.getElementById('gcDownloadXlsx');
+  if(!_gcRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gcDlUrl) URL.revokeObjectURL(_gcDlUrl);
+  const rows=_gcRows.map(r=>{ const o={}; for(const c of GCAREERS_COLUMNS) o[c]=r[c]??''; return o; });
+  _gcDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gcDlUrl; dl.setAttribute('download', gcFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gcDownloadExcel(){
+  if(!_gcRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gcRows.map(r=>{ const o={}; for(const c of GCAREERS_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GCAREERS_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Careers');
+  XLSX.writeFile(wb, gcFileName()+'.xlsx');
+}
+/* ---------- end Google Search Careers ---------- */
+
+/* ---------- Google Trends Scraper ---------- */
+const GTRENDS_COLUMNS = ["query","term","location","geo_code","value","geo","timeframe","resolution"];
+const GT_PAGE_SIZE = 50;
+let gtTimer=null, gtJob=null, _gtRows=[], _gtDlUrl=null, _gtPage=0;
+
+function gtInit(){
+  const g=document.getElementById('gtGeo');
+  if(g && !g.options.length && typeof GN_COUNTRIES!=='undefined'){
+    g.innerHTML='<option value="" selected>Worldwide</option>'+GN_COUNTRIES.map(([v,n])=>`<option value="${v.toUpperCase()}">${n} (${v.toUpperCase()})</option>`).join('');
+  }
+}
+
+async function gtFilePicked(){
+  const f=document.getElementById('gtFile').files[0];
+  const nameEl=document.getElementById('gtFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('gtInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gtSetRunning(on){
+  document.getElementById('gtStartBtn').disabled=on;
+  document.getElementById('gtStopBtn').disabled=!on;
+  ['gtInput','gtGeo','gtTimeframe','gtResolution'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gtStart(){
+  const typed=document.getElementById('gtInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const body={ queries,
+    geo:document.getElementById('gtGeo').value,
+    timeframe:document.getElementById('gtTimeframe').value,
+    resolution:document.getElementById('gtResolution').value };
+  let r;
+  try{ r=await fetch('/api/gtrends',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gtJob=(await r.json()).job_id;
+  _gtRows=[]; _gtPage=0;
+  document.getElementById('gtResbar').style.display='none';
+  document.getElementById('gtResults').innerHTML='';
+  document.getElementById('gtPager').innerHTML='';
+  document.getElementById('gtCount').textContent='';
+  document.getElementById('gtBar').style.display='block';
+  document.querySelector('#gtBar>i').style.width='30%';
+  gtSetRunning(true);
+  if(gtTimer) clearInterval(gtTimer);
+  gtTimer=setInterval(()=>gtPoll(gtJob),1500);
+  gtPoll(gtJob);
+}
+
+async function gtStop(){ if(gtJob){ document.getElementById('gtStopBtn').disabled=true; await fetch('/api/stop/'+gtJob,{method:'POST'}); } }
+
+async function gtPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gtStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching Google Trends… '+got+' rows';
+  } else {
+    clearInterval(gtTimer); gtSetRunning(false);
+    document.getElementById('gtBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      gtShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gtShowResults(job_id){
+  _gtRows=await (await fetch('/api/gtrends-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gtResbar');
+  if(!_gtRows.length){
+    document.getElementById('gtResults').innerHTML='';
+    document.getElementById('gtCount').innerHTML='<span class="empty">No data — Google Trends rate-limits free/datacenter IPs (429). Set a paid residential PROXY_URL and try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gtDownload').style.display='none';
+    document.getElementById('gtDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gtPage=0;
+  gtRender();
+  document.getElementById('gtCount').textContent='Showing '+_gtRows.length+' rows ('+GT_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gtUpdateDownload();
+}
+
+function gtRender(){
+  const start=_gtPage*GT_PAGE_SIZE;
+  const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line)';
+  const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line)';
+  let h='<table style="width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden">'
+    +`<thead><tr><th style="${th}">Location</th><th style="${th}">Term</th><th style="${th};width:240px">Interest (0–100)</th></tr></thead><tbody>`;
+  for(const r of _gtRows.slice(start, start+GT_PAGE_SIZE)){
+    const v=Number(r.value)||0;
+    h+=`<tr>
+      <td style="${td}">${esc(r.location||'')}</td>
+      <td style="${td}">${esc(r.term||'')}</td>
+      <td style="${td}"><div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;height:8px;background:#e6e9ef;border-radius:4px;overflow:hidden"><div style="width:${v}%;height:100%;background:var(--yp)"></div></div>
+        <span style="min-width:28px;text-align:right;font-variant-numeric:tabular-nums">${v}</span>
+      </div></td>
+    </tr>`;
+  }
+  h+='</tbody></table>';
+  document.getElementById('gtResults').innerHTML=h;
+  gtRenderPager(_gtRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gtRenderPager(total){
+  const pg=document.getElementById('gtPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GT_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gtPage=page; gtRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gtPage-1,{disabled:_gtPage===0}));
+  let s=Math.max(0,_gtPage-2), e=Math.min(pages-1,_gtPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gtPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gtPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gtPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gtPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gtPage+1,{disabled:_gtPage>=pages-1}));
+}
+
+function gtFileName(){
+  const q=(document.getElementById('gtInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'google-trends_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function gtUpdateDownload(){
+  const dl=document.getElementById('gtDownload'), xl=document.getElementById('gtDownloadXlsx');
+  if(!_gtRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gtDlUrl) URL.revokeObjectURL(_gtDlUrl);
+  const rows=_gtRows.map(r=>{ const o={}; for(const c of GTRENDS_COLUMNS) o[c]=r[c]??''; return o; });
+  _gtDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gtDlUrl; dl.setAttribute('download', gtFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gtDownloadExcel(){
+  if(!_gtRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gtRows.map(r=>{ const o={}; for(const c of GTRENDS_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GTRENDS_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Trends');
+  XLSX.writeFile(wb, gtFileName()+'.xlsx');
+}
+/* ---------- end Google Trends ---------- */
 
 /* ---------- Google Maps Traffic Scraper ---------- */
 const GMT_COLUMNS = ["start","stop","travel_mode","sample_time","duration","distance"];

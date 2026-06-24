@@ -13,7 +13,8 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  trustpilot_reviews, monitors, expedia_reviews, airbnb_search_results,
                  gmaps_results, gmaps_domain_results, gmaps_reviews, gnews_results,
                  gmaps_contrib_reviews, gmaps_photos, gimages_results, gmaps_traffic,
-                 gmaps_directory, gvideos_results, ensure_indexes)
+                 gmaps_directory, gvideos_results, gevents_results, gcareers_results,
+                 gtrends_results, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
@@ -23,7 +24,8 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      TrustpilotMonitorRequest, ExpediaReviewsRequest, AirbnbSearchRequest,
                      GoogleMapsRequest, GoogleMapsDomainsRequest, GMapsReviewsRequest,
                      GMapsMonitorRequest, GNewsRequest, GMapsContribRequest, GMapsPhotosRequest,
-                     GImagesRequest, GMapsTrafficRequest, GMapsDirectoryRequest, GVideosRequest)
+                     GImagesRequest, GMapsTrafficRequest, GMapsDirectoryRequest, GVideosRequest,
+                     GEventsRequest, GCareersRequest, GTrendsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -33,7 +35,7 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                monitor, storage, expedia_reviews as expedia_reviews_mod, airbnb, gmaps,
                gmaps_reviews as gmaps_reviews_mod, gnews, gmaps_contrib,
                gmaps_photos as gmaps_photos_mod, gimages, gmaps_traffic as gmaps_traffic_mod,
-               gmaps_directory as gmaps_directory_mod, gvideos)
+               gmaps_directory as gmaps_directory_mod, gvideos, gevents, gcareers, gtrends)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -86,6 +88,21 @@ async def _gimages_rows(job_id):
 async def _gvideos_rows(job_id):
     rows = [d async for d in gvideos_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, gvideos.GVID_COLUMNS
+
+
+async def _gevents_rows(job_id):
+    rows = [d async for d in gevents_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gevents.GEVENTS_COLUMNS
+
+
+async def _gcareers_rows(job_id):
+    rows = [d async for d in gcareers_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gcareers.GCAREERS_COLUMNS
+
+
+async def _gtrends_rows(job_id):
+    rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gtrends.GTRENDS_COLUMNS
 
 
 async def _gmaps_traffic_rows(job_id):
@@ -1074,6 +1091,81 @@ async def gvideos_start(req: GVideosRequest):
 @app.get("/api/gvideos-results/{job_id}")
 async def gvideos_results_get(job_id: str, limit: int = 3000):
     rows = [d async for d in gvideos_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gevents")
+async def gevents_start(req: GEventsRequest):
+    """Google Search Events Scraper — event listings via Google's events pack (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    pages = req.limit or 1
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gevents", "queries": queries, "limit": pages,
+        "country": req.country, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gevents.run_job(job_id, queries, pages, req.country, req.language),
+        "google_events", job_id, _gevents_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gevents-results/{job_id}")
+async def gevents_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gevents_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gcareers")
+async def gcareers_start(req: GCareersRequest):
+    """Google Search Careers Scraper — jobs from a careers.google.com search (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gcareers", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gcareers.run_job(job_id, queries, lim),
+        "google_careers", job_id, _gcareers_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gcareers-results/{job_id}")
+async def gcareers_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gcareers_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gtrends")
+async def gtrends_start(req: GTrendsRequest):
+    """Google Trends Scraper — interest-by-region via Google Trends' free internal API (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gtrends", "queries": queries, "geo": req.geo,
+        "timeframe": req.timeframe, "resolution": req.resolution,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gtrends.run_job(job_id, queries, req.geo, req.timeframe, req.resolution),
+        "google_trends", job_id, _gtrends_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gtrends-results/{job_id}")
+async def gtrends_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 
