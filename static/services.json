@@ -120,7 +120,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_profiles"
  },
  {
   "no": "13",
@@ -254,7 +255,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gflights"
  },
  {
   "no": "26",
@@ -264,7 +266,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_autocomplete"
  },
  {
   "no": "27",
@@ -274,7 +277,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gsearch_autocomplete"
  },
  {
   "no": "28",
@@ -314,7 +318,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_companies"
  },
  {
   "no": "32",
@@ -958,7 +963,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gsjobs"
  },
  {
   "no": "94",
@@ -974,11 +980,12 @@
   "no": "95",
   "name": "Google Search Shopping Scraper",
   "brand": "Google",
-  "description": "يرجع نتائج البحث",
+  "description": "Returns search results",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "gshop"
  },
  {
   "no": "96",
@@ -998,17 +1005,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gplay"
  },
  {
   "no": "98",
   "name": "Google Play Reviews Monitoring",
   "brand": "Google",
-  "description": "",
+  "description": "Automated data collection with regular email reports",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gplay_monitoring"
  },
  {
   "no": "99",
@@ -1018,7 +1027,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gshop_reviews"
  },
  {
   "no": "100",

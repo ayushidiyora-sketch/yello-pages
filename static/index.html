@@ -924,6 +924,444 @@
   <div id="gvPager"></div>
   </div><!-- /gvideosView -->
 
+  <div id="gsjobsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries to search <span class="req">*</span></label>
+        <textarea id="gsjInput" placeholder="Python developer California&#10;UI/UX designer New York"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gsjFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gsjFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gsjFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gsjFileName"></span>
+        </div>
+        <span class="hint">Job listings from Google Jobs through your paid residential <code>PROXY_URL</code> in <code>.env</code> (Google blocks free/datacenter IPs) — the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Pages limit per one query</label>
+        <input id="gsjPages" type="number" min="1" max="20" value="1">
+        <span class="hint">~10 jobs per page.</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gsjLang"></select>
+      </div>
+      <div class="field">
+        <label>Region</label>
+        <select id="gsjRegion"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gsjStartBtn" onclick="gsjStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gsjStopBtn" onclick="gsjStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gsjStatus"></div>
+  <div class="bar" id="gsjBar"><i></i></div>
+
+  <div class="resbar" id="gsjResbar" style="display:none">
+    <div class="count" id="gsjCount"></div>
+    <div class="resbar-controls">
+      <a id="gsjDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gsjDownloadXlsx" style="display:none" onclick="gsjDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gsjResults"></div>
+  </div><!-- /gsjobsView -->
+
+  <div id="gshopView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="gshInput" placeholder="Iphone 13&#10;Dell monitor&#10;https://www.google.com/search?q=iphone"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gshFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gshFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gshFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gshFileName"></span>
+        </div>
+        <span class="hint">Product results from Google Shopping through your paid residential <code>PROXY_URL</code> in <code>.env</code> (Google blocks free/datacenter IPs) — the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gshLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gshLang"></select>
+      </div>
+      <div class="field">
+        <label>Region</label>
+        <select id="gshRegion"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gshStartBtn" onclick="gshStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gshStopBtn" onclick="gshStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gshStatus"></div>
+  <div class="bar" id="gshBar"><i></i></div>
+
+  <div class="resbar" id="gshResbar" style="display:none">
+    <div class="count" id="gshCount"></div>
+    <div class="resbar-controls">
+      <a id="gshDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gshDownloadXlsx" style="display:none" onclick="gshDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gshResults"></div>
+  </div><!-- /gshopView -->
+
+  <div id="gsreviewsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Product links, Product IDs <span class="req">*</span></label>
+        <textarea id="gsrInput" placeholder="https://www.google.com/shopping/product/7016166685587850095&#10;7016166685587850095"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gsrFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gsrFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gsrFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gsrFileName"></span>
+        </div>
+        <span class="hint">Reviews from each Google Shopping product through your paid residential <code>PROXY_URL</code> in <code>.env</code> (Google blocks free/datacenter IPs) — the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one product</label>
+        <input id="gsrLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gsrLang"></select>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <select id="gsrRegion"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gsrStartBtn" onclick="gsrStart()">⬇ Export Reviews</button>
+      <button class="btn-stop" id="gsrStopBtn" onclick="gsrStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gsrStatus"></div>
+  <div class="bar" id="gsrBar"><i></i></div>
+
+  <div class="resbar" id="gsrResbar" style="display:none">
+    <div class="count" id="gsrCount"></div>
+    <div class="resbar-controls">
+      <a id="gsrDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gsrDownloadXlsx" style="display:none" onclick="gsrDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gsrResults"></div>
+  <div id="gsrPager"></div>
+  </div><!-- /gsreviewsView -->
+
+  <div id="linkedinProfilesView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>URLs to profiles, profile IDs <span class="req">*</span></label>
+        <textarea id="lipInput" placeholder="https://www.linkedin.com/in/williamhgates&#10;satyanadella"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="lipFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="lipFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('lipFile').click()">⬆ Upload file</button>
+          <span class="hint" id="lipFileName"></span>
+        </div>
+        <span class="hint">Public profile data through your paid residential <code>PROXY_URL</code> in <code>.env</code> — LinkedIn auth-walls free/datacenter IPs, so set a residential proxy (the real IP is never used). Only public fields are available.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="lipStartBtn" onclick="lipStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="lipStopBtn" onclick="lipStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="lipStatus"></div>
+  <div class="bar" id="lipBar"><i></i></div>
+
+  <div class="resbar" id="lipResbar" style="display:none">
+    <div class="count" id="lipCount"></div>
+    <div class="resbar-controls">
+      <a id="lipDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="lipDownloadXlsx" style="display:none" onclick="lipDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="lipResults"></div>
+  </div><!-- /linkedinProfilesView -->
+
+  <div id="gflightsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label style="margin:0">Flight Routes <span class="req">*</span></label>
+          <div class="switch-row">
+            <label class="switch"><input type="checkbox" id="gflPlain" onchange="gflToggleMode()"><span class="sl"></span></label>
+            <span>Plain queries</span>
+          </div>
+        </div>
+        <div id="gflRoutesWrap" style="margin-top:8px">
+          <a href="javascript:void(0)" onclick="gflAddRoute()" style="display:inline-flex;align-items:center;gap:6px;color:var(--yp);font-size:14px;font-weight:600;text-decoration:none;margin-bottom:10px">⊕ Add Route</a>
+          <div id="gflRoutes" style="display:flex;flex-wrap:wrap;gap:14px"></div>
+        </div>
+        <div id="gflPlainWrap" style="display:none;margin-top:8px">
+          <textarea id="gflPlainInput" placeholder="EWR,JFK&#10;LAX,SFO&#10;CMB,DXB"></textarea>
+          <div class="upload-row">
+            <span>or select a CSV / XLSX / TXT / Parquet file</span>
+            <input type="file" id="gflFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gflFilePicked()">
+            <button type="button" class="btn-upload" onclick="document.getElementById('gflFile').click()">⬆ Upload file</button>
+            <span class="hint" id="gflFileName"></span>
+          </div>
+        </div>
+        <span class="hint">Flight results from Google Flights through your paid residential <code>PROXY_URL</code> in <code>.env</code> (Google blocks free/datacenter IPs) — the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Flights per Query Limit</label>
+        <input id="gflLimit" type="number" min="1" placeholder="all" value="10">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gflLang"></select>
+      </div>
+      <div class="field">
+        <label>Region</label>
+        <select id="gflRegion"></select>
+      </div>
+      <div class="field">
+        <label>Departure Date</label>
+        <input id="gflDepart" type="date">
+      </div>
+      <div class="field">
+        <label>Return Date</label>
+        <input id="gflReturn" type="date">
+        <span class="hint">Leave empty for one-way.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gflStartBtn" onclick="gflStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gflStopBtn" onclick="gflStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gflStatus"></div>
+  <div class="bar" id="gflBar"><i></i></div>
+
+  <div class="resbar" id="gflResbar" style="display:none">
+    <div class="count" id="gflCount"></div>
+    <div class="resbar-controls">
+      <a id="gflDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gflDownloadXlsx" style="display:none" onclick="gflDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gflResults"></div>
+  </div><!-- /gflightsView -->
+
+  <div id="gmapsAutocompleteView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="gmaInput" placeholder="central&#10;restaurant&#10;bar"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gmaFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gmaFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gmaFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gmaFileName"></span>
+        </div>
+        <span class="hint">Real Google autocomplete suggestions (search-box style), region-biased, via Google's own suggest endpoint through the proxy pool — works on the free pool; the real IP is never used.</span>
+      </div>
+      <div class="field full">
+        <label>Coordinates</label>
+        <input id="gmaCoords" placeholder="@23.4933124,53.9623381,11.42z">
+        <span class="hint">Optional location bias (region drives most of it).</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gmaLang"></select>
+      </div>
+      <div class="field">
+        <label>Region</label>
+        <select id="gmaRegion"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gmaStartBtn" onclick="gmaStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gmaStopBtn" onclick="gmaStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gmaStatus"></div>
+  <div class="bar" id="gmaBar"><i></i></div>
+
+  <div class="resbar" id="gmaResbar" style="display:none">
+    <div class="count" id="gmaCount"></div>
+    <div class="resbar-controls">
+      <a id="gmaDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gmaDownloadXlsx" style="display:none" onclick="gmaDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gmaResults"></div>
+  </div><!-- /gmapsAutocompleteView -->
+
+  <div id="gsearchAutocompleteView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search queries <span class="req">*</span></label>
+        <textarea id="gsaInput" placeholder="outscraper&#10;data scraping&#10;google maps api"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gsaFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gsaFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gsaFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gsaFileName"></span>
+        </div>
+        <span class="hint">Real Google Search autocomplete suggestions, region-biased, via Google's own suggest endpoint through the proxy pool — works on the free pool; the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gsaLang"></select>
+      </div>
+      <div class="field">
+        <label>Region</label>
+        <select id="gsaRegion"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gsaStartBtn" onclick="gsaStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gsaStopBtn" onclick="gsaStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gsaStatus"></div>
+  <div class="bar" id="gsaBar"><i></i></div>
+
+  <div class="resbar" id="gsaResbar" style="display:none">
+    <div class="count" id="gsaCount"></div>
+    <div class="resbar-controls">
+      <a id="gsaDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gsaDownloadXlsx" style="display:none" onclick="gsaDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gsaResults"></div>
+  </div><!-- /gsearchAutocompleteView -->
+
+  <div id="gplayView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Apps, movies, books links or IDs <span class="req">*</span></label>
+        <textarea id="gplInput" placeholder="com.skype.raider&#10;https://play.google.com/store/apps/details?id=com.facebook.katana"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gplFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gplFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gplFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gplFileName"></span>
+        </div>
+        <span class="hint">Reviews from Google Play's own internal API (batchexecute) through the proxy pool — works on the free pool, the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="gplSort">
+          <option value="relevant" selected>Most relevant</option>
+          <option value="newest">Newest</option>
+          <option value="rating">Rating</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gplLimit" type="number" min="1" placeholder="all" value="120">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="gplLang"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gplStartBtn" onclick="gplStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gplStopBtn" onclick="gplStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gplStatus"></div>
+  <div class="bar" id="gplBar"><i></i></div>
+
+  <div class="resbar" id="gplResbar" style="display:none">
+    <div class="count" id="gplCount"></div>
+    <div class="resbar-controls">
+      <a id="gplDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gplDownloadXlsx" style="display:none" onclick="gplDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gplResults"></div>
+  <div id="gplPager"></div>
+  </div><!-- /gplayView -->
+
+  <div id="gplayMonitoringView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Apps, movies, books links or IDs <span class="req">*</span></label>
+        <textarea id="gplmInput" placeholder="com.spotify.music&#10;https://play.google.com/store/apps/details?id=com.facebook.katana"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gplmFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gplmFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gplmFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gplmFileName"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Monitoring Frequency</label>
+        <select id="gplmFreq">
+          <option value="daily">Once a day</option>
+          <option value="weekly" selected>Once a week</option>
+          <option value="3weeks">Once every 3 weeks</option>
+          <option value="monthly">Once a month</option>
+          <option value="3months">Once every 3 months</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Email for Notifications</label>
+        <input id="gplmEmail" type="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Negative Review Threshold</label>
+        <input id="gplmThreshold" type="number" min="1" max="5" value="3">
+        <span class="hint">Reviews rated at or below this are flagged negative.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gplmStartBtn" onclick="gplmStart()">🔍 Start Monitoring</button>
+      <button class="btn-stop" id="gplmStopBtn" onclick="gplmStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gplmStatus"></div>
+  <div class="bar" id="gplmBar"><i></i></div>
+  <div id="gplmBanner"></div>
+
+  <div class="resbar" id="gplmResbar" style="display:none">
+    <div class="count" id="gplmCount"></div>
+    <div class="resbar-controls">
+      <a id="gplmDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gplmDownloadXlsx" style="display:none" onclick="gplmDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gplmResults"></div>
+  </div><!-- /gplayMonitoringView -->
+
   <div id="gmapsTrafficView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -1273,6 +1711,49 @@
   <div id="gjobResults"></div>
   <div id="gjobPager"></div>
   </div><!-- /gjobView -->
+
+  <div id="glassdoorCompanyView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search Queries or URLs <span class="req">*</span></label>
+        <textarea id="gcoInput" placeholder="google&#10;microsoft&#10;https://www.glassdoor.com/Explore/browse-companies.htm"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gcoFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gcoFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gcoFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gcoFileName"></span>
+        </div>
+        <span class="hint">Company search results from Glassdoor through your paid residential <code>PROXY_URL</code> in <code>.env</code> (Glassdoor's Cloudflare blocks free/datacenter IPs) — the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gcoLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Domain</label>
+        <select id="gcoDomain"></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gcoStartBtn" onclick="gcoStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gcoStopBtn" onclick="gcoStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gcoStatus"></div>
+  <div class="bar" id="gcoBar"><i></i></div>
+
+  <div class="resbar" id="gcoResbar" style="display:none">
+    <div class="count" id="gcoCount"></div>
+    <div class="resbar-controls">
+      <a id="gcoDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gcoDownloadXlsx" style="display:none" onclick="gcoDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gcoResults"></div>
+  </div><!-- /glassdoorCompanyView -->
 
   <!-- Glassdoor Reviews Scraper form (glassdoor.com company-reviews URLs) -->
   <div id="gdrView" style="display:none">
@@ -2802,7 +3283,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','gplayView','gplayMonitoringView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -2904,6 +3385,8 @@ function selectService(s, keep, fromHistory){
   document.getElementById('g2View').style.display      = vt==='g2' ? '' : 'none';
   document.getElementById('bbbReviewsView').style.display = vt==='bbb_reviews' ? '' : 'none';
   document.getElementById('gjobView').style.display    = vt==='glassdoor_jobs' ? '' : 'none';
+  document.getElementById('glassdoorCompanyView').style.display = vt==='glassdoor_companies' ? '' : 'none';
+  if(vt==='glassdoor_companies') gcoInit();
   document.getElementById('gdrView').style.display     = vt==='glassdoor_reviews' ? '' : 'none';
   document.getElementById('wmpView').style.display     = vt==='walmart' ? '' : 'none';
   document.getElementById('wmrView').style.display     = vt==='walmart_reviews' ? '' : 'none';
@@ -2935,6 +3418,22 @@ function selectService(s, keep, fromHistory){
   document.getElementById('gmapsDirectoryView').style.display = vt==='gmaps_directory' ? '' : 'none';
   document.getElementById('gvideosView').style.display = vt==='gvideos' ? '' : 'none';
   if(vt==='gvideos') gvInit();
+  document.getElementById('gsjobsView').style.display = vt==='gsjobs' ? '' : 'none';
+  if(vt==='gsjobs') gsjInit();
+  document.getElementById('gshopView').style.display = vt==='gshop' ? '' : 'none';
+  if(vt==='gshop') gshInit();
+  document.getElementById('gsreviewsView').style.display = vt==='gshop_reviews' ? '' : 'none';
+  if(vt==='gshop_reviews') gsrInit();
+  document.getElementById('linkedinProfilesView').style.display = vt==='linkedin_profiles' ? '' : 'none';
+  document.getElementById('gflightsView').style.display = vt==='gflights' ? '' : 'none';
+  if(vt==='gflights') gflInit();
+  document.getElementById('gmapsAutocompleteView').style.display = vt==='gmaps_autocomplete' ? '' : 'none';
+  if(vt==='gmaps_autocomplete') gmaInit();
+  document.getElementById('gsearchAutocompleteView').style.display = vt==='gsearch_autocomplete' ? '' : 'none';
+  if(vt==='gsearch_autocomplete') gsaInit();
+  document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
+  if(vt==='gplay') gplInit();
+  document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -2953,6 +3452,7 @@ function viewType(s){
   if(s.ui === 'g2') return 'g2';
   if(s.ui === 'bbb_reviews') return 'bbb_reviews';
   if(s.ui === 'glassdoor_jobs') return 'glassdoor_jobs';
+  if(s.ui === 'glassdoor_companies') return 'glassdoor_companies';
   if(s.ui === 'glassdoor_reviews') return 'glassdoor_reviews';
   if(s.ui === 'walmart') return 'walmart';
   if(s.ui === 'walmart_reviews') return 'walmart_reviews';
@@ -2979,6 +3479,15 @@ function viewType(s){
   if(s.ui === 'gmaps_traffic') return 'gmaps_traffic';
   if(s.ui === 'gmaps_directory') return 'gmaps_directory';
   if(s.ui === 'gvideos') return 'gvideos';
+  if(s.ui === 'gsjobs') return 'gsjobs';
+  if(s.ui === 'gshop') return 'gshop';
+  if(s.ui === 'gshop_reviews') return 'gshop_reviews';
+  if(s.ui === 'linkedin_profiles') return 'linkedin_profiles';
+  if(s.ui === 'gflights') return 'gflights';
+  if(s.ui === 'gmaps_autocomplete') return 'gmaps_autocomplete';
+  if(s.ui === 'gsearch_autocomplete') return 'gsearch_autocomplete';
+  if(s.ui === 'gplay') return 'gplay';
+  if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -4117,7 +4626,7 @@ function giDownloadExcel(){
 
 /* ---------- Google Search Videos Scraper ---------- */
 const GVID_COLUMNS = ["query","title","duration","source","video_url","thumbnail"];
-const GV_PAGE_SIZE = 48;
+const GV_PAGE_SIZE = 20;
 let gvTimer=null, gvJob=null, _gvRows=[], _gvDlUrl=null, _gvPage=0;
 
 function gvInit(){
@@ -4218,22 +4727,27 @@ async function gvShowResults(job_id){
   gvUpdateDownload();
 }
 
+function gvYtThumb(url){
+  const m=(url||'').match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{11})/);
+  return m?('https://i.ytimg.com/vi/'+m[1]+'/hqdefault.jpg'):'';
+}
 function gvRender(){
   const start=_gvPage*GV_PAGE_SIZE;
-  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">';
+  let h='';
   for(const r of _gvRows.slice(start, start+GV_PAGE_SIZE)){
-    const thumb=esc(r.thumbnail||'');
-    const du=r.duration?`<span style="position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.8);color:#fff;font-size:11px;padding:1px 5px;border-radius:4px">${esc(r.duration)}</span>`:'';
-    h+=`<a href="${esc(r.video_url||'#')}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
-      <div style="position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:16/9">
-        <img src="${thumb}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
-        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)">▶</span>${du}
+    const thumb=esc(r.thumbnail||gvYtThumb(r.video_url)||'');
+    const du=r.duration?`<span style="position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.85);color:#fff;font-size:11px;padding:1px 5px;border-radius:4px">${esc(r.duration)}</span>`:'';
+    h+=`<a href="${esc(r.video_url||'#')}" target="_blank" rel="noopener" style="display:flex;gap:16px;padding:12px 2px;border-bottom:1px solid #eee;text-decoration:none;color:inherit">
+      <div style="position:relative;flex:none;width:200px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000">
+        <img src="${thumb}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=0">
+        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)">▶</span>${du}
       </div>
-      <div style="font-size:13px;font-weight:600;margin-top:6px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.title||'')}</div>
-      <div style="font-size:12px;color:#70757a;margin-top:2px">${esc(r.source||'')}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:17px;font-weight:600;line-height:1.35;color:#1a0dab;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.title||'')}</div>
+        <div style="font-size:13px;color:#5f6368;margin-top:6px">${esc(r.source||'')}${r.duration?(' · '+esc(r.duration)):''}</div>
+      </div>
     </a>`;
   }
-  h+='</div>';
   document.getElementById('gvResults').innerHTML=h;
   gvRenderPager(_gvRows.length);
   window.scrollTo({top:0, behavior:'smooth'});
@@ -4277,6 +4791,1505 @@ function gvDownloadExcel(){
   XLSX.writeFile(wb, gvFileName()+'.xlsx');
 }
 /* ---------- end Google Search Videos ---------- */
+
+/* ---------- Google Search Jobs Scraper ---------- */
+const GSJ_COLUMNS = ["query","title","company","location","via","posted","salary","link","description"];
+let gsjTimer=null, gsjJob=null, _gsjRows=[], _gsjDlUrl=null;
+
+function gsjInit(){
+  const l=document.getElementById('gsjLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+  const c=document.getElementById('gsjRegion');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+}
+
+async function gsjFilePicked(){
+  const f=document.getElementById('gsjFile').files[0];
+  const nameEl=document.getElementById('gsjFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gsjInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gsjSetRunning(on){
+  document.getElementById('gsjStartBtn').disabled=on;
+  document.getElementById('gsjStopBtn').disabled=!on;
+  ['gsjInput','gsjPages','gsjLang','gsjRegion'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gsjStart(){
+  const typed=document.getElementById('gsjInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const body={ queries, pages:parseInt(document.getElementById('gsjPages').value,10)||1, language:document.getElementById('gsjLang').value, region:document.getElementById('gsjRegion').value };
+  let r;
+  try{ r=await fetch('/api/gsjobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gsjJob=(await r.json()).job_id;
+  _gsjRows=[];
+  document.getElementById('gsjResbar').style.display='none';
+  document.getElementById('gsjResults').innerHTML='';
+  document.getElementById('gsjCount').textContent='';
+  document.getElementById('gsjBar').style.display='block';
+  document.querySelector('#gsjBar>i').style.width='30%';
+  gsjSetRunning(true);
+  if(gsjTimer) clearInterval(gsjTimer);
+  gsjTimer=setInterval(()=>gsjPoll(gsjJob),1500);
+  gsjPoll(gsjJob);
+}
+
+async function gsjStop(){ if(gsjJob){ document.getElementById('gsjStopBtn').disabled=true; await fetch('/api/stop/'+gsjJob,{method:'POST'}); } }
+
+async function gsjPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gsjStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching jobs… '+got+' found';
+  } else {
+    clearInterval(gsjTimer); gsjSetRunning(false);
+    document.getElementById('gsjBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' jobs';
+      gsjShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gsjShowResults(job_id){
+  _gsjRows=await (await fetch('/api/gsjobs-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('gsjResbar');
+  if(!_gsjRows.length){
+    document.getElementById('gsjResults').innerHTML='';
+    document.getElementById('gsjCount').innerHTML='<span class="empty">No jobs — set a residential PROXY_URL in .env (Google blocks free proxies), or the widget DOM changed (selectors may need tuning).</span>';
+    resbar.style.display='flex';
+    document.getElementById('gsjDownload').style.display='none';
+    document.getElementById('gsjDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  let h='<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr>'+
+    ['Title','Company','Location','Via','Posted','Salary'].map(c=>'<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e5e7eb">'+c+'</th>').join('')+'</tr></thead><tbody>';
+  for(const r of _gsjRows){
+    const t = r.link ? '<a href="'+esc(r.link)+'" target="_blank" rel="noopener">'+esc(r.title||'')+'</a>' : esc(r.title||'');
+    h+='<tr><td style="padding:6px 8px;border-bottom:1px solid #f1f1f1">'+t+'</td>'+
+      [r.company,r.location,r.via,r.posted,r.salary].map(v=>'<td style="padding:6px 8px;border-bottom:1px solid #f1f1f1">'+esc(String(v??''))+'</td>').join('')+'</tr>';
+  }
+  h+='</tbody></table>';
+  document.getElementById('gsjResults').innerHTML=h;
+  document.getElementById('gsjCount').textContent='Showing '+_gsjRows.length+' jobs.';
+  gsjUpdateDownload();
+}
+
+function gsjFileName(){ const q=(document.getElementById('gsjInput').value.trim().split(/\r?\n/)[0]||'results'); return 'google-jobs_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function gsjUpdateDownload(){
+  const dl=document.getElementById('gsjDownload'), xl=document.getElementById('gsjDownloadXlsx');
+  if(!_gsjRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gsjDlUrl) URL.revokeObjectURL(_gsjDlUrl);
+  const rows=_gsjRows.map(r=>{ const o={}; for(const c of GSJ_COLUMNS) o[c]=r[c]??''; return o; });
+  _gsjDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gsjDlUrl; dl.setAttribute('download', gsjFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gsjDownloadExcel(){
+  if(!_gsjRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gsjRows.map(r=>{ const o={}; for(const c of GSJ_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GSJ_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Jobs');
+  XLSX.writeFile(wb, gsjFileName()+'.xlsx');
+}
+/* ---------- end Google Search Jobs ---------- */
+
+/* ---------- Google Search Shopping Scraper ---------- */
+const GSH_COLUMNS = ["query","title","price","store","rating","reviews","link","thumbnail"];
+const GSH_PAGE_SIZE = 40;
+let gshTimer=null, gshJob=null, _gshRows=[], _gshDlUrl=null, _gshPage=0;
+
+function gshInit(){
+  const l=document.getElementById('gshLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+  const c=document.getElementById('gshRegion');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+}
+
+async function gshFilePicked(){
+  const f=document.getElementById('gshFile').files[0];
+  const nameEl=document.getElementById('gshFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gshInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gshSetRunning(on){
+  document.getElementById('gshStartBtn').disabled=on;
+  document.getElementById('gshStopBtn').disabled=!on;
+  ['gshInput','gshLimit','gshLang','gshRegion'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gshStart(){
+  const typed=document.getElementById('gshInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one query (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('gshLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), language:document.getElementById('gshLang').value, region:document.getElementById('gshRegion').value };
+  let r;
+  try{ r=await fetch('/api/gshop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gshJob=(await r.json()).job_id;
+  _gshRows=[]; _gshPage=0;
+  document.getElementById('gshResbar').style.display='none';
+  document.getElementById('gshResults').innerHTML='';
+  document.getElementById('gshCount').textContent='';
+  document.getElementById('gshBar').style.display='block';
+  document.querySelector('#gshBar>i').style.width='30%';
+  gshSetRunning(true);
+  if(gshTimer) clearInterval(gshTimer);
+  gshTimer=setInterval(()=>gshPoll(gshJob),1500);
+  gshPoll(gshJob);
+}
+
+async function gshStop(){ if(gshJob){ document.getElementById('gshStopBtn').disabled=true; await fetch('/api/stop/'+gshJob,{method:'POST'}); } }
+
+async function gshPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gshStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching products… '+got+' found';
+  } else {
+    clearInterval(gshTimer); gshSetRunning(false);
+    document.getElementById('gshBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' products';
+      gshShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gshShowResults(job_id){
+  _gshRows=await (await fetch('/api/gshop-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('gshResbar');
+  if(!_gshRows.length){
+    document.getElementById('gshResults').innerHTML='';
+    document.getElementById('gshCount').innerHTML='<span class="empty">No products — set a residential PROXY_URL in .env (Google blocks free proxies).</span>';
+    resbar.style.display='flex';
+    document.getElementById('gshDownload').style.display='none';
+    document.getElementById('gshDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gshPage=0;
+  gshRender();
+  document.getElementById('gshCount').textContent='Showing '+_gshRows.length+' products ('+GSH_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gshUpdateDownload();
+}
+
+function gshRender(){
+  const start=_gshPage*GSH_PAGE_SIZE;
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">';
+  for(const r of _gshRows.slice(start, start+GSH_PAGE_SIZE)){
+    const thumb=esc(r.thumbnail||'');
+    const rt=r.rating?`<span style="color:#e8a000">★ ${esc(r.rating)}</span>`:'';
+    h+=`<a href="${esc(r.link||'#')}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border:1px solid #eee;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+      <div style="aspect-ratio:1/1;background:#f8f8f8;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <img src="${thumb}" loading="lazy" style="max-width:100%;max-height:100%;object-fit:contain" onerror="this.style.display='none'">
+      </div>
+      <div style="padding:10px">
+        <div style="font-size:13px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.title||'')}</div>
+        <div style="font-size:16px;font-weight:700;margin-top:6px;color:#202124">${esc(r.price||'')}</div>
+        <div style="font-size:12px;color:#5f6368;margin-top:2px">${esc(r.store||'')} ${rt}</div>
+      </div>
+    </a>`;
+  }
+  h+='</div>';
+  document.getElementById('gshResults').innerHTML=h;
+  gshRenderPager(_gshRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gshRenderPager(total){
+  const pg=document.getElementById('gshResults'); // pager appended after grid
+  let pagerEl=document.getElementById('gshPager');
+  if(!pagerEl){ pagerEl=document.createElement('div'); pagerEl.id='gshPager'; pg.after(pagerEl); }
+  pagerEl.innerHTML='';
+  const pages=Math.ceil(total/GSH_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gshPage=page; gshRender();}; return b;};
+  pagerEl.appendChild(mk('‹ Prev',_gshPage-1,{disabled:_gshPage===0}));
+  let s=Math.max(0,_gshPage-2), e=Math.min(pages-1,_gshPage+2);
+  for(let p=s;p<=e;p++) pagerEl.appendChild(mk(String(p+1),p,{active:p===_gshPage}));
+  pagerEl.appendChild(pinfo('Page '+(_gshPage+1)+' of '+pages));
+  pagerEl.appendChild(mk('Next ›',_gshPage+1,{disabled:_gshPage>=pages-1}));
+}
+
+function gshFileName(){ const q=(document.getElementById('gshInput').value.trim().split(/\r?\n/)[0]||'results'); return 'google-shopping_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function gshUpdateDownload(){
+  const dl=document.getElementById('gshDownload'), xl=document.getElementById('gshDownloadXlsx');
+  if(!_gshRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gshDlUrl) URL.revokeObjectURL(_gshDlUrl);
+  const rows=_gshRows.map(r=>{ const o={}; for(const c of GSH_COLUMNS) o[c]=r[c]??''; return o; });
+  _gshDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gshDlUrl; dl.setAttribute('download', gshFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gshDownloadExcel(){
+  if(!_gshRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gshRows.map(r=>{ const o={}; for(const c of GSH_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GSH_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Shopping');
+  XLSX.writeFile(wb, gshFileName()+'.xlsx');
+}
+/* ---------- end Google Search Shopping ---------- */
+
+/* ---------- Google Play Reviews Scraper ---------- */
+const GPL_COLUMNS = ["app_id","author","author_image","rating","date","review","likes","app_version","reply","review_id"];
+const GPL_PAGE_SIZE = 15;
+let gplTimer=null, gplJob=null, _gplRows=[], _gplDlUrl=null, _gplPage=0;
+
+function gplInit(){
+  const l=document.getElementById('gplLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+}
+
+async function gplFilePicked(){
+  const f=document.getElementById('gplFile').files[0];
+  const nameEl=document.getElementById('gplFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gplInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste IDs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gplSetRunning(on){
+  document.getElementById('gplStartBtn').disabled=on;
+  document.getElementById('gplStopBtn').disabled=!on;
+  ['gplInput','gplSort','gplLimit','gplLang'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gplStart(){
+  const typed=document.getElementById('gplInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter an app id (com.foo.bar) or Play Store URL (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('gplLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), sort:document.getElementById('gplSort').value, language:document.getElementById('gplLang').value };
+  let r;
+  try{ r=await fetch('/api/gplay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gplJob=(await r.json()).job_id;
+  _gplRows=[]; _gplPage=0;
+  document.getElementById('gplResbar').style.display='none';
+  document.getElementById('gplResults').innerHTML='';
+  document.getElementById('gplPager').innerHTML='';
+  document.getElementById('gplCount').textContent='';
+  document.getElementById('gplBar').style.display='block';
+  document.querySelector('#gplBar>i').style.width='30%';
+  gplSetRunning(true);
+  if(gplTimer) clearInterval(gplTimer);
+  gplTimer=setInterval(()=>gplPoll(gplJob),1500);
+  gplPoll(gplJob);
+}
+
+async function gplStop(){ if(gplJob){ document.getElementById('gplStopBtn').disabled=true; await fetch('/api/stop/'+gplJob,{method:'POST'}); } }
+
+async function gplPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gplStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping reviews… '+got+' found';
+  } else {
+    clearInterval(gplTimer); gplSetRunning(false);
+    document.getElementById('gplBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      gplShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gplShowResults(job_id){
+  _gplRows=await (await fetch('/api/gplay-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gplResbar');
+  if(!_gplRows.length){
+    document.getElementById('gplResults').innerHTML='';
+    document.getElementById('gplCount').innerHTML='<span class="empty">No reviews — check the app id / Play Store URL.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gplDownload').style.display='none';
+    document.getElementById('gplDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gplPage=0;
+  gplRender();
+  document.getElementById('gplCount').textContent='Showing '+_gplRows.length+' reviews ('+GPL_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gplUpdateDownload();
+}
+
+function gplStars(n){ n=Math.round(parseFloat(n))||0; let s=''; for(let i=1;i<=5;i++) s+= '<span style="color:'+(i<=n?'#01875f':'#dadce0')+'">★</span>'; return s; }
+function gplRender(){
+  const start=_gplPage*GPL_PAGE_SIZE;
+  let h='';
+  _gplRows.slice(start, start+GPL_PAGE_SIZE).forEach((r)=>{
+    const name=esc(r.author||'Anonymous');
+    const initial=(r.author||'?').trim().charAt(0).toUpperCase();
+    // initial circle always behind; the photo overlays it and just hides itself if it fails to load
+    const av=`<div style="position:relative;width:32px;height:32px;flex:none">
+        <span style="position:absolute;inset:0;border-radius:50%;background:#7b1fa2;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px">${esc(initial)}</span>
+        ${r.author_image?`<img src="${esc(r.author_image)}" style="position:absolute;inset:0;width:32px;height:32px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`:''}
+      </div>`;
+    h+=`<div style="border-bottom:1px solid #eee;padding:18px 4px">
+      <div style="display:flex;align-items:center;gap:12px">${av}<div style="font-size:14px;font-weight:600;color:#202124">${name}</div></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0 6px;font-size:13px;color:#5f6368">
+        <span style="letter-spacing:1px;font-size:14px">${gplStars(r.rating)}</span>
+        <span>${esc(String(r.date||''))}</span>${r.app_version?`<span>· v${esc(r.app_version)}</span>`:''}
+      </div>
+      <div style="font-size:14px;color:#3c4043;line-height:1.5;white-space:pre-wrap">${esc(r.review||'')}</div>
+      ${r.likes?`<div style="font-size:13px;color:#5f6368;margin-top:8px">${esc(String(r.likes))} people found this review helpful</div>`:''}
+      ${r.reply?`<div style="background:#f1f3f4;border-radius:10px;padding:12px 14px;margin-top:12px">
+        <div style="font-size:13px;font-weight:600;color:#202124;margin-bottom:4px">Developer reply</div>
+        <div style="font-size:13px;color:#3c4043;line-height:1.5;white-space:pre-wrap">${esc(r.reply)}</div></div>`:''}
+    </div>`;
+  });
+  document.getElementById('gplResults').innerHTML=h;
+  gplRenderPager(_gplRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gplRenderPager(total){
+  const pg=document.getElementById('gplPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GPL_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gplPage=page; gplRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gplPage-1,{disabled:_gplPage===0}));
+  let s=Math.max(0,_gplPage-2), e=Math.min(pages-1,_gplPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gplPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gplPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gplPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gplPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gplPage+1,{disabled:_gplPage>=pages-1}));
+}
+
+function gplFileName(){ return 'google-play_'+((_gplRows[0]&&_gplRows[0].app_id||'reviews').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function gplUpdateDownload(){
+  const dl=document.getElementById('gplDownload'), xl=document.getElementById('gplDownloadXlsx');
+  if(!_gplRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gplDlUrl) URL.revokeObjectURL(_gplDlUrl);
+  const rows=_gplRows.map(r=>{ const o={}; for(const c of GPL_COLUMNS) o[c]=r[c]??''; return o; });
+  _gplDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gplDlUrl; dl.setAttribute('download', gplFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gplDownloadExcel(){
+  if(!_gplRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gplRows.map(r=>{ const o={}; for(const c of GPL_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GPL_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'PlayReviews');
+  XLSX.writeFile(wb, gplFileName()+'.xlsx');
+}
+/* ---------- end Google Play Reviews ---------- */
+
+/* ---------- Google Shopping Reviews ---------- */
+const GSR_COLUMNS = ["product_id","author","rating","date","title","review","source"];
+const GSR_PAGE_SIZE = 15;
+let gsrTimer=null, gsrJob=null, _gsrRows=[], _gsrDlUrl=null, _gsrPage=0;
+
+function gsrInit(){
+  const l=document.getElementById('gsrLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+  const c=document.getElementById('gsrRegion');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+}
+
+async function gsrFilePicked(){
+  const f=document.getElementById('gsrFile').files[0];
+  const nameEl=document.getElementById('gsrFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gsrInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' product'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste IDs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gsrSetRunning(on){
+  document.getElementById('gsrStartBtn').disabled=on;
+  document.getElementById('gsrStopBtn').disabled=!on;
+  ['gsrInput','gsrLimit','gsrLang','gsrRegion'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gsrStart(){
+  const typed=document.getElementById('gsrInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a Google Shopping product link or product id (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('gsrLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), language:document.getElementById('gsrLang').value, region:document.getElementById('gsrRegion').value };
+  let r;
+  try{ r=await fetch('/api/gsreviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gsrJob=(await r.json()).job_id;
+  _gsrRows=[]; _gsrPage=0;
+  document.getElementById('gsrResbar').style.display='none';
+  document.getElementById('gsrResults').innerHTML='';
+  document.getElementById('gsrPager').innerHTML='';
+  document.getElementById('gsrCount').textContent='';
+  document.getElementById('gsrBar').style.display='block';
+  document.querySelector('#gsrBar>i').style.width='30%';
+  gsrSetRunning(true);
+  if(gsrTimer) clearInterval(gsrTimer);
+  gsrTimer=setInterval(()=>gsrPoll(gsrJob),1500);
+  gsrPoll(gsrJob);
+}
+
+async function gsrStop(){ if(gsrJob){ document.getElementById('gsrStopBtn').disabled=true; await fetch('/api/stop/'+gsrJob,{method:'POST'}); } }
+
+async function gsrPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gsrStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping reviews… '+got+' found';
+  } else {
+    clearInterval(gsrTimer); gsrSetRunning(false);
+    document.getElementById('gsrBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      gsrShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gsrShowResults(job_id){
+  _gsrRows=await (await fetch('/api/gsreviews-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gsrResbar');
+  if(!_gsrRows.length){
+    document.getElementById('gsrResults').innerHTML='';
+    document.getElementById('gsrCount').innerHTML='<span class="empty">No reviews — Google Shopping needs a residential PROXY_URL (it blocks free/datacenter IPs), or the product has no reviews.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gsrDownload').style.display='none';
+    document.getElementById('gsrDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gsrPage=0;
+  gsrRender();
+  document.getElementById('gsrCount').textContent='Showing '+_gsrRows.length+' reviews ('+GSR_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gsrUpdateDownload();
+}
+
+function gsrStars(n){ n=Math.round(parseFloat(n))||0; let s=''; for(let i=1;i<=5;i++) s+= '<span style="color:'+(i<=n?'#fbbc04':'#dadce0')+'">★</span>'; return s; }
+function gsrRender(){
+  const start=_gsrPage*GSR_PAGE_SIZE;
+  let h='';
+  _gsrRows.slice(start, start+GSR_PAGE_SIZE).forEach((r)=>{
+    const name=esc(r.author||'Anonymous');
+    const initial=(r.author||'?').trim().charAt(0).toUpperCase();
+    h+=`<div style="border-bottom:1px solid #eee;padding:18px 4px">
+      <div style="display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:50%;background:#1a73e8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">${esc(initial)}</span><div style="font-size:14px;font-weight:600;color:#202124">${name}</div></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0 6px;font-size:13px;color:#5f6368">
+        ${r.rating!==''&&r.rating!=null?`<span style="letter-spacing:1px;font-size:14px">${gsrStars(r.rating)}</span>`:''}
+        ${r.date?`<span>${esc(String(r.date))}</span>`:''}${r.source?`<span>· ${esc(r.source)}</span>`:''}
+      </div>
+      ${r.title?`<div style="font-size:14px;font-weight:600;color:#202124;margin-bottom:4px">${esc(r.title)}</div>`:''}
+      <div style="font-size:14px;color:#3c4043;line-height:1.5;white-space:pre-wrap">${esc(r.review||'')}</div>
+    </div>`;
+  });
+  document.getElementById('gsrResults').innerHTML=h;
+  gsrRenderPager(_gsrRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gsrRenderPager(total){
+  const pg=document.getElementById('gsrPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GSR_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gsrPage=page; gsrRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gsrPage-1,{disabled:_gsrPage===0}));
+  let s=Math.max(0,_gsrPage-2), e=Math.min(pages-1,_gsrPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gsrPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gsrPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gsrPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gsrPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gsrPage+1,{disabled:_gsrPage>=pages-1}));
+}
+
+function gsrFileName(){ return 'google-shopping-reviews_'+((_gsrRows[0]&&_gsrRows[0].product_id||'reviews').toString().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function gsrUpdateDownload(){
+  const dl=document.getElementById('gsrDownload'), xl=document.getElementById('gsrDownloadXlsx');
+  if(!_gsrRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gsrDlUrl) URL.revokeObjectURL(_gsrDlUrl);
+  const rows=_gsrRows.map(r=>{ const o={}; for(const c of GSR_COLUMNS) o[c]=r[c]??''; return o; });
+  _gsrDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gsrDlUrl; dl.setAttribute('download', gsrFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gsrDownloadExcel(){
+  if(!_gsrRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gsrRows.map(r=>{ const o={}; for(const c of GSR_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GSR_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'ShoppingReviews');
+  XLSX.writeFile(wb, gsrFileName()+'.xlsx');
+}
+/* ---------- end Google Shopping Reviews ---------- */
+
+/* ---------- LinkedIn Profiles ---------- */
+const LIP_COLUMNS = ["profile_url","name","headline","location","current_company","current_title","about","education","followers","image"];
+let lipTimer=null, lipJob=null, _lipRows=[], _lipDlUrl=null;
+
+async function lipFilePicked(){
+  const f=document.getElementById('lipFile').files[0];
+  const nameEl=document.getElementById('lipFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('lipInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' profile'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function lipSetRunning(on){
+  document.getElementById('lipStartBtn').disabled=on;
+  document.getElementById('lipStopBtn').disabled=!on;
+  document.getElementById('lipInput').disabled=on;
+}
+
+async function lipStart(){
+  const typed=document.getElementById('lipInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a LinkedIn profile URL or id (one per line), or upload a file.'); return; }
+  let r;
+  try{ r=await fetch('/api/linkedin-profiles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  lipJob=(await r.json()).job_id;
+  _lipRows=[];
+  document.getElementById('lipResbar').style.display='none';
+  document.getElementById('lipResults').innerHTML='';
+  document.getElementById('lipCount').textContent='';
+  document.getElementById('lipBar').style.display='block';
+  document.querySelector('#lipBar>i').style.width='30%';
+  lipSetRunning(true);
+  if(lipTimer) clearInterval(lipTimer);
+  lipTimer=setInterval(()=>lipPoll(lipJob),1500);
+  lipPoll(lipJob);
+}
+
+async function lipStop(){ if(lipJob){ document.getElementById('lipStopBtn').disabled=true; await fetch('/api/stop/'+lipJob,{method:'POST'}); } }
+
+async function lipPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('lipStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping profiles… '+got+' found';
+  } else {
+    clearInterval(lipTimer); lipSetRunning(false);
+    document.getElementById('lipBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' profiles';
+      lipShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function lipShowResults(job_id, note){
+  _lipRows=await (await fetch('/api/linkedin-profiles-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('lipResbar');
+  if(!_lipRows.length){
+    document.getElementById('lipResults').innerHTML='';
+    document.getElementById('lipCount').innerHTML='<span class="empty">'+esc(note||'No profiles — LinkedIn auth-walls free proxies; set a residential PROXY_URL.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('lipDownload').style.display='none';
+    document.getElementById('lipDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  lipRender();
+  document.getElementById('lipCount').textContent='Showing '+_lipRows.length+' profile'+(_lipRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  lipUpdateDownload();
+}
+
+function lipRender(){
+  let h='';
+  _lipRows.forEach((r)=>{
+    const initial=(r.name||'?').trim().charAt(0).toUpperCase();
+    // initial circle always behind; the photo overlays it and just hides itself if it fails to load
+    const av=`<div style="position:relative;width:64px;height:64px;flex:none">
+        <span style="position:absolute;inset:0;border-radius:50%;background:#0a66c2;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px">${esc(initial)}</span>
+        ${r.image?`<img src="${esc(r.image)}" style="position:absolute;inset:0;width:64px;height:64px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`:''}
+      </div>`;
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:18px;margin-bottom:14px;display:flex;gap:16px">
+      ${av}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:18px;font-weight:700;color:#202124"><a href="${esc(r.profile_url||'#')}" target="_blank" style="color:#0a66c2;text-decoration:none">${esc(r.name||'—')}</a></div>
+        ${r.headline?`<div style="font-size:14px;color:#3c4043;margin-top:3px">${esc(r.headline)}</div>`:''}
+        <div style="font-size:13px;color:#5f6368;margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 16px">
+          ${r.current_company?`<span>🏢 ${esc(r.current_company)}</span>`:''}
+          ${r.location?`<span>📍 ${esc(r.location)}</span>`:''}
+          ${r.education?`<span>🎓 ${esc(r.education)}</span>`:''}
+          ${r.followers?`<span>👥 ${esc(String(r.followers))} followers</span>`:''}
+        </div>
+        ${r.about?`<div style="font-size:13px;color:#5f6368;line-height:1.5;margin-top:8px;white-space:pre-wrap">${esc((r.about||'').slice(0,400))}${(r.about||'').length>400?'…':''}</div>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('lipResults').innerHTML=h;
+}
+
+function lipFileName(){ return 'linkedin-profiles_'+((_lipRows[0]&&_lipRows[0].name||'profiles').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function lipUpdateDownload(){
+  const dl=document.getElementById('lipDownload'), xl=document.getElementById('lipDownloadXlsx');
+  if(!_lipRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_lipDlUrl) URL.revokeObjectURL(_lipDlUrl);
+  const rows=_lipRows.map(r=>{ const o={}; for(const c of LIP_COLUMNS) o[c]=r[c]??''; return o; });
+  _lipDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_lipDlUrl; dl.setAttribute('download', lipFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function lipDownloadExcel(){
+  if(!_lipRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_lipRows.map(r=>{ const o={}; for(const c of LIP_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:LIP_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Profiles');
+  XLSX.writeFile(wb, lipFileName()+'.xlsx');
+}
+/* ---------- end LinkedIn Profiles ---------- */
+
+/* ---------- Glassdoor Company Search ---------- */
+const GCO_COLUMNS = ["query","company","rating","reviews","industry","size","headquarters","website","company_url","logo"];
+const GCO_DOMAINS = ["glassdoor.com","glassdoor.com.ar","glassdoor.com.au","nl.glassdoor.be","fr.glassdoor.be","glassdoor.com.br","glassdoor.ca","fr.glassdoor.ca","glassdoor.de","glassdoor.es","glassdoor.fr","glassdoor.com.hk","glassdoor.co.in","glassdoor.ie","glassdoor.it","glassdoor.com.mx","glassdoor.nl","glassdoor.co.nz","glassdoor.at","de.glassdoor.ch","fr.glassdoor.ch","glassdoor.sg","glassdoor.co.uk"];
+let gcoTimer=null, gcoJob=null, _gcoRows=[], _gcoDlUrl=null;
+
+function gcoInit(){
+  const d=document.getElementById('gcoDomain');
+  if(d && !d.options.length){ d.innerHTML=GCO_DOMAINS.map(v=>`<option value="${v}"${v==='glassdoor.com'?' selected':''}>${v}</option>`).join(''); }
+}
+
+async function gcoFilePicked(){
+  const f=document.getElementById('gcoFile').files[0];
+  const nameEl=document.getElementById('gcoFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gcoInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste names or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gcoSetRunning(on){
+  document.getElementById('gcoStartBtn').disabled=on;
+  document.getElementById('gcoStopBtn').disabled=!on;
+  ['gcoInput','gcoLimit','gcoDomain'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gcoStart(){
+  const typed=document.getElementById('gcoInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a company name or a Glassdoor URL (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('gcoLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), domain:document.getElementById('gcoDomain').value };
+  let r;
+  try{ r=await fetch('/api/glassdoor-companies',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gcoJob=(await r.json()).job_id;
+  _gcoRows=[];
+  document.getElementById('gcoResbar').style.display='none';
+  document.getElementById('gcoResults').innerHTML='';
+  document.getElementById('gcoCount').textContent='';
+  document.getElementById('gcoBar').style.display='block';
+  document.querySelector('#gcoBar>i').style.width='30%';
+  gcoSetRunning(true);
+  if(gcoTimer) clearInterval(gcoTimer);
+  gcoTimer=setInterval(()=>gcoPoll(gcoJob),1500);
+  gcoPoll(gcoJob);
+}
+
+async function gcoStop(){ if(gcoJob){ document.getElementById('gcoStopBtn').disabled=true; await fetch('/api/stop/'+gcoJob,{method:'POST'}); } }
+
+async function gcoPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gcoStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching companies… '+got+' found';
+  } else {
+    clearInterval(gcoTimer); gcoSetRunning(false);
+    document.getElementById('gcoBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' companies';
+      gcoShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gcoShowResults(job_id, note){
+  _gcoRows=await (await fetch('/api/glassdoor-companies/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gcoResbar');
+  if(!_gcoRows.length){
+    document.getElementById('gcoResults').innerHTML='';
+    document.getElementById('gcoCount').innerHTML='<span class="empty">'+esc(note||'No companies — Glassdoor blocks free proxies; set a residential PROXY_URL.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('gcoDownload').style.display='none';
+    document.getElementById('gcoDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  gcoRender();
+  document.getElementById('gcoCount').textContent='Showing '+_gcoRows.length+' compan'+(_gcoRows.length===1?'y':'ies')+' · download JSON/Excel for the full set.';
+  gcoUpdateDownload();
+}
+
+function gcoStars(n){ n=parseFloat(n)||0; const f=Math.round(n); let s=''; for(let i=1;i<=5;i++) s+='<span style="color:'+(i<=f?'#0caa41':'#dadce0')+'">★</span>'; return s; }
+function gcoRender(){
+  let h='';
+  _gcoRows.forEach((r)=>{
+    const initial=(r.company||'?').trim().charAt(0).toUpperCase();
+    const av=`<div style="position:relative;width:52px;height:52px;flex:none">
+        <span style="position:absolute;inset:0;border-radius:8px;background:#0caa41;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700">${esc(initial)}</span>
+        ${r.logo?`<img src="${esc(r.logo)}" style="position:absolute;inset:0;width:52px;height:52px;border-radius:8px;object-fit:contain;background:#fff" onerror="this.style.display='none'">`:''}
+      </div>`;
+    const nameHtml=r.company_url?`<a href="${esc(r.company_url)}" target="_blank" style="color:#0caa41;text-decoration:none">${esc(r.company||'—')}</a>`:esc(r.company||'—');
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:14px">
+      ${av}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:16px;font-weight:700;color:#202124">${nameHtml}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px;color:#5f6368">
+          ${r.rating!==''&&r.rating!=null?`<span style="letter-spacing:1px;font-size:13px">${gcoStars(r.rating)}</span><b style="color:#202124">${esc(String(r.rating))}</b>`:''}
+          ${r.reviews?`<span>· ${esc(String(r.reviews))} reviews</span>`:''}
+        </div>
+        <div style="font-size:13px;color:#5f6368;margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 16px">
+          ${r.industry?`<span>🏭 ${esc(r.industry)}</span>`:''}
+          ${r.size?`<span>👥 ${esc(String(r.size))}</span>`:''}
+          ${r.headquarters?`<span>📍 ${esc(r.headquarters)}</span>`:''}
+          ${r.website?`<span>🔗 <a href="${esc(r.website)}" target="_blank" style="color:#5f6368">${esc(r.website)}</a></span>`:''}
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('gcoResults').innerHTML=h;
+}
+
+function gcoFileName(){ const q=(document.getElementById('gcoInput').value.trim().split(/\r?\n/)[0]||'companies'); return 'glassdoor-companies_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+function gcoUpdateDownload(){
+  const dl=document.getElementById('gcoDownload'), xl=document.getElementById('gcoDownloadXlsx');
+  if(!_gcoRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gcoDlUrl) URL.revokeObjectURL(_gcoDlUrl);
+  const rows=_gcoRows.map(r=>{ const o={}; for(const c of GCO_COLUMNS) o[c]=r[c]??''; return o; });
+  _gcoDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gcoDlUrl; dl.setAttribute('download', gcoFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gcoDownloadExcel(){
+  if(!_gcoRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gcoRows.map(r=>{ const o={}; for(const c of GCO_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GCO_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Companies');
+  XLSX.writeFile(wb, gcoFileName()+'.xlsx');
+}
+/* ---------- end Glassdoor Company Search ---------- */
+
+/* ---------- Google Search Flights ---------- */
+const GFL_COLUMNS = ["origin","destination","airline","departure_time","arrival_time","duration","stops","price","departure_date","return_date","query"];
+let gflTimer=null, gflJob=null, _gflRows=[], _gflDlUrl=null;
+
+function gflInit(){
+  const l=document.getElementById('gflLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+  const c=document.getElementById('gflRegion');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+  if(!document.querySelectorAll('#gflRoutes .gfl-route').length) gflAddRoute();
+}
+
+function gflAddRoute(o='', d=''){
+  const wrap=document.createElement('div');
+  wrap.className='gfl-route';
+  wrap.style.cssText='border:1px solid #e0e0e0;border-radius:10px;padding:14px 16px;width:230px;display:flex;flex-direction:column';
+  wrap.innerHTML=`
+    <label style="font-size:12px;color:#5f6368">Origin <span class="req">*</span></label>
+    <input class="gfl-origin" placeholder="EWR" value="${esc(o)}" style="margin:2px 0 10px">
+    <label style="font-size:12px;color:#5f6368">Destination <span class="req">*</span></label>
+    <input class="gfl-dest" placeholder="LAX" value="${esc(d)}" style="margin:2px 0 10px">
+    <button type="button" onclick="this.closest('.gfl-route').remove()" style="align-self:flex-end;border:none;background:none;color:#c0392b;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px">🗑 Delete</button>`;
+  document.getElementById('gflRoutes').appendChild(wrap);
+}
+
+function gflToggleMode(){
+  const plain=document.getElementById('gflPlain').checked;
+  document.getElementById('gflRoutesWrap').style.display=plain?'none':'';
+  document.getElementById('gflPlainWrap').style.display=plain?'':'none';
+}
+
+async function gflFilePicked(){
+  const f=document.getElementById('gflFile').files[0];
+  const nameEl=document.getElementById('gflFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gflPlainInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' route'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>r.slice(0,2).map(x=>String(x??'').trim()).filter(Boolean).join(',')).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste routes or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gflCollectQueries(){
+  if(document.getElementById('gflPlain').checked){
+    const typed=document.getElementById('gflPlainInput').value.trim();
+    return typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  }
+  const out=[];
+  document.querySelectorAll('#gflRoutes .gfl-route').forEach(r=>{
+    const o=r.querySelector('.gfl-origin').value.trim(), d=r.querySelector('.gfl-dest').value.trim();
+    if(o&&d) out.push(o.toUpperCase()+','+d.toUpperCase());
+  });
+  return out;
+}
+
+function gflSetRunning(on){
+  document.getElementById('gflStartBtn').disabled=on;
+  document.getElementById('gflStopBtn').disabled=!on;
+  ['gflLimit','gflLang','gflRegion','gflDepart','gflReturn','gflPlain'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gflStart(){
+  const queries=gflCollectQueries();
+  if(!queries.length){ alert('Add at least one route (Origin + Destination), or use Plain queries (EWR,LAX per line).'); return; }
+  const lim=parseInt(document.getElementById('gflLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), departure_date:document.getElementById('gflDepart').value||'',
+    return_date:document.getElementById('gflReturn').value||'', language:document.getElementById('gflLang').value,
+    region:document.getElementById('gflRegion').value };
+  let r;
+  try{ r=await fetch('/api/gflights',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gflJob=(await r.json()).job_id;
+  _gflRows=[];
+  document.getElementById('gflResbar').style.display='none';
+  document.getElementById('gflResults').innerHTML='';
+  document.getElementById('gflCount').textContent='';
+  document.getElementById('gflBar').style.display='block';
+  document.querySelector('#gflBar>i').style.width='30%';
+  gflSetRunning(true);
+  if(gflTimer) clearInterval(gflTimer);
+  gflTimer=setInterval(()=>gflPoll(gflJob),1500);
+  gflPoll(gflJob);
+}
+
+async function gflStop(){ if(gflJob){ document.getElementById('gflStopBtn').disabled=true; await fetch('/api/stop/'+gflJob,{method:'POST'}); } }
+
+async function gflPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gflStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching flights… '+got+' found';
+  } else {
+    clearInterval(gflTimer); gflSetRunning(false);
+    document.getElementById('gflBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' flights';
+      gflShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gflShowResults(job_id, note){
+  _gflRows=await (await fetch('/api/gflights-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gflResbar');
+  if(!_gflRows.length){
+    document.getElementById('gflResults').innerHTML='';
+    document.getElementById('gflCount').innerHTML='<span class="empty">'+esc(note||'No flights — Google Flights needs a residential PROXY_URL (it blocks free/datacenter IPs).')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('gflDownload').style.display='none';
+    document.getElementById('gflDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  gflRender();
+  document.getElementById('gflCount').textContent='Showing '+_gflRows.length+' flight'+(_gflRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  gflUpdateDownload();
+}
+
+function gflRender(){
+  let h='';
+  _gflRows.forEach((r)=>{
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:16px">
+      <div style="font-size:22px;flex:none">✈️</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:#202124">${esc(r.origin||'')} → ${esc(r.destination||'')}${r.airline?` · <span style="font-weight:500;color:#5f6368">${esc(r.airline)}</span>`:''}</div>
+        <div style="font-size:13px;color:#5f6368;margin-top:5px;display:flex;flex-wrap:wrap;gap:4px 16px">
+          ${(r.departure_time||r.arrival_time)?`<span>🕐 ${esc(r.departure_time||'')}${r.arrival_time?' – '+esc(r.arrival_time):''}</span>`:''}
+          ${r.duration?`<span>⏱ ${esc(r.duration)}</span>`:''}
+          ${r.stops?`<span>${esc(r.stops)}</span>`:''}
+          ${r.departure_date?`<span>📅 ${esc(r.departure_date)}${r.return_date?' ⇄ '+esc(r.return_date):''}</span>`:''}
+        </div>
+      </div>
+      ${r.price?`<div style="font-size:18px;font-weight:700;color:#188038;flex:none">${esc(String(r.price))}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('gflResults').innerHTML=h;
+}
+
+function gflFileName(){ const q=(_gflRows[0]?(_gflRows[0].origin+'-'+_gflRows[0].destination):'flights'); return 'google-flights_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+function gflUpdateDownload(){
+  const dl=document.getElementById('gflDownload'), xl=document.getElementById('gflDownloadXlsx');
+  if(!_gflRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gflDlUrl) URL.revokeObjectURL(_gflDlUrl);
+  const rows=_gflRows.map(r=>{ const o={}; for(const c of GFL_COLUMNS) o[c]=r[c]??''; return o; });
+  _gflDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gflDlUrl; dl.setAttribute('download', gflFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gflDownloadExcel(){
+  if(!_gflRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gflRows.map(r=>{ const o={}; for(const c of GFL_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GFL_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Flights');
+  XLSX.writeFile(wb, gflFileName()+'.xlsx');
+}
+/* ---------- end Google Search Flights ---------- */
+
+/* ---------- Google Maps Autocomplete ---------- */
+const GMA_COLUMNS = ["query","suggestion","position","coordinates"];
+let gmaTimer=null, gmaJob=null, _gmaRows=[], _gmaDlUrl=null;
+
+function gmaInit(){
+  const l=document.getElementById('gmaLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+  const c=document.getElementById('gmaRegion');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+}
+
+async function gmaFilePicked(){
+  const f=document.getElementById('gmaFile').files[0];
+  const nameEl=document.getElementById('gmaFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gmaInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gmaSetRunning(on){
+  document.getElementById('gmaStartBtn').disabled=on;
+  document.getElementById('gmaStopBtn').disabled=!on;
+  ['gmaInput','gmaCoords','gmaLang','gmaRegion'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gmaStart(){
+  const typed=document.getElementById('gmaInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a query (one per line), or upload a file.'); return; }
+  const body={ queries, coordinates:document.getElementById('gmaCoords').value.trim(),
+    language:document.getElementById('gmaLang').value, region:document.getElementById('gmaRegion').value };
+  let r;
+  try{ r=await fetch('/api/gmaps-autocomplete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gmaJob=(await r.json()).job_id;
+  _gmaRows=[];
+  document.getElementById('gmaResbar').style.display='none';
+  document.getElementById('gmaResults').innerHTML='';
+  document.getElementById('gmaCount').textContent='';
+  document.getElementById('gmaBar').style.display='block';
+  document.querySelector('#gmaBar>i').style.width='30%';
+  gmaSetRunning(true);
+  if(gmaTimer) clearInterval(gmaTimer);
+  gmaTimer=setInterval(()=>gmaPoll(gmaJob),1200);
+  gmaPoll(gmaJob);
+}
+
+async function gmaStop(){ if(gmaJob){ document.getElementById('gmaStopBtn').disabled=true; await fetch('/api/stop/'+gmaJob,{method:'POST'}); } }
+
+async function gmaPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gmaStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching suggestions… '+got+' found';
+  } else {
+    clearInterval(gmaTimer); gmaSetRunning(false);
+    document.getElementById('gmaBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' suggestions';
+      gmaShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gmaShowResults(job_id, note){
+  _gmaRows=await (await fetch('/api/gmaps-autocomplete-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gmaResbar');
+  if(!_gmaRows.length){
+    document.getElementById('gmaResults').innerHTML='';
+    document.getElementById('gmaCount').innerHTML='<span class="empty">'+esc(note||'No suggestions.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('gmaDownload').style.display='none';
+    document.getElementById('gmaDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  gmaRender();
+  document.getElementById('gmaCount').textContent='Showing '+_gmaRows.length+' suggestion'+(_gmaRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  gmaUpdateDownload();
+}
+
+function gmaRender(){
+  // group suggestions by query
+  const groups={};
+  _gmaRows.forEach(r=>{ (groups[r.query]=groups[r.query]||[]).push(r); });
+  let h='';
+  Object.keys(groups).forEach(q=>{
+    const items=groups[q].sort((a,b)=>(a.position||0)-(b.position||0));
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-size:14px;font-weight:700;color:#202124;margin-bottom:8px">🔍 ${esc(q)}</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        ${items.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid #f1f3f4;font-size:14px;color:#3c4043">
+          <span style="color:#9aa0a6;font-size:12px;min-width:20px">${esc(String(r.position||''))}</span>
+          <span style="color:#5f6368">📍</span><span>${esc(r.suggestion||'')}</span></div>`).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('gmaResults').innerHTML=h;
+}
+
+function gmaFileName(){ const q=(_gmaRows[0]&&_gmaRows[0].query||'autocomplete'); return 'gmaps-autocomplete_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+function gmaUpdateDownload(){
+  const dl=document.getElementById('gmaDownload'), xl=document.getElementById('gmaDownloadXlsx');
+  if(!_gmaRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gmaDlUrl) URL.revokeObjectURL(_gmaDlUrl);
+  const rows=_gmaRows.map(r=>{ const o={}; for(const c of GMA_COLUMNS) o[c]=r[c]??''; return o; });
+  _gmaDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gmaDlUrl; dl.setAttribute('download', gmaFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gmaDownloadExcel(){
+  if(!_gmaRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gmaRows.map(r=>{ const o={}; for(const c of GMA_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GMA_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Autocomplete');
+  XLSX.writeFile(wb, gmaFileName()+'.xlsx');
+}
+/* ---------- end Google Maps Autocomplete ---------- */
+
+/* ---------- Google Search Autocomplete ---------- */
+const GSA_COLUMNS = ["query","suggestion","position"];
+let gsaTimer=null, gsaJob=null, _gsaRows=[], _gsaDlUrl=null;
+
+function gsaInit(){
+  const l=document.getElementById('gsaLang');
+  if(l && !l.options.length && typeof GN_LANGUAGES!=='undefined'){ l.innerHTML=GN_LANGUAGES.map(([v,n])=>`<option value="${v}"${v==='en'?' selected':''}>${n} (${v})</option>`).join(''); }
+  const c=document.getElementById('gsaRegion');
+  if(c && !c.options.length && typeof GN_COUNTRIES!=='undefined'){ c.innerHTML=GN_COUNTRIES.map(([v,n])=>`<option value="${v}"${v==='us'?' selected':''}>${n} (${v.toUpperCase()})</option>`).join(''); }
+}
+
+async function gsaFilePicked(){
+  const f=document.getElementById('gsaFile').files[0];
+  const nameEl=document.getElementById('gsaFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gsaInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gsaSetRunning(on){
+  document.getElementById('gsaStartBtn').disabled=on;
+  document.getElementById('gsaStopBtn').disabled=!on;
+  ['gsaInput','gsaLang','gsaRegion'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gsaStart(){
+  const typed=document.getElementById('gsaInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a query (one per line), or upload a file.'); return; }
+  const body={ queries, language:document.getElementById('gsaLang').value, region:document.getElementById('gsaRegion').value };
+  let r;
+  try{ r=await fetch('/api/gsearch-autocomplete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gsaJob=(await r.json()).job_id;
+  _gsaRows=[];
+  document.getElementById('gsaResbar').style.display='none';
+  document.getElementById('gsaResults').innerHTML='';
+  document.getElementById('gsaCount').textContent='';
+  document.getElementById('gsaBar').style.display='block';
+  document.querySelector('#gsaBar>i').style.width='30%';
+  gsaSetRunning(true);
+  if(gsaTimer) clearInterval(gsaTimer);
+  gsaTimer=setInterval(()=>gsaPoll(gsaJob),1200);
+  gsaPoll(gsaJob);
+}
+
+async function gsaStop(){ if(gsaJob){ document.getElementById('gsaStopBtn').disabled=true; await fetch('/api/stop/'+gsaJob,{method:'POST'}); } }
+
+async function gsaPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gsaStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching suggestions… '+got+' found';
+  } else {
+    clearInterval(gsaTimer); gsaSetRunning(false);
+    document.getElementById('gsaBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' suggestions';
+      gsaShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gsaShowResults(job_id, note){
+  _gsaRows=await (await fetch('/api/gsearch-autocomplete-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gsaResbar');
+  if(!_gsaRows.length){
+    document.getElementById('gsaResults').innerHTML='';
+    document.getElementById('gsaCount').innerHTML='<span class="empty">'+esc(note||'No suggestions.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('gsaDownload').style.display='none';
+    document.getElementById('gsaDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  gsaRender();
+  document.getElementById('gsaCount').textContent='Showing '+_gsaRows.length+' suggestion'+(_gsaRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  gsaUpdateDownload();
+}
+
+function gsaRender(){
+  const groups={};
+  _gsaRows.forEach(r=>{ (groups[r.query]=groups[r.query]||[]).push(r); });
+  let h='';
+  Object.keys(groups).forEach(q=>{
+    const items=groups[q].sort((a,b)=>(a.position||0)-(b.position||0));
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-size:14px;font-weight:700;color:#202124;margin-bottom:8px">🔍 ${esc(q)}</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        ${items.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid #f1f3f4;font-size:14px;color:#3c4043">
+          <span style="color:#9aa0a6;font-size:12px;min-width:20px">${esc(String(r.position||''))}</span>
+          <span style="color:#9aa0a6">🔎</span><span>${esc(r.suggestion||'')}</span></div>`).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('gsaResults').innerHTML=h;
+}
+
+function gsaFileName(){ const q=(_gsaRows[0]&&_gsaRows[0].query||'autocomplete'); return 'gsearch-autocomplete_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+function gsaUpdateDownload(){
+  const dl=document.getElementById('gsaDownload'), xl=document.getElementById('gsaDownloadXlsx');
+  if(!_gsaRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gsaDlUrl) URL.revokeObjectURL(_gsaDlUrl);
+  const rows=_gsaRows.map(r=>{ const o={}; for(const c of GSA_COLUMNS) o[c]=r[c]??''; return o; });
+  _gsaDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gsaDlUrl; dl.setAttribute('download', gsaFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gsaDownloadExcel(){
+  if(!_gsaRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gsaRows.map(r=>{ const o={}; for(const c of GSA_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GSA_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Autocomplete');
+  XLSX.writeFile(wb, gsaFileName()+'.xlsx');
+}
+/* ---------- end Google Search Autocomplete ---------- */
+
+/* ---------- Google Play Reviews Monitoring ---------- */
+let gplmTimer=null, gplmJob=null, _gplmRows=[], _gplmDlUrl=null, _gplmThreshold=3, _gplmEmailed='';
+
+async function gplmFilePicked(){
+  const f=document.getElementById('gplmFile').files[0];
+  const nameEl=document.getElementById('gplmFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('gplmInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste IDs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gplmSetRunning(on){
+  document.getElementById('gplmStartBtn').disabled=on;
+  document.getElementById('gplmStopBtn').disabled=!on;
+  ['gplmInput','gplmFreq','gplmEmail','gplmThreshold'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gplmStart(){
+  const typed=document.getElementById('gplmInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter an app id (com.foo.bar) or Play Store URL (one per line).'); return; }
+  const email=document.getElementById('gplmEmail').value.trim();
+  if(!email){ alert('Enter an email for the monitoring report.'); return; }
+  _gplmThreshold=parseInt(document.getElementById('gplmThreshold').value,10)||3;
+  let r;
+  try{ r=await fetch('/api/gplay-monitoring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, frequency:document.getElementById('gplmFreq').value, email, threshold:_gplmThreshold, sort:'relevant', language:'en'})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gplmJob=(await r.json()).job_id;
+  _gplmRows=[];
+  document.getElementById('gplmBanner').innerHTML='';
+  document.getElementById('gplmResbar').style.display='none';
+  document.getElementById('gplmResults').innerHTML='';
+  document.getElementById('gplmCount').textContent='';
+  document.getElementById('gplmBar').style.display='block';
+  document.querySelector('#gplmBar>i').style.width='30%';
+  gplmSetRunning(true);
+  if(gplmTimer) clearInterval(gplmTimer);
+  gplmTimer=setInterval(()=>gplmPoll(gplmJob),1500);
+  gplmPoll(gplmJob);
+}
+
+async function gplmStop(){ if(gplmJob){ document.getElementById('gplmStopBtn').disabled=true; await fetch('/api/stop/'+gplmJob,{method:'POST'}); } }
+
+async function gplmPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gplmStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Running first scan… '+got+' reviews';
+  } else {
+    clearInterval(gplmTimer); gplmSetRunning(false);
+    document.getElementById('gplmBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ First scan done':'⏹ Stopped')+' — '+got+' reviews';
+      _gplmEmailed=s.emailed||'';
+      gplmShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown'); gplmBanner(0,0);
+    }
+  }
+}
+
+// Real email-send result line (from the monitor's `emailed` string on the job doc).
+function _monEmailLine(emailed, email){
+  const e=(emailed||'').trim();
+  if(!e || e.startsWith('skipped')) return '';
+  if(e.startsWith('sent')) return ` 📧 Email report sent to <b>${esc(email)}</b>.`;
+  return ` ✉️ Email not sent — ${esc(e.replace(/^not sent —\s*/,''))}.`;
+}
+
+function gplmBanner(total, negatives){
+  const freq=document.getElementById('gplmFreq').selectedOptions[0].text;
+  const email=document.getElementById('gplmEmail').value.trim();
+  document.getElementById('gplmBanner').innerHTML=
+    `<div class="status done" style="margin-bottom:14px">✅ <b>Monitoring active</b> — ${esc(freq)}, alerts to <b>${esc(email)}</b>, negative if rating ≤ ${_gplmThreshold}.`+
+    (total?` This scan: <b style="color:#c0392b">${negatives}</b> negative of ${total} reviews.${_monEmailLine(_gplmEmailed,email)}`:` First scan returned no reviews — the free proxy was rate-limited this run. The monitor is saved and will automatically retry within ~10 minutes.`)+
+    `</div>`;
+}
+
+async function gplmShowResults(job_id){
+  _gplmRows=await (await fetch('/api/gplay-results/'+job_id+'?limit=5000')).json();
+  const negs=_gplmRows.filter(r=>(parseFloat(r.rating)||0)<=_gplmThreshold).length;
+  gplmBanner(_gplmRows.length, negs);
+  const resbar=document.getElementById('gplmResbar');
+  if(!_gplmRows.length){
+    document.getElementById('gplmResults').innerHTML='';
+    document.getElementById('gplmCount').innerHTML='<span class="empty">No reviews this scan. The monitor is saved; it retries on schedule.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gplmDownload').style.display='none';
+    document.getElementById('gplmDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  let h='';
+  _gplmRows.slice(0,60).forEach((r)=>{
+    const neg=(parseFloat(r.rating)||0)<=_gplmThreshold;
+    h+=`<div class="bbr-card"${neg?' style="border-left:4px solid #e74c3c"':''}>
+      <div class="bbr-name"><span class="ic">👤</span>${esc(r.author||'Anonymous')}${neg?' <span style="color:#c0392b;font-size:12px;font-weight:600">NEGATIVE</span>':''}</div>
+      <div class="bbr-date"><b>Date:</b> ${esc(String(r.date||''))}${r.app_version?(' · v'+esc(r.app_version)):''}</div>
+      <div class="bbr-stars">${gplStars(r.rating)}</div>
+      <div class="bbr-text">${esc(r.review||'')}</div>
+      ${r.reply?`<div class="bbr-resp"><b>Developer reply:</b> ${esc(r.reply)}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('gplmResults').innerHTML=h;
+  document.getElementById('gplmCount').textContent='Showing '+Math.min(60,_gplmRows.length)+' of '+_gplmRows.length+' reviews ('+negs+' negative · download for the full set).';
+  gplmUpdateDownload();
+}
+
+function gplmFileName(){ return 'gplay-monitoring_'+((_gplmRows[0]&&_gplmRows[0].app_id||'results').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function gplmUpdateDownload(){
+  const dl=document.getElementById('gplmDownload'), xl=document.getElementById('gplmDownloadXlsx');
+  if(!_gplmRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gplmDlUrl) URL.revokeObjectURL(_gplmDlUrl);
+  const rows=_gplmRows.map(r=>{ const o={}; for(const c of GPL_COLUMNS) o[c]=r[c]??''; return o; });
+  _gplmDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gplmDlUrl; dl.setAttribute('download', gplmFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gplmDownloadExcel(){
+  if(!_gplmRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gplmRows.map(r=>{ const o={}; for(const c of GPL_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GPL_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Monitoring');
+  XLSX.writeFile(wb, gplmFileName()+'.xlsx');
+}
+/* ---------- end Google Play Reviews Monitoring ---------- */
 
 /* ---------- Google Maps Traffic Scraper ---------- */
 const GMT_COLUMNS = ["start","stop","travel_mode","sample_time","duration","distance"];
@@ -8162,7 +10175,7 @@ function tprDownloadExcel(){
 /* ---------- Trustpilot Reviews Monitoring ---------- */
 const TMO_COLUMNS = ["query","business","business_rating","business_reviews","reviewer","rating","date","title","review","reply","language"];
 const TMO_PAGE_SIZE = 15;
-let tmoTimer=null, tmoJob=null, _tmoRows=[], _tmoDlUrl=null, _tmoPage=0, _tmoThreshold=3, _tmoInfo=null;
+let tmoTimer=null, tmoJob=null, _tmoRows=[], _tmoDlUrl=null, _tmoPage=0, _tmoThreshold=3, _tmoInfo=null, _tmoEmailed='';
 
 async function tmoFilePicked(){
   const f=document.getElementById('tmoFile').files[0];
@@ -8232,6 +10245,7 @@ async function tmoPoll(job_id){
     if(s.status==='done'||s.status==='stopped'){
       el.className='status '+s.status;
       el.textContent=(s.status==='done'?'✅ First scan done':'⏹ Stopped')+' — '+got+' reviews';
+      _tmoEmailed=s.emailed||'';
       tmoShowResults(job_id);
     } else if(s.status==='error'){
       el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
@@ -8245,7 +10259,7 @@ function tmoBanner(total, negatives){
   const email=document.getElementById('tmoEmail').value.trim();
   document.getElementById('tmoBanner').innerHTML=
     `<div class="status done" style="margin-bottom:14px">✅ <b>Monitoring active</b> — ${esc(freq)}, alerts to <b>${esc(email)}</b>, negative if rating ≤ ${_tmoThreshold}.`+
-    (total?` This scan: <b style="color:#c0392b">${negatives}</b> negative of ${total} reviews. An email report was attempted (needs SMTP configured in .env).`:` First scan returned no reviews (Trustpilot blocks free proxies — set a paid residential PROXY_URL). The monitor is saved and will retry on schedule.`)+
+    (total?` This scan: <b style="color:#c0392b">${negatives}</b> negative of ${total} reviews.${_monEmailLine(_tmoEmailed,email)}`:` First scan returned no reviews (Trustpilot blocks free proxies — set a paid residential PROXY_URL). The monitor is saved and will retry on schedule.`)+
     `</div>`;
 }
 
@@ -8333,7 +10347,7 @@ function tmoDownloadExcel(){
 /* ---------- Google Maps Reviews Monitoring ---------- */
 const GMO_COLUMNS = ["query","place_name","place_id","reviewer","rating","date","review","owner_response","likes","language"];
 const GMO_PAGE_SIZE = 15;
-let gmoTimer=null, gmoJob=null, _gmoRows=[], _gmoDlUrl=null, _gmoPage=0, _gmoThreshold=3, _gmoInfo=null;
+let gmoTimer=null, gmoJob=null, _gmoRows=[], _gmoDlUrl=null, _gmoPage=0, _gmoThreshold=3, _gmoInfo=null, _gmoEmailed='';
 
 async function gmoFilePicked(){
   const f=document.getElementById('gmoFile').files[0];
@@ -8403,6 +10417,7 @@ async function gmoPoll(job_id){
     if(s.status==='done'||s.status==='stopped'){
       el.className='status '+s.status;
       el.textContent=(s.status==='done'?'✅ First scan done':'⏹ Stopped')+' — '+got+' reviews';
+      _gmoEmailed=s.emailed||'';
       gmoShowResults(job_id);
     } else if(s.status==='error'){
       el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
@@ -8416,7 +10431,7 @@ function gmoBanner(total, negatives, err){
   const email=document.getElementById('gmoEmail').value.trim();
   document.getElementById('gmoBanner').innerHTML=
     `<div class="status done" style="margin-bottom:14px">✅ <b>Monitoring active</b> — ${esc(freq)}, alerts to <b>${esc(email)}</b>, negative if rating ≤ ${_gmoThreshold}.`+
-    (total?` This scan: <b style="color:#c0392b">${negatives}</b> negative of ${total} reviews. An email report was attempted (needs SMTP configured in .env).`:` First scan returned no reviews${err?(' — '+esc(err)):' (set GOOGLE_MAPS_API_KEY in .env)'}. The monitor is saved and will retry on schedule.`)+
+    (total?` This scan: <b style="color:#c0392b">${negatives}</b> negative of ${total} reviews.${_monEmailLine(_gmoEmailed,email)}`:` First scan returned no reviews${err?(' — '+esc(err)):' (set GOOGLE_MAPS_API_KEY in .env)'}. The monitor is saved and will retry on schedule.`)+
     `</div>`;
 }
 
