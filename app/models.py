@@ -118,6 +118,76 @@ class GCareersRequest(BaseModel):
     limit: Optional[int] = Field(None, ge=0, le=1000, examples=[10])  # jobs/query; None/0 = all
 
 
+class GSJobsRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["Python developer California"]])
+    pages: int = Field(1, ge=1, le=20, examples=[1])           # result pages/query (~10 jobs/page)
+    language: str = Field("en", examples=["en"])
+    region: str = Field("us", examples=["us"])
+
+
+class GShopRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["Iphone 13"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # products/query; None/0 = all
+    language: str = Field("en", examples=["en"])
+    region: str = Field("us", examples=["us"])
+
+
+class GMapsAutocompleteRequest(BaseModel):
+    # each line: a Google Maps search query (e.g. "restaurant")
+    queries: list[str] = Field(..., min_length=1, examples=[["central", "restaurant", "bar"]])
+    coordinates: str = Field("", examples=["@23.4933124,53.9623381,11.42z"])  # optional location bias
+    language: str = Field("en", examples=["en"])
+    region: str = Field("us", examples=["us"])
+
+
+class GSearchAutocompleteRequest(BaseModel):
+    # each line: a Google Search query (e.g. "data scraping")
+    queries: list[str] = Field(..., min_length=1, examples=[["outscraper", "data scraping"]])
+    language: str = Field("en", examples=["en"])
+    region: str = Field("us", examples=["us"])
+
+
+class GFlightsRequest(BaseModel):
+    # each line: an "ORIGIN,DESTINATION" IATA pair (e.g. "EWR,LAX")
+    queries: list[str] = Field(..., min_length=1, examples=[["EWR,LAX"]])
+    departure_date: str = Field("", examples=["2026-07-01"])   # YYYY-MM-DD; "" = Google default
+    return_date: str = Field("", examples=[""])                # "" = one-way
+    limit: Optional[int] = Field(10, ge=0, le=500, examples=[10])  # flights/query; None/0 = all
+    language: str = Field("en", examples=["en"])
+    region: str = Field("us", examples=["us"])
+
+
+class LinkedInProfilesRequest(BaseModel):
+    # each line: a linkedin.com/in/<slug> URL or a bare profile slug/id
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.linkedin.com/in/williamhgates"]])
+
+
+class GShopReviewsRequest(BaseModel):
+    # each line: a Google Shopping product link or the long numeric product id
+    queries: list[str] = Field(..., min_length=1, examples=[["7016166685587850095"]])
+    limit: Optional[int] = Field(100, ge=0, le=5000, examples=[100])  # reviews/product; None/0 = all
+    language: str = Field("en", examples=["en"])
+    region: str = Field("us", examples=["us"])
+
+
+class GPlayRequest(BaseModel):
+    # each line: a Play Store app id (com.foo.bar) or a /store/apps/details?id=... URL
+    queries: list[str] = Field(..., min_length=1, examples=[["com.skype.raider"]])
+    limit: Optional[int] = Field(120, ge=0, le=10000, examples=[120])  # reviews/app; None/0 = all
+    sort: str = Field("relevant", examples=["relevant"])  # relevant|newest|rating
+    language: str = Field("en", examples=["en"])
+
+
+class GPlayMonitorRequest(BaseModel):
+    queries: list[str] = Field(..., min_length=1, examples=[["com.spotify.music"]])
+    frequency: str = Field("weekly", examples=["weekly"])  # daily|weekly|3weeks|monthly|3months
+    email: str = Field("", examples=["info@sensussoft.com"])
+    threshold: int = Field(3, ge=1, le=5, examples=[3])  # rating <= threshold counts as negative
+    sort: str = Field("relevant", examples=["relevant"])  # relevant|newest|rating
+    language: str = Field("en", examples=["en"])
+    limit: Optional[int] = Field(150, ge=1, le=5000, examples=[150])  # reviews/app per cycle
+
+
 class GMapsDirectoryRequest(BaseModel):
     # query: "category, city" / a Maps search URL / a place_id (ChIJ..) / a feature id (0x..:0x..)
     queries: list[str] = Field(..., min_length=1,
@@ -161,6 +231,13 @@ class GlassdoorJobsRequest(BaseModel):
     # one line each: a glassdoor.com job-search URL (SRCH...htm).
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.glassdoor.com/Job/los-angeles-ca-us-python-jobs-SRCH_IL.0,17_IC1146821_KO18,24.htm"]])
     limit: Optional[int] = Field(None, ge=1, le=1000, examples=[100])  # jobs/query; None = all
+
+
+class GlassdoorCompaniesRequest(BaseModel):
+    # one line each: a company name (e.g. "google") or a Glassdoor search/explore URL
+    queries: list[str] = Field(..., min_length=1, examples=[["google", "microsoft"]])
+    limit: Optional[int] = Field(100, ge=0, le=1000, examples=[100])  # companies/query; None/0 = all
+    domain: str = Field("glassdoor.com", examples=["glassdoor.com"])  # Glassdoor country site
 
 
 class GlassdoorReviewsRequest(BaseModel):

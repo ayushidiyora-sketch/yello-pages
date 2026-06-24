@@ -16,10 +16,16 @@ FREQ_DAYS = {"daily": 1, "weekly": 7, "3weeks": 21, "monthly": 30, "3months": 90
 FREQ_LABEL = {"daily": "once a day", "weekly": "once a week", "3weeks": "once every 3 weeks",
               "monthly": "once a month", "3months": "once every 3 months"}
 
+# A scan that returns 0 rows is usually a transient rate-limit (esp. Google Play on the free proxy
+# pool), not "no reviews". Retry it soon (a few times) instead of waiting the full frequency.
+RETRY_MINUTES = 10
+MAX_EMPTY_RETRIES = 3
+
 # per-kind wiring: human label + which field carries the business/place name in a scraped row.
 _KIND = {
     "trustpilot": {"label": "Trustpilot", "name_field": "business"},
     "gmaps": {"label": "Google Maps", "name_field": "place_name"},
+    "gplay": {"label": "Google Play", "name_field": "app_id"},
 }
 
 
@@ -65,6 +71,10 @@ async def _scrape(kind, queries, limit, language, sort) -> list[dict]:
         from . import gmaps_reviews
         for q in queries:
             rows += await gmaps_reviews.search(q, sort, limit, language)
+    elif kind == "gplay":
+        from . import gplay
+        for q in queries:
+            rows += await gplay.search(q, limit, sort, language)
     else:
         from . import trustpilot_reviews
         for q in queries:
@@ -75,14 +85,15 @@ async def _scrape(kind, queries, limit, language, sort) -> list[dict]:
 async def run_monitor(mon: dict, job_id: str | None = None) -> dict:
     """One monitoring cycle: scrape → store → email → update the monitor doc."""
     from .db import jobs, monitors
-    from .db import trustpilot_reviews as tr_coll, gmaps_reviews as gm_coll
+    from .db import (trustpilot_reviews as tr_coll, gmaps_reviews as gm_coll,
+                     gplay_results as gp_coll)
     kind = mon.get("kind", "trustpilot")
     info = _KIND.get(kind, _KIND["trustpilot"])
-    coll = gm_coll if kind == "gmaps" else tr_coll
+    coll = {"gmaps": gm_coll, "gplay": gp_coll}.get(kind, tr_coll)
     mid = mon["monitor_id"]
     queries = mon["queries"]
-    limit = mon.get("limit") or (100 if kind == "gmaps" else 200)
-    language = mon.get("language", "en" if kind == "gmaps" else "all")
+    limit = mon.get("limit") or {"gmaps": 100, "gplay": 150}.get(kind, 200)
+    language = mon.get("language", "all" if kind == "trustpilot" else "en")
     sort = mon.get("sort", "newest")
     threshold = mon.get("threshold", 3)
     email = mon.get("email")
@@ -107,10 +118,20 @@ async def run_monitor(mon: dict, job_id: str | None = None) -> dict:
                                           _report_html(info["label"], business, freq, threshold,
                                                        len(rows), negatives))
             emailed = f"sent to {email}" if ok else f"not sent — {detail}"
+        # Empty scan = likely a transient rate-limit → retry in ~10 min (capped), not the full cycle.
+        if rows:
+            next_run, empty_retries = _next_run(freq, now), 0
+        else:
+            empty_retries = mon.get("empty_retries") or 0
+            if empty_retries < MAX_EMPTY_RETRIES:
+                next_run, empty_retries = now + timedelta(minutes=RETRY_MINUTES), empty_retries + 1
+            else:
+                next_run, empty_retries = _next_run(freq, now), 0   # give up, resume normal schedule
         await jobs.update_one({"job_id": job_id}, {"$set": {
-            "status": "done", "total_scraped": len(rows), "finished_at": datetime.utcnow()}})
+            "status": "done", "total_scraped": len(rows), "emailed": emailed,
+            "negatives": len(negatives), "finished_at": datetime.utcnow()}})
         await monitors.update_one({"monitor_id": mid}, {"$set": {
-            "last_run": now, "next_run": _next_run(freq, now), "last_job_id": job_id,
+            "last_run": now, "next_run": next_run, "last_job_id": job_id, "empty_retries": empty_retries,
             "last_total": len(rows), "last_negatives": len(negatives), "last_emailed": emailed,
             "last_error": None}})
         return {"total": len(rows), "negatives": len(negatives), "emailed": emailed}
