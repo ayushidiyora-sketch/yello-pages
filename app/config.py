@@ -49,6 +49,13 @@ class Settings(BaseSettings):
     # (best-effort, low fill). Adds up to 2 extra fetches per site; set false to skip.
     ENRICH_TEAM: bool = True
 
+    # Resend (https://resend.com) — simplest email path for the monitoring reports: just an API key,
+    # no SMTP host/port. When RESEND_API_KEY is set it takes priority over SMTP. RESEND_FROM must be
+    # a sender on a domain you've verified in Resend; the shared sandbox "onboarding@resend.dev" works
+    # with no verification but can only deliver to your own Resend account email.
+    RESEND_API_KEY: str = ""
+    RESEND_FROM: str = "Live Scraper <onboarding@resend.dev>"
+
     # SMTP for the Trustpilot Reviews Monitoring email reports. Empty SMTP_HOST = email disabled
     # (the monitor still scrapes and records its state; it just skips sending).
     SMTP_HOST: str = ""

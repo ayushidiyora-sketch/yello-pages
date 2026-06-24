@@ -13,6 +13,7 @@ gresults = db["gresults"]      # one doc per Google/DDG search result row
 bbbresults = db["bbbresults"]  # one doc per BBB business result row
 g2reviews = db["g2reviews"]    # one doc per scraped G2 product review
 gjobs = db["gjobs"]            # one doc per scraped Glassdoor job
+gcompanies = db["gcompanies"]  # one doc per Glassdoor company (Company Search)
 gdreviews = db["gdreviews"]    # one doc per scraped Glassdoor company review
 walmart_products = db["walmart_products"]  # one doc per scraped Walmart product
 walmart_reviews = db["walmart_reviews"]    # one doc per scraped Walmart product review
@@ -35,6 +36,14 @@ gmaps_reviews = db["gmaps_reviews"]  # one doc per Google Maps place review
 gnews_results = db["gnews_results"]  # one doc per Google News article (Search News Scraper)
 gimages_results = db["gimages_results"]  # one doc per image result (Search Images Scraper)
 gvideos_results = db["gvideos_results"]  # one doc per video result (Search Videos Scraper)
+gsjobs_results = db["gsjobs_results"]  # one doc per job listing (Search Jobs Scraper)
+gshop_results = db["gshop_results"]  # one doc per product (Search Shopping Scraper)
+gsreviews_results = db["gsreviews_results"]  # one doc per product review (Shopping Reviews Scraper)
+linkedin_profiles = db["linkedin_profiles"]  # one doc per LinkedIn profile (Profiles Scraper)
+gflights_results = db["gflights_results"]  # one doc per flight (Google Search Flights Scraper)
+gmaps_autocomplete = db["gmaps_autocomplete"]  # one doc per suggestion (Maps Autocomplete)
+gsearch_autocomplete = db["gsearch_autocomplete"]  # one doc per suggestion (Search Autocomplete)
+gplay_results = db["gplay_results"]  # one doc per Google Play app review (Play Reviews Scraper)
 gmaps_contrib_reviews = db["gmaps_contrib_reviews"]  # one doc per contributor's review (Contributor Reviews)
 gmaps_photos = db["gmaps_photos"]  # one doc per place photo URL (Google Maps Photos Scraper)
 gmaps_traffic = db["gmaps_traffic"]  # one doc per route sample (Google Maps Traffic Scraper)
@@ -61,6 +70,7 @@ async def ensure_indexes():
     await bbbresults.create_index("job_id")
     await g2reviews.create_index("job_id")
     await gjobs.create_index("job_id")
+    await gcompanies.create_index("job_id")
     await gdreviews.create_index("job_id")
     await walmart_products.create_index("job_id")
     await walmart_reviews.create_index("job_id")
@@ -83,6 +93,14 @@ async def ensure_indexes():
     await gnews_results.create_index("job_id")
     await gimages_results.create_index("job_id")
     await gvideos_results.create_index("job_id")
+    await gsjobs_results.create_index("job_id")
+    await gshop_results.create_index("job_id")
+    await gsreviews_results.create_index("job_id")
+    await linkedin_profiles.create_index("job_id")
+    await gflights_results.create_index("job_id")
+    await gmaps_autocomplete.create_index("job_id")
+    await gsearch_autocomplete.create_index("job_id")
+    await gplay_results.create_index("job_id")
     await gmaps_contrib_reviews.create_index("job_id")
     await gmaps_photos.create_index("job_id")
     await gmaps_traffic.create_index("job_id")
