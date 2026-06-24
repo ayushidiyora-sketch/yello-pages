@@ -42,6 +42,8 @@ gmaps_directory = db["gmaps_directory"]  # one doc per place (Google Maps Direct
 gevents_results = db["gevents_results"]  # one doc per event result (Google Search Events Scraper)
 gcareers_results = db["gcareers_results"]  # one doc per Google Careers job (Google Search Careers)
 gtrends_results = db["gtrends_results"]  # one doc per region/term interest value (Google Trends)
+linkedin_companies_results = db["linkedin_companies_results"]  # one doc per LinkedIn company
+linkedin_posts_results = db["linkedin_posts_results"]  # one doc per LinkedIn company post
 
 
 async def ensure_indexes():
@@ -93,3 +95,5 @@ async def ensure_indexes():
     await gevents_results.create_index("job_id")
     await gcareers_results.create_index("job_id")
     await gtrends_results.create_index("job_id")
+    await linkedin_companies_results.create_index("job_id")
+    await linkedin_posts_results.create_index("job_id")

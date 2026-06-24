@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     # with the Places API (New) enabled + billing. Empty = the scraper returns 0 with a setup note.
     GOOGLE_MAPS_API_KEY: str = ""
 
+    # LinkedIn Posts Scraper: company posts sit behind LinkedIn's login wall (no public source), so
+    # they're read through LinkedIn's authenticated voyager API. Set LINKEDIN_COOKIE to your account's
+    # `li_at` cookie value (best paired with a residential PROXY_URL). Empty = the scraper returns 0
+    # with a clear "login required" note. The real IP is never used for the fetch.
+    LINKEDIN_COOKIE: str = ""
+
     MAX_PAGES: int = 50
     MIN_DELAY: float = 1.0
     MAX_DELAY: float = 3.0

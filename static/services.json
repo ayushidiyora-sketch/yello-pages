@@ -110,7 +110,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_companies"
  },
  {
   "no": "12",
@@ -130,7 +131,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_posts"
  },
  {
   "no": "14",

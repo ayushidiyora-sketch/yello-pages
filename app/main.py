@@ -14,7 +14,8 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  gmaps_results, gmaps_domain_results, gmaps_reviews, gnews_results,
                  gmaps_contrib_reviews, gmaps_photos, gimages_results, gmaps_traffic,
                  gmaps_directory, gvideos_results, gevents_results, gcareers_results,
-                 gtrends_results, ensure_indexes)
+                 gtrends_results, linkedin_companies_results, linkedin_posts_results,
+                 ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
@@ -25,7 +26,8 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      GoogleMapsRequest, GoogleMapsDomainsRequest, GMapsReviewsRequest,
                      GMapsMonitorRequest, GNewsRequest, GMapsContribRequest, GMapsPhotosRequest,
                      GImagesRequest, GMapsTrafficRequest, GMapsDirectoryRequest, GVideosRequest,
-                     GEventsRequest, GCareersRequest, GTrendsRequest)
+                     GEventsRequest, GCareersRequest, GTrendsRequest, LinkedInCompaniesRequest,
+                     LinkedInPostsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -35,7 +37,8 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                monitor, storage, expedia_reviews as expedia_reviews_mod, airbnb, gmaps,
                gmaps_reviews as gmaps_reviews_mod, gnews, gmaps_contrib,
                gmaps_photos as gmaps_photos_mod, gimages, gmaps_traffic as gmaps_traffic_mod,
-               gmaps_directory as gmaps_directory_mod, gvideos, gevents, gcareers, gtrends)
+               gmaps_directory as gmaps_directory_mod, gvideos, gevents, gcareers, gtrends,
+               linkedin_companies, linkedin_posts)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -103,6 +106,16 @@ async def _gcareers_rows(job_id):
 async def _gtrends_rows(job_id):
     rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, gtrends.GTRENDS_COLUMNS
+
+
+async def _linkedin_companies_rows(job_id):
+    rows = [d async for d in linkedin_companies_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, linkedin_companies.LINKEDIN_COMPANY_COLUMNS
+
+
+async def _linkedin_posts_rows(job_id):
+    rows = [d async for d in linkedin_posts_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, linkedin_posts.LINKEDIN_POSTS_COLUMNS
 
 
 async def _gmaps_traffic_rows(job_id):
@@ -1166,6 +1179,55 @@ async def gtrends_start(req: GTrendsRequest):
 @app.get("/api/gtrends-results/{job_id}")
 async def gtrends_results_get(job_id: str, limit: int = 5000):
     rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/linkedin-companies")
+async def linkedin_companies_start(req: LinkedInCompaniesRequest):
+    """LinkedIn Companies Scraper — company details from linkedin.com/company pages (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "linkedin_companies", "queries": queries,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        linkedin_companies.run_job(job_id, queries),
+        "linkedin_companies", job_id, _linkedin_companies_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/linkedin-companies-results/{job_id}")
+async def linkedin_companies_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in linkedin_companies_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/linkedin-posts")
+async def linkedin_posts_start(req: LinkedInPostsRequest):
+    """LinkedIn Posts Scraper — recent posts from a company profile (auth + proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "linkedin_posts", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        linkedin_posts.run_job(job_id, queries, lim),
+        "linkedin_posts", job_id, _linkedin_posts_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/linkedin-posts-results/{job_id}")
+async def linkedin_posts_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in linkedin_posts_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

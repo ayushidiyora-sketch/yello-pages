@@ -90,6 +90,19 @@ class GEventsRequest(BaseModel):
     language: str = Field("en", examples=["en"])
 
 
+class LinkedInPostsRequest(BaseModel):
+    # one line each: a linkedin.com/company URL, a bare company slug, or a numeric company id.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["outscraper", "https://www.linkedin.com/company/outscraper/"]])
+    limit: Optional[int] = Field(100, ge=0, le=1000, examples=[100])  # posts/query; None/0 = all
+
+
+class LinkedInCompaniesRequest(BaseModel):
+    # one line each: a linkedin.com/company URL, a bare company slug, or a numeric company id.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["outscraper", "https://www.linkedin.com/company/outscraper/"]])
+
+
 class GTrendsRequest(BaseModel):
     # one line each: a query; use "term1 | term2" to compare terms.
     queries: list[str] = Field(..., min_length=1, examples=[["tesla | toyota"]])

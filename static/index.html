@@ -1069,6 +1069,81 @@
   <div id="gtPager"></div>
   </div><!-- /gtrendsView -->
 
+  <div id="linkedinCompaniesView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>URLs to company profiles, company IDs <span class="req">*</span></label>
+        <textarea id="lcInput" placeholder="outscraper&#10;https://www.linkedin.com/company/outscraper/"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="lcFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="lcFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('lcFile').click()">⬆ Upload file</button>
+          <span class="hint" id="lcFileName"></span>
+        </div>
+        <span class="hint">One company per line — a linkedin.com/company URL, a bare slug, or a numeric company id. Read from LinkedIn's public company page through the proxy pool (paid <code>PROXY_URL</code> if set, else the free pool); the real IP is never used.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="lcStartBtn" onclick="lcStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="lcStopBtn" onclick="lcStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="lcStatus"></div>
+  <div class="bar" id="lcBar"><i></i></div>
+
+  <div class="resbar" id="lcResbar" style="display:none">
+    <div class="count" id="lcCount"></div>
+    <div class="resbar-controls">
+      <a id="lcDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="lcDownloadXlsx" style="display:none" onclick="lcDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="lcResults"></div>
+  <div id="lcPager"></div>
+  </div><!-- /linkedinCompaniesView -->
+
+  <div id="linkedinPostsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>URLs to company profiles, company IDs <span class="req">*</span></label>
+        <textarea id="lpInput" placeholder="outscraper&#10;https://www.linkedin.com/company/outscraper/"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="lpFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="lpFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('lpFile').click()">⬆ Upload file</button>
+          <span class="hint" id="lpFileName"></span>
+        </div>
+        <span class="hint">One company per line — a linkedin.com/company URL, a bare slug, or a numeric company id. Posts are read via LinkedIn's authenticated API (set <code>LINKEDIN_COOKIE</code> = your li_at, best with a residential <code>PROXY_URL</code>); the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="lpLimit" type="number" min="1" value="100" placeholder="all">
+        <span class="hint">Number of posts to return. Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="lpStartBtn" onclick="lpStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="lpStopBtn" onclick="lpStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="lpStatus"></div>
+  <div class="bar" id="lpBar"><i></i></div>
+
+  <div class="resbar" id="lpResbar" style="display:none">
+    <div class="count" id="lpCount"></div>
+    <div class="resbar-controls">
+      <a id="lpDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="lpDownloadXlsx" style="display:none" onclick="lpDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="lpResults"></div>
+  <div id="lpPager"></div>
+  </div><!-- /linkedinPostsView -->
+
   <div id="gmapsTrafficView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -2947,7 +3022,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -3085,6 +3160,8 @@ function selectService(s, keep, fromHistory){
   document.getElementById('gcareersView').style.display = vt==='gcareers' ? '' : 'none';
   document.getElementById('gtrendsView').style.display = vt==='gtrends' ? '' : 'none';
   if(vt==='gtrends') gtInit();
+  document.getElementById('linkedinCompaniesView').style.display = vt==='linkedin_companies' ? '' : 'none';
+  document.getElementById('linkedinPostsView').style.display = vt==='linkedin_posts' ? '' : 'none';
   document.getElementById('catalogView').style.display = vt==='catalog' ? '' : 'none';
   if(vt==='catalog'){
     document.getElementById('catName').textContent = s.name;
@@ -3132,6 +3209,8 @@ function viewType(s){
   if(s.ui === 'gevents') return 'gevents';
   if(s.ui === 'gcareers') return 'gcareers';
   if(s.ui === 'gtrends') return 'gtrends';
+  if(s.ui === 'linkedin_companies') return 'linkedin_companies';
+  if(s.ui === 'linkedin_posts') return 'linkedin_posts';
   if(s.live) return 'yellowpages';
   return 'catalog';
 }
@@ -4908,6 +4987,320 @@ function gtDownloadExcel(){
   XLSX.writeFile(wb, gtFileName()+'.xlsx');
 }
 /* ---------- end Google Trends ---------- */
+
+/* ---------- LinkedIn Companies Scraper ---------- */
+const LC_COLUMNS = ["query","name","industry","description","website","headquarters","company_size","employees","company_type","founded","specialties","followers","slogan","logo","linkedin_url"];
+const LC_PAGE_SIZE = 24;
+let lcTimer=null, lcJob=null, _lcRows=[], _lcDlUrl=null, _lcPage=0;
+
+async function lcFilePicked(){
+  const f=document.getElementById('lcFile').files[0];
+  const nameEl=document.getElementById('lcFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('lcInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste links or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function lcSetRunning(on){
+  document.getElementById('lcStartBtn').disabled=on;
+  document.getElementById('lcStopBtn').disabled=!on;
+  document.getElementById('lcInput').disabled=on;
+}
+
+async function lcStart(){
+  const typed=document.getElementById('lcInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one company URL/slug/id (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  let r;
+  try{ r=await fetch('/api/linkedin-companies',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  lcJob=(await r.json()).job_id;
+  _lcRows=[]; _lcPage=0;
+  document.getElementById('lcResbar').style.display='none';
+  document.getElementById('lcResults').innerHTML='';
+  document.getElementById('lcPager').innerHTML='';
+  document.getElementById('lcCount').textContent='';
+  document.getElementById('lcBar').style.display='block';
+  document.querySelector('#lcBar>i').style.width='30%';
+  lcSetRunning(true);
+  if(lcTimer) clearInterval(lcTimer);
+  lcTimer=setInterval(()=>lcPoll(lcJob),1500);
+  lcPoll(lcJob);
+}
+
+async function lcStop(){ if(lcJob){ document.getElementById('lcStopBtn').disabled=true; await fetch('/api/stop/'+lcJob,{method:'POST'}); } }
+
+async function lcPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('lcStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching companies… '+got+' found';
+  } else {
+    clearInterval(lcTimer); lcSetRunning(false);
+    document.getElementById('lcBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' companies';
+      lcShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function lcShowResults(job_id){
+  _lcRows=await (await fetch('/api/linkedin-companies-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('lcResbar');
+  if(!_lcRows.length){
+    document.getElementById('lcResults').innerHTML='';
+    document.getElementById('lcCount').innerHTML='<span class="empty">No data — LinkedIn may have served an authwall (it rate-limits free/datacenter IPs). Set a paid residential PROXY_URL and try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('lcDownload').style.display='none';
+    document.getElementById('lcDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _lcPage=0;
+  lcRender();
+  document.getElementById('lcCount').textContent='Showing '+_lcRows.length+' companies ('+LC_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  lcUpdateDownload();
+}
+
+function lcRender(){
+  const start=_lcPage*LC_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _lcRows.slice(start, start+LC_PAGE_SIZE)){
+    const logo=esc(r.logo||'');
+    const img=logo?`<img src="${logo}" loading="lazy" style="width:64px;height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--line);background:#fff;flex:0 0 auto" onerror="this.style.display='none'">`:'';
+    const nameHtml=r.linkedin_url
+      ? `<a href="${esc(r.linkedin_url)}" target="_blank" rel="noopener" style="color:#1a0dab;text-decoration:none">${esc(r.name||'')}</a>`
+      : esc(r.name||'');
+    const sizeTxt=r.company_size?esc(r.company_size):((r.employees!==''&&r.employees!=null)?esc(r.employees)+' employees':'');
+    const line1=[r.industry, r.headquarters, r.company_type].filter(Boolean).map(esc).join(' · ');
+    const line2=[sizeTxt, r.founded?'Founded '+esc(r.founded):'', r.followers?esc(r.followers)+' followers':''].filter(Boolean).join(' · ');
+    h+=`<div style="display:flex;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      ${img}
+      <div style="min-width:0">
+        <div style="font-size:15px;font-weight:600;line-height:1.3">${nameHtml}</div>
+        ${line1?`<div style="font-size:13px;color:#70757a;margin-top:3px">${line1}</div>`:''}
+        ${line2?`<div style="font-size:13px;color:#70757a;margin-top:1px">${line2}</div>`:''}
+        ${r.website?`<div style="font-size:13px;margin-top:2px"><a href="${esc(r.website)}" target="_blank" rel="noopener" style="color:var(--yp);text-decoration:none">${esc(r.website)}</a></div>`:''}
+        ${r.description?`<div style="font-size:13px;color:#3c4043;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.description)}</div>`:''}
+        ${r.specialties?`<div style="font-size:12px;color:#70757a;margin-top:5px"><b>Specialties:</b> ${esc(r.specialties)}</div>`:''}
+      </div>
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('lcResults').innerHTML=h;
+  lcRenderPager(_lcRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function lcRenderPager(total){
+  const pg=document.getElementById('lcPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/LC_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_lcPage=page; lcRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_lcPage-1,{disabled:_lcPage===0}));
+  let s=Math.max(0,_lcPage-2), e=Math.min(pages-1,_lcPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_lcPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_lcPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_lcPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_lcPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_lcPage+1,{disabled:_lcPage>=pages-1}));
+}
+
+function lcFileName(){
+  const q=(document.getElementById('lcInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'linkedin-companies_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function lcUpdateDownload(){
+  const dl=document.getElementById('lcDownload'), xl=document.getElementById('lcDownloadXlsx');
+  if(!_lcRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_lcDlUrl) URL.revokeObjectURL(_lcDlUrl);
+  const rows=_lcRows.map(r=>{ const o={}; for(const c of LC_COLUMNS) o[c]=r[c]??''; return o; });
+  _lcDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_lcDlUrl; dl.setAttribute('download', lcFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function lcDownloadExcel(){
+  if(!_lcRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_lcRows.map(r=>{ const o={}; for(const c of LC_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:LC_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Companies');
+  XLSX.writeFile(wb, lcFileName()+'.xlsx');
+}
+/* ---------- end LinkedIn Companies ---------- */
+
+/* ---------- LinkedIn Posts Scraper ---------- */
+const LP_COLUMNS = ["query","author","text","posted","reactions","comments","reposts","post_url","post_urn"];
+const LP_PAGE_SIZE = 25;
+let lpTimer=null, lpJob=null, _lpRows=[], _lpDlUrl=null, _lpPage=0;
+
+async function lpFilePicked(){
+  const f=document.getElementById('lpFile').files[0];
+  const nameEl=document.getElementById('lpFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('lpInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste links or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function lpSetRunning(on){
+  document.getElementById('lpStartBtn').disabled=on;
+  document.getElementById('lpStopBtn').disabled=!on;
+  ['lpInput','lpLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function lpStart(){
+  const typed=document.getElementById('lpInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one company URL/slug/id (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('lpLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0) };
+  let r;
+  try{ r=await fetch('/api/linkedin-posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  lpJob=(await r.json()).job_id;
+  _lpRows=[]; _lpPage=0;
+  document.getElementById('lpResbar').style.display='none';
+  document.getElementById('lpResults').innerHTML='';
+  document.getElementById('lpPager').innerHTML='';
+  document.getElementById('lpCount').textContent='';
+  document.getElementById('lpBar').style.display='block';
+  document.querySelector('#lpBar>i').style.width='30%';
+  lpSetRunning(true);
+  if(lpTimer) clearInterval(lpTimer);
+  lpTimer=setInterval(()=>lpPoll(lpJob),1500);
+  lpPoll(lpJob);
+}
+
+async function lpStop(){ if(lpJob){ document.getElementById('lpStopBtn').disabled=true; await fetch('/api/stop/'+lpJob,{method:'POST'}); } }
+
+async function lpPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('lpStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching posts… '+got+' found';
+  } else {
+    clearInterval(lpTimer); lpSetRunning(false);
+    document.getElementById('lpBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' posts';
+      lpShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function lpShowResults(job_id){
+  _lpRows=await (await fetch('/api/linkedin-posts-results/'+job_id+'?limit=3000')).json();
+  const resbar=document.getElementById('lpResbar');
+  if(!_lpRows.length){
+    document.getElementById('lpResults').innerHTML='';
+    document.getElementById('lpCount').innerHTML='<span class="empty">No posts — LinkedIn posts need a logged-in session: set LINKEDIN_COOKIE (your li_at) in .env, ideally with a residential PROXY_URL.</span>';
+    resbar.style.display='flex';
+    document.getElementById('lpDownload').style.display='none';
+    document.getElementById('lpDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _lpPage=0;
+  lpRender();
+  document.getElementById('lpCount').textContent='Showing '+_lpRows.length+' posts ('+LP_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  lpUpdateDownload();
+}
+
+function lpRender(){
+  const start=_lpPage*LP_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _lpRows.slice(start, start+LP_PAGE_SIZE)){
+    const head=[r.author, r.posted].filter(Boolean).map(esc).join(' · ');
+    const stats=[r.reactions!==''&&r.reactions!=null?esc(r.reactions)+' reactions':'', r.comments!==''&&r.comments!=null?esc(r.comments)+' comments':'', r.reposts!==''&&r.reposts!=null?esc(r.reposts)+' reposts':''].filter(Boolean).join(' · ');
+    const link=r.post_url?`<a href="${esc(r.post_url)}" target="_blank" rel="noopener" style="color:var(--yp);text-decoration:none;font-size:12px">View post ↗</a>`:'';
+    h+=`<div style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      ${head?`<div style="font-size:13px;font-weight:600;color:#0f172a">${head}</div>`:''}
+      <div style="font-size:13px;color:#3c4043;margin-top:5px;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden">${esc(r.text||'')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px">
+        ${stats?`<div style="font-size:12px;color:#70757a">${stats}</div>`:'<span></span>'}
+        ${link}
+      </div>
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('lpResults').innerHTML=h;
+  lpRenderPager(_lpRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function lpRenderPager(total){
+  const pg=document.getElementById('lpPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/LP_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_lpPage=page; lpRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_lpPage-1,{disabled:_lpPage===0}));
+  let s=Math.max(0,_lpPage-2), e=Math.min(pages-1,_lpPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_lpPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_lpPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_lpPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_lpPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_lpPage+1,{disabled:_lpPage>=pages-1}));
+}
+
+function lpFileName(){
+  const q=(document.getElementById('lpInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'linkedin-posts_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function lpUpdateDownload(){
+  const dl=document.getElementById('lpDownload'), xl=document.getElementById('lpDownloadXlsx');
+  if(!_lpRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_lpDlUrl) URL.revokeObjectURL(_lpDlUrl);
+  const rows=_lpRows.map(r=>{ const o={}; for(const c of LP_COLUMNS) o[c]=r[c]??''; return o; });
+  _lpDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_lpDlUrl; dl.setAttribute('download', lpFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function lpDownloadExcel(){
+  if(!_lpRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_lpRows.map(r=>{ const o={}; for(const c of LP_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:LP_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Posts');
+  XLSX.writeFile(wb, lpFileName()+'.xlsx');
+}
+/* ---------- end LinkedIn Posts ---------- */
 
 /* ---------- Google Maps Traffic Scraper ---------- */
 const GMT_COLUMNS = ["start","stop","travel_mode","sample_time","duration","distance"];
