@@ -20,8 +20,8 @@ from bs4 import BeautifulSoup
 from .glassdoor_jobs import _get_text          # proxy fetch (paid PROXY_URL or free pool; never real IP)
 from .scraper import STOP_REQUESTS
 
-GLASSDOOR_COMPANY_COLUMNS = ["query", "company", "rating", "reviews", "industry", "size",
-                             "headquarters", "website", "company_url", "logo"]
+GLASSDOOR_COMPANY_COLUMNS = ["query", "company", "rating", "reviews", "jobs", "salaries",
+                             "industry", "size", "headquarters", "website", "company_url", "logo"]
 
 
 def _base(domain: str) -> str:
@@ -44,6 +44,50 @@ def _search_url(query: str, domain: str) -> str:
 # ---------------- parsing ----------------
 
 _EMP_TYPENAMES = ("employer", "employersearchresult", "companysearchresult")
+
+# A Glassdoor company-search row renders as visible text like:
+#   "Google 4.4 ★ 5.7K jobs 70.3K reviews 190.7K salaries"
+_CARD_RE = re.compile(
+    r"^(?P<name>.+?)\s+(?P<rating>[0-5](?:\.\d)?)\s*★"
+    r"(?:\s*(?P<jobs>[\d.,KM]+)\s*jobs)?"
+    r"(?:\s*(?P<reviews>[\d.,KM]+)\s*reviews)?"
+    r"(?:\s*(?P<salaries>[\d.,KM]+)\s*salaries)?")
+
+
+def _split_card(text: str) -> dict | None:
+    """Split a Glassdoor company-row string into structured fields (best-effort).
+    e.g. 'Amazon Lab126 3.2 ★ 25.9K jobs 905 reviews 1.9K salaries'."""
+    m = _CARD_RE.match((text or "").strip())
+    if not m:
+        return None
+    return {"company": m.group("name").strip(), "rating": m.group("rating") or "",
+            "reviews": m.group("reviews") or "", "jobs": m.group("jobs") or "",
+            "salaries": m.group("salaries") or ""}
+
+
+def _balanced_obj(s: str, start: int) -> str | None:
+    """Return the JSON object substring starting at the '{' at index `start` (brace-matched,
+    string-aware) — used to lift Glassdoor's inline window.__APOLLO_STATE__ = {…} blob."""
+    depth, i, in_str, esc = 0, start, False, False
+    while i < len(s):
+        ch = s[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+        elif ch == '"':
+            in_str = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return s[start:i + 1]
+        i += 1
+    return None
 
 
 def _industry(node: dict) -> str:
@@ -87,6 +131,8 @@ def _walk_employers(node, out, seen, base: str):
                     "rating": rating if rating not in (None, "") else "",
                     "reviews": (node.get("reviewCount") or node.get("ratingCount")
                                 or node.get("numberOfRatings") or ""),
+                    "jobs": node.get("jobCount") or "",
+                    "salaries": node.get("salaryCount") or "",
                     "industry": _industry(node),
                     "size": node.get("sizeCategory") or node.get("size") or "",
                     "headquarters": _hq(node),
@@ -113,24 +159,50 @@ def _parse(html: str, query: str, base: str) -> list[dict]:
     for sc in soup.find_all("script", attrs={"type": "application/json"}):
         if sc.string:
             blobs.append(sc.string)
+    # Glassdoor's real data store is an inline `window.__APOLLO_STATE__ = {…}` (or "apolloState":{…})
+    for marker in ("__APOLLO_STATE__", '"apolloState"'):
+        idx = html.find(marker)
+        if idx >= 0:
+            brace = html.find("{", idx)
+            if brace >= 0:
+                obj = _balanced_obj(html, brace)
+                if obj:
+                    blobs.append(obj)
     for b in blobs:
         try:
             data = json.loads(b)
         except Exception:
             continue
         _walk_employers(data, rows, seen, base)
-    # 2) fallback: visible company cards (selectors obfuscated — finalize against a real response)
+    # 2) fallback: visible company cards — split the row text + pull logo/url from the card wrapper
     if not rows:
         for c in soup.select('[data-test="employer-card"], div.employer-card, a[href*="/Overview/"]'):
-            name = c.get_text(" ", strip=True)[:80]
+            text = c.get_text(" ", strip=True)
             href = c.get("href") if c.name == "a" else ""
-            if not name or name.lower() in seen:
+            parts = _split_card(text)
+            name = (parts["company"] if parts else text[:80]).strip()
+            if not name or "★" in name or name.lower() in seen:
                 continue
             seen.add(name.lower())
-            rows.append({"company": name, "rating": "", "reviews": "", "industry": "",
-                         "size": "", "headquarters": "", "website": "",
+            # climb to the card wrapper to grab the logo + a clean profile href
+            card = c
+            for _ in range(4):
+                if card.select_one("img[src]"):
+                    break
+                card = card.parent or card
+            img = card.select_one("img[src]") if card else None
+            logo = (img.get("src") or "") if img else ""
+            if not href:
+                a = card.select_one('a[href*="/Overview/"]') if card else None
+                href = a.get("href") if a else ""
+            rows.append({"company": name,
+                         "rating": parts["rating"] if parts else "",
+                         "reviews": parts["reviews"] if parts else "",
+                         "jobs": parts["jobs"] if parts else "",
+                         "salaries": parts["salaries"] if parts else "",
+                         "industry": "", "size": "", "headquarters": "", "website": "",
                          "company_url": (base + href) if href and href.startswith("/") else (href or ""),
-                         "logo": ""})
+                         "logo": logo})
     for r in rows:
         r["query"] = query
     return rows

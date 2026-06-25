@@ -91,13 +91,15 @@ def _get_sync(url: str) -> str | None:
 
 
 def _headless_get_sync(url: str, proxy: str | None) -> str | None:
-    """Render the profile in headless Chrome (better odds past LinkedIn's JS/login wall). Routed
-    through `proxy` when given; `proxy=None` uses this machine's own IP (free last resort)."""
+    """Render the profile in headless Chrome (better odds past LinkedIn's JS/login wall), ALWAYS
+    routed through `proxy`. PROXY-ONLY: if no proxy is given, return None — the real IP is never used."""
+    if not proxy:
+        return None
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         return None
-    launch_proxy = {"server": proxy if proxy.startswith("http") else "http://" + proxy} if proxy else None
+    launch_proxy = {"server": proxy if proxy.startswith("http") else "http://" + proxy}
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, proxy=launch_proxy,
@@ -114,8 +116,10 @@ def _headless_get_sync(url: str, proxy: str | None) -> str | None:
 
 
 async def _fetch_html(url: str) -> str | None:
-    """Fetch a profile as HTML. Paid proxy: curl then headless. Free: curl rotation, then a headless
-    render (proxy, then direct IP as the last free shot). Non-real-IP paths stay through a proxy."""
+    """Fetch a profile as HTML — PROXY-ONLY, the real IP is NEVER used. Paid proxy: curl then a
+    headless render through that proxy. Free: curl rotation, then a headless render through a couple
+    of warm pool proxies. If no proxy passes LinkedIn's wall, return None (needs a residential
+    PROXY_URL) — there is no direct/real-IP fallback."""
     paid = settings.PROXY_URL.strip()
     html = await asyncio.to_thread(_get_sync, url)
     if _is_real_profile(html):
@@ -123,18 +127,17 @@ async def _fetch_html(url: str) -> str | None:
     if paid:
         html = await asyncio.to_thread(_headless_get_sync, url, paid)
         return html if _is_real_profile(html) else None
-    # free fallback: headless via a warm proxy, then a direct headless render (real IP, best free shot)
+    # free fallback: headless ONLY through warm pool proxies (never the real IP)
     try:
         with yp_us._LOCK:
             warm = list(yp_us._GOOD)
     except Exception:
         warm = []
-    for px in warm[:2]:
+    for px in warm[:3]:
         html = await asyncio.to_thread(_headless_get_sync, url, px)
         if _is_real_profile(html):
             return html
-    html = await asyncio.to_thread(_headless_get_sync, url, None)
-    return html if _is_real_profile(html) else None
+    return None
 
 
 # ---------------- parsing ----------------

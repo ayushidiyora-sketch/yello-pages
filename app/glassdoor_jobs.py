@@ -42,12 +42,15 @@ def _blank_row():
 # ---------------- proxy fetch (never the real IP) ----------------
 
 def _ok(r) -> bool:
-    """A real glassdoor.com page (not a Cloudflare block)."""
+    """A real glassdoor.com page (not a Cloudflare block). The block markers (esp. `/cdn-cgi/...`)
+    also appear in EVERY real CF-protected page, so only treat them as a block when the body is small
+    — a real interstitial is tiny (~5-50KB), a real results page is hundreds of KB."""
     if r is None or r.status_code != 200:
         return False
-    low = (r.text or "").lower()
-    if any(s in low for s in ("just a moment", "cf-browser-verification",
-                              "attention required", "/cdn-cgi/challenge")):
+    txt = r.text or ""
+    low = txt.lower()
+    if len(txt) < 80_000 and any(s in low for s in ("just a moment", "cf-browser-verification",
+                                                    "attention required", "/cdn-cgi/challenge")):
         return False
     return "__next_data__" in low or "data-test=\"jobListing\"".lower() in low \
         or "joblisting" in low or "glassdoor" in low

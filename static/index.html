@@ -1479,6 +1479,249 @@
   <div id="gsaResults"></div>
   </div><!-- /gsearchAutocompleteView -->
 
+  <div id="bookingSearchView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search URLs <span class="req">*</span></label>
+        <textarea id="bksInput" placeholder="https://www.booking.com/searchresults.html?ss=Rome%2C+Lazio%2C+Italy"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="bksFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bksFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('bksFile').click()">⬆ Upload file</button>
+          <span class="hint" id="bksFileName"></span>
+        </div>
+        <span class="hint">Properties from a booking.com search through your paid residential <code>PROXY_URL</code> in <code>.env</code> — Booking's PerimeterX blocks free/datacenter IPs (the real IP is never used). Data from Booking's internal JSON.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="bksLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="bksStartBtn" onclick="bksStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="bksStopBtn" onclick="bksStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="bksStatus"></div>
+  <div class="bar" id="bksBar"><i></i></div>
+
+  <div class="resbar" id="bksResbar" style="display:none">
+    <div class="count" id="bksCount"></div>
+    <div class="resbar-controls">
+      <a id="bksDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="bksDownloadXlsx" style="display:none" onclick="bksDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="bksResults"></div>
+  </div><!-- /bookingSearchView -->
+
+  <div id="bestbuyProductsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="bbpInput" placeholder="https://www.bestbuy.com/site/searchpage.jsp?st=laptop&#10;https://www.bestbuy.com/site/electronics/computers-pcs/abcat0500000.c?id=abcat0500000&#10;https://www.bestbuy.com/p/lenovo-ideapad-slim-3-15iah8-notebook"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="bbpFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bbpFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('bbpFile').click()">⬆ Upload file</button>
+          <span class="hint" id="bbpFileName"></span>
+        </div>
+        <span class="hint">Product listings from BestBuy's internal product JSON through a US proxy IP — BestBuy geo-blocks non-US IPs, so it routes via the free US pool (the real IP is never used). Category / search / brand / product URLs.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="bbpLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="bbpStartBtn" onclick="bbpStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="bbpStopBtn" onclick="bbpStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="bbpStatus"></div>
+  <div class="bar" id="bbpBar"><i></i></div>
+
+  <div class="resbar" id="bbpResbar" style="display:none">
+    <div class="count" id="bbpCount"></div>
+    <div class="resbar-controls">
+      <a id="bbpDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="bbpDownloadXlsx" style="display:none" onclick="bbpDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="bbpResults"></div>
+  </div><!-- /bestbuyProductsView -->
+
+  <div id="yelpBusinessView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label style="margin:0" id="yelpModeLabel">Categories / brands <span class="req">*</span></label>
+          <div class="switch-row">
+            <label class="switch"><input type="checkbox" id="yelpPlain" onchange="yelpToggleMode()"><span class="sl"></span></label>
+            <span>Plain queries</span>
+          </div>
+        </div>
+        <div id="yelpStructWrap" style="margin-top:8px">
+          <textarea id="yelpCats" placeholder="Restaurants&#10;Plumbing&#10;Auto Repair" style="min-height:70px"></textarea>
+          <label style="margin-top:10px">Locations <span class="req">*</span></label>
+          <textarea id="yelpLocs" placeholder="San Francisco, CA&#10;New York, NY&#10;90001, Los Angeles, CA" style="min-height:70px"></textarea>
+          <span class="hint">Each category is searched in each location (category × location).</span>
+        </div>
+        <div id="yelpPlainWrap" style="display:none;margin-top:8px">
+          <textarea id="yelpPlainInput" placeholder="https://www.yelp.com/search?find_desc=restaurants&find_loc=San+Francisco%2C+CA&#10;Auto Repair | San Mateo, CA" style="min-height:110px"></textarea>
+          <div class="upload-row">
+            <span>or select a CSV / XLSX / TXT / Parquet file</span>
+            <input type="file" id="yelpFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="yelpFilePicked()">
+            <button type="button" class="btn-upload" onclick="document.getElementById('yelpFile').click()">⬆ Upload file</button>
+            <span class="hint" id="yelpFileName"></span>
+          </div>
+        </div>
+        <span class="hint">Businesses from Yelp search. ⚠️ Yelp hard-blocks free/datacenter IPs — set a <b>US residential</b> <code>PROXY_URL</code> in <code>.env</code> for data (the real IP is never used).</span>
+      </div>
+      <div class="field">
+        <label>Total results limit</label>
+        <input id="yelpLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="yelpStartBtn" onclick="yelpStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="yelpStopBtn" onclick="yelpStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="yelpStatus"></div>
+  <div class="bar" id="yelpBar"><i></i></div>
+
+  <div class="resbar" id="yelpResbar" style="display:none">
+    <div class="count" id="yelpCount"></div>
+    <div class="resbar-controls">
+      <a id="yelpDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="yelpDownloadXlsx" style="display:none" onclick="yelpDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="yelpResults"></div>
+  </div><!-- /yelpBusinessView -->
+
+  <div id="yelpReviewsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="yrvInput" placeholder="https://www.yelp.com/biz/cancha-boutique-gastrobar-san-francisco&#10;eggcellent-waffles-san-francisco&#10;iXoLJWjbcXCO43RT-H0uQQ"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="yrvFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="yrvFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('yrvFile').click()">⬆ Upload file</button>
+          <span class="hint" id="yrvFileName"></span>
+        </div>
+        <span class="hint">Reviews from each Yelp business (/biz/ URL, slug, or id). ⚠️ Yelp hard-blocks free/datacenter IPs — set a <b>US residential</b> <code>PROXY_URL</code> in <code>.env</code> for data (the real IP is never used).</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="yrvLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="yrvStartBtn" onclick="yrvStart()">⬇ Export Reviews</button>
+      <button class="btn-stop" id="yrvStopBtn" onclick="yrvStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="yrvStatus"></div>
+  <div class="bar" id="yrvBar"><i></i></div>
+
+  <div class="resbar" id="yrvResbar" style="display:none">
+    <div class="count" id="yrvCount"></div>
+    <div class="resbar-controls">
+      <a id="yrvDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="yrvDownloadXlsx" style="display:none" onclick="yrvDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="yrvResults"></div>
+  </div><!-- /yelpReviewsView -->
+
+  <div id="yelpPhotosView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="yphInput" placeholder="https://www.yelp.com/biz/cancha-boutique-gastrobar-san-francisco&#10;eggcellent-waffles-san-francisco&#10;iXoLJWjbcXCO43RT-H0uQQ"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="yphFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="yphFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('yphFile').click()">⬆ Upload file</button>
+          <span class="hint" id="yphFileName"></span>
+        </div>
+        <span class="hint">Photos from each Yelp business (/biz/ URL, slug, or id). ⚠️ Yelp hard-blocks free/datacenter IPs — set a <b>US residential</b> <code>PROXY_URL</code> in <code>.env</code> for data (the real IP is never used).</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="yphLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="yphStartBtn" onclick="yphStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="yphStopBtn" onclick="yphStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="yphStatus"></div>
+  <div class="bar" id="yphBar"><i></i></div>
+
+  <div class="resbar" id="yphResbar" style="display:none">
+    <div class="count" id="yphCount"></div>
+    <div class="resbar-controls">
+      <a id="yphDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="yphDownloadXlsx" style="display:none" onclick="yphDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="yphResults"></div>
+  </div><!-- /yelpPhotosView -->
+
+  <div id="ytTranscriptsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Video IDs or URLs <span class="req">*</span></label>
+        <textarea id="yttInput" placeholder="ph5pHgklaZ0&#10;https://www.youtube.com/watch?v=_XvHhFjrbn0&#10;https://youtu.be/arj7oStGLkU"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="yttFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="yttFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('yttFile').click()">⬆ Upload file</button>
+          <span class="hint" id="yttFileName"></span>
+        </div>
+        <span class="hint">Full-text transcripts from any YouTube video, through the proxy pool — works on the free pool; the real IP is never used. (Video must have captions.)</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="yttStartBtn" onclick="yttStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="yttStopBtn" onclick="yttStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="yttStatus"></div>
+  <div class="bar" id="yttBar"><i></i></div>
+
+  <div class="resbar" id="yttResbar" style="display:none">
+    <div class="count" id="yttCount"></div>
+    <div class="resbar-controls">
+      <a id="yttDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="yttDownloadXlsx" style="display:none" onclick="yttDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="yttResults"></div>
+  </div><!-- /ytTranscriptsView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -3505,7 +3748,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','gplayView','gplayMonitoringView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','gplayView','gplayMonitoringView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -3661,6 +3904,12 @@ function selectService(s, keep, fromHistory){
   if(vt==='gmaps_autocomplete') gmaInit();
   document.getElementById('gsearchAutocompleteView').style.display = vt==='gsearch_autocomplete' ? '' : 'none';
   if(vt==='gsearch_autocomplete') gsaInit();
+  document.getElementById('bookingSearchView').style.display = vt==='booking_search' ? '' : 'none';
+  document.getElementById('bestbuyProductsView').style.display = vt==='bestbuy_products' ? '' : 'none';
+  document.getElementById('yelpBusinessView').style.display = vt==='yelp_business' ? '' : 'none';
+  document.getElementById('yelpReviewsView').style.display = vt==='yelp_reviews' ? '' : 'none';
+  document.getElementById('yelpPhotosView').style.display = vt==='yelp_photos' ? '' : 'none';
+  document.getElementById('ytTranscriptsView').style.display = vt==='yt_transcripts' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -3722,6 +3971,12 @@ function viewType(s){
   if(s.ui === 'gflights') return 'gflights';
   if(s.ui === 'gmaps_autocomplete') return 'gmaps_autocomplete';
   if(s.ui === 'gsearch_autocomplete') return 'gsearch_autocomplete';
+  if(s.ui === 'booking_search') return 'booking_search';
+  if(s.ui === 'bestbuy_products') return 'bestbuy_products';
+  if(s.ui === 'yelp_business') return 'yelp_business';
+  if(s.ui === 'yelp_reviews') return 'yelp_reviews';
+  if(s.ui === 'yelp_photos') return 'yelp_photos';
+  if(s.ui === 'yt_transcripts') return 'yt_transcripts';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -6690,9 +6945,11 @@ function gcoRender(){
       ${av}
       <div style="flex:1;min-width:0">
         <div style="font-size:16px;font-weight:700;color:#202124">${nameHtml}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px;color:#5f6368">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:13px;color:#5f6368">
           ${r.rating!==''&&r.rating!=null?`<span style="letter-spacing:1px;font-size:13px">${gcoStars(r.rating)}</span><b style="color:#202124">${esc(String(r.rating))}</b>`:''}
           ${r.reviews?`<span>· ${esc(String(r.reviews))} reviews</span>`:''}
+          ${r.jobs?`<span>· 💼 ${esc(String(r.jobs))} jobs</span>`:''}
+          ${r.salaries?`<span>· 💰 ${esc(String(r.salaries))} salaries</span>`:''}
         </div>
         <div style="font-size:13px;color:#5f6368;margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 16px">
           ${r.industry?`<span>🏭 ${esc(r.industry)}</span>`:''}
@@ -7175,6 +7432,819 @@ function gsaDownloadExcel(){
   XLSX.writeFile(wb, gsaFileName()+'.xlsx');
 }
 /* ---------- end Google Search Autocomplete ---------- */
+
+/* ---------- Booking Search ---------- */
+const BKS_COLUMNS = ["query","name","stars","rating","review_label","reviews","location","distance","room_type","occupancy","price","original_price","taxes","deal","url","image"];
+let bksTimer=null, bksJob=null, _bksRows=[], _bksDlUrl=null;
+
+async function bksFilePicked(){
+  const f=document.getElementById('bksFile').files[0];
+  const nameEl=document.getElementById('bksFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('bksInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' URL'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function bksSetRunning(on){
+  document.getElementById('bksStartBtn').disabled=on;
+  document.getElementById('bksStopBtn').disabled=!on;
+  ['bksInput','bksLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function bksStart(){
+  const typed=document.getElementById('bksInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a booking.com searchresults URL (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('bksLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/booking-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, limit:(lim>0?lim:0)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  bksJob=(await r.json()).job_id;
+  _bksRows=[];
+  document.getElementById('bksResbar').style.display='none';
+  document.getElementById('bksResults').innerHTML='';
+  document.getElementById('bksCount').textContent='';
+  document.getElementById('bksBar').style.display='block';
+  document.querySelector('#bksBar>i').style.width='30%';
+  bksSetRunning(true);
+  if(bksTimer) clearInterval(bksTimer);
+  bksTimer=setInterval(()=>bksPoll(bksJob),1500);
+  bksPoll(bksJob);
+}
+
+async function bksStop(){ if(bksJob){ document.getElementById('bksStopBtn').disabled=true; await fetch('/api/stop/'+bksJob,{method:'POST'}); } }
+
+async function bksPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('bksStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' properties';
+  } else {
+    clearInterval(bksTimer); bksSetRunning(false);
+    document.getElementById('bksBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' properties';
+      bksShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function bksShowResults(job_id, note){
+  _bksRows=await (await fetch('/api/booking-search/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('bksResbar');
+  if(!_bksRows.length){
+    document.getElementById('bksResults').innerHTML='';
+    document.getElementById('bksCount').innerHTML='<span class="empty">'+esc(note||'No properties — Booking blocks free proxies; set a residential PROXY_URL.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('bksDownload').style.display='none';
+    document.getElementById('bksDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  bksRender();
+  document.getElementById('bksCount').textContent='Showing '+_bksRows.length+' propert'+(_bksRows.length===1?'y':'ies')+' · download JSON/Excel for the full set.';
+  bksUpdateDownload();
+}
+
+function bksRender(){
+  let h='';
+  _bksRows.forEach((r)=>{
+    const img=r.image?`<img src="${esc(r.image)}" loading="lazy" style="width:120px;height:90px;object-fit:cover;border-radius:8px;flex:none;background:#eee" onerror="this.style.display='none'">`:'';
+    const nameHtml=r.url?`<a href="${esc(r.url)}" target="_blank" style="color:#0071c2;text-decoration:none">${esc(r.name||'—')}</a>`:esc(r.name||'—');
+    const stars = r.stars?'<span style="color:#febb02">'+'★'.repeat(Math.min(5,parseInt(r.stars)||0))+'</span>':'';
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:14px;margin-bottom:12px;display:flex;gap:14px">
+      ${img}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:16px;font-weight:700;color:#0071c2">${nameHtml} ${stars}${r.deal?`<span style="background:#008009;color:#fff;font-size:11px;border-radius:4px;padding:1px 5px;margin-left:6px">${esc(r.deal)}</span>`:''}</div>
+        <div style="font-size:13px;color:#5f6368;margin-top:4px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px">
+          ${r.rating?`<span style="background:#003580;color:#fff;border-radius:4px;padding:1px 6px;font-weight:700">${esc(String(r.rating))}</span>`:''}
+          ${r.review_label?`<b style="color:#202124">${esc(r.review_label)}</b>`:''}
+          ${r.reviews?`<span>${esc(String(r.reviews))} reviews</span>`:''}
+        </div>
+        <div style="font-size:13px;color:#5f6368;margin-top:5px;display:flex;flex-wrap:wrap;gap:4px 14px">
+          ${r.location?`<span>📍 ${esc(r.location)}</span>`:''}
+          ${r.distance?`<span>${esc(r.distance)}</span>`:''}
+        </div>
+        ${r.room_type?`<div style="font-size:13px;color:#3c4043;margin-top:5px">🛏 ${esc(r.room_type)}</div>`:''}
+        ${r.occupancy?`<div style="font-size:12px;color:#5f6368;margin-top:2px">${esc(r.occupancy)}</div>`:''}
+      </div>
+      <div style="flex:none;align-self:center;text-align:right">
+        ${r.original_price?`<div style="font-size:13px;color:#9aa0a6;text-decoration:line-through">${esc(String(r.original_price))}</div>`:''}
+        ${r.price?`<div style="font-size:18px;font-weight:700;color:#202124">${esc(String(r.price))}</div>`:''}
+        ${r.taxes?`<div style="font-size:11px;color:#5f6368">${esc(r.taxes)}</div>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('bksResults').innerHTML=h;
+}
+
+function bksFileName(){ return 'booking-search_'+(new Date().toISOString().slice(0,10)); }
+function bksUpdateDownload(){
+  const dl=document.getElementById('bksDownload'), xl=document.getElementById('bksDownloadXlsx');
+  if(!_bksRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_bksDlUrl) URL.revokeObjectURL(_bksDlUrl);
+  const rows=_bksRows.map(r=>{ const o={}; for(const c of BKS_COLUMNS) o[c]=r[c]??''; return o; });
+  _bksDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_bksDlUrl; dl.setAttribute('download', bksFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function bksDownloadExcel(){
+  if(!_bksRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_bksRows.map(r=>{ const o={}; for(const c of BKS_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:BKS_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Booking');
+  XLSX.writeFile(wb, bksFileName()+'.xlsx');
+}
+/* ---------- end Booking Search ---------- */
+
+/* ---------- BestBuy Products ---------- */
+const BBP_COLUMNS = ["query","name","sku","brand","model","price","rating","reviews","image","url","position"];
+let bbpTimer=null, bbpJob=null, _bbpRows=[], _bbpDlUrl=null;
+
+async function bbpFilePicked(){
+  const f=document.getElementById('bbpFile').files[0];
+  const nameEl=document.getElementById('bbpFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('bbpInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' URL'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function bbpSetRunning(on){
+  document.getElementById('bbpStartBtn').disabled=on;
+  document.getElementById('bbpStopBtn').disabled=!on;
+  ['bbpInput','bbpLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function bbpStart(){
+  const typed=document.getElementById('bbpInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a BestBuy URL (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('bbpLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/bestbuy-products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, limit:(lim>0?lim:0)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  bbpJob=(await r.json()).job_id;
+  _bbpRows=[];
+  document.getElementById('bbpResbar').style.display='none';
+  document.getElementById('bbpResults').innerHTML='';
+  document.getElementById('bbpCount').textContent='';
+  document.getElementById('bbpBar').style.display='block';
+  document.querySelector('#bbpBar>i').style.width='30%';
+  bbpSetRunning(true);
+  if(bbpTimer) clearInterval(bbpTimer);
+  bbpTimer=setInterval(()=>bbpPoll(bbpJob),1500);
+  bbpPoll(bbpJob);
+}
+
+async function bbpStop(){ if(bbpJob){ document.getElementById('bbpStopBtn').disabled=true; await fetch('/api/stop/'+bbpJob,{method:'POST'}); } }
+
+async function bbpPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('bbpStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' products';
+  } else {
+    clearInterval(bbpTimer); bbpSetRunning(false);
+    document.getElementById('bbpBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' products';
+      bbpShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function bbpShowResults(job_id, note){
+  _bbpRows=await (await fetch('/api/bestbuy-products/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('bbpResbar');
+  if(!_bbpRows.length){
+    document.getElementById('bbpResults').innerHTML='';
+    document.getElementById('bbpCount').innerHTML='<span class="empty">'+esc(note||'No products — the US proxy may have been blocked; try again.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('bbpDownload').style.display='none';
+    document.getElementById('bbpDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  bbpRender();
+  document.getElementById('bbpCount').textContent='Showing '+_bbpRows.length+' product'+(_bbpRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  bbpUpdateDownload();
+}
+
+function bbpRender(){
+  let h='';
+  _bbpRows.forEach((r)=>{
+    const img=r.image?`<img src="${esc(r.image)}" loading="lazy" style="width:90px;height:90px;object-fit:contain;border-radius:8px;flex:none;background:#fff;border:1px solid #eee" onerror="this.style.display='none'">`:'';
+    const nameHtml=r.url?`<a href="${esc(r.url)}" target="_blank" style="color:#0046be;text-decoration:none">${esc(r.name||'—')}</a>`:esc(r.name||'—');
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:14px;margin-bottom:12px;display:flex;gap:14px">
+      ${img}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:#0046be">${nameHtml}</div>
+        <div style="font-size:13px;color:#5f6368;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 14px">
+          ${r.rating&&r.rating!=='0'?`<span>⭐ ${esc(String(r.rating))}</span>`:''}
+          ${r.reviews&&r.reviews!=='0'?`<span>(${esc(String(r.reviews))} reviews)</span>`:''}
+          ${r.brand?`<span>🏷 ${esc(r.brand)}</span>`:''}
+          ${r.model?`<span>Model: ${esc(r.model)}</span>`:''}
+          ${r.sku?`<span>SKU: ${esc(String(r.sku))}</span>`:''}
+        </div>
+      </div>
+      ${r.price?`<div style="font-size:18px;font-weight:700;color:#202124;flex:none;align-self:center">${esc(String(r.price))}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('bbpResults').innerHTML=h;
+}
+
+function bbpFileName(){ const q=(document.getElementById('bbpInput').value.trim().split(/\r?\n/)[0]||'products'); return 'bestbuy_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+function bbpUpdateDownload(){
+  const dl=document.getElementById('bbpDownload'), xl=document.getElementById('bbpDownloadXlsx');
+  if(!_bbpRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_bbpDlUrl) URL.revokeObjectURL(_bbpDlUrl);
+  const rows=_bbpRows.map(r=>{ const o={}; for(const c of BBP_COLUMNS) o[c]=r[c]??''; return o; });
+  _bbpDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_bbpDlUrl; dl.setAttribute('download', bbpFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function bbpDownloadExcel(){
+  if(!_bbpRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_bbpRows.map(r=>{ const o={}; for(const c of BBP_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:BBP_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'BestBuy');
+  XLSX.writeFile(wb, bbpFileName()+'.xlsx');
+}
+/* ---------- end BestBuy Products ---------- */
+
+/* ---------- Yelp Businesses ---------- */
+const YELP_COLUMNS = ["query","name","rating","reviews","categories","price","phone","address","url","image"];
+let yelpTimer=null, yelpJob=null, _yelpRows=[], _yelpDlUrl=null;
+
+function yelpToggleMode(){
+  const plain=document.getElementById('yelpPlain').checked;
+  document.getElementById('yelpStructWrap').style.display=plain?'none':'';
+  document.getElementById('yelpPlainWrap').style.display=plain?'':'none';
+  document.getElementById('yelpModeLabel').innerHTML=plain?'Queries (URLs or Category | Location) <span class="req">*</span>':'Categories / brands <span class="req">*</span>';
+}
+
+async function yelpFilePicked(){
+  const f=document.getElementById('yelpFile').files[0];
+  const nameEl=document.getElementById('yelpFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('yelpPlainInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function yelpCollectQueries(){
+  if(document.getElementById('yelpPlain').checked){
+    const t=document.getElementById('yelpPlainInput').value.trim();
+    return t?t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  }
+  const cats=document.getElementById('yelpCats').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const locs=document.getElementById('yelpLocs').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  cats.forEach(c=>locs.forEach(l=>out.push(c+' | '+l)));
+  return out;
+}
+
+function yelpSetRunning(on){
+  document.getElementById('yelpStartBtn').disabled=on;
+  document.getElementById('yelpStopBtn').disabled=!on;
+  ['yelpCats','yelpLocs','yelpPlainInput','yelpLimit','yelpPlain'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function yelpStart(){
+  const queries=yelpCollectQueries();
+  if(!queries.length){ alert('Enter categories + locations, or a Yelp URL / "Category | Location" (Plain queries).'); return; }
+  const lim=parseInt(document.getElementById('yelpLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/yelp-businesses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, limit:(lim>0?lim:0)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  yelpJob=(await r.json()).job_id;
+  _yelpRows=[];
+  document.getElementById('yelpResbar').style.display='none';
+  document.getElementById('yelpResults').innerHTML='';
+  document.getElementById('yelpCount').textContent='';
+  document.getElementById('yelpBar').style.display='block';
+  document.querySelector('#yelpBar>i').style.width='30%';
+  yelpSetRunning(true);
+  if(yelpTimer) clearInterval(yelpTimer);
+  yelpTimer=setInterval(()=>yelpPoll(yelpJob),1500);
+  yelpPoll(yelpJob);
+}
+
+async function yelpStop(){ if(yelpJob){ document.getElementById('yelpStopBtn').disabled=true; await fetch('/api/stop/'+yelpJob,{method:'POST'}); } }
+
+async function yelpPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('yelpStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' businesses';
+  } else {
+    clearInterval(yelpTimer); yelpSetRunning(false);
+    document.getElementById('yelpBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' businesses';
+      yelpShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function yelpShowResults(job_id, note){
+  _yelpRows=await (await fetch('/api/yelp-businesses/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('yelpResbar');
+  if(!_yelpRows.length){
+    document.getElementById('yelpResults').innerHTML='';
+    document.getElementById('yelpCount').innerHTML='<span class="empty">'+esc(note||'No businesses — Yelp blocks free proxies; set a US residential PROXY_URL.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('yelpDownload').style.display='none';
+    document.getElementById('yelpDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  yelpRender();
+  document.getElementById('yelpCount').textContent='Showing '+_yelpRows.length+' business'+(_yelpRows.length===1?'':'es')+' · download JSON/Excel for the full set.';
+  yelpUpdateDownload();
+}
+
+function yelpRender(){
+  let h='';
+  _yelpRows.forEach((r)=>{
+    const img=r.image?`<img src="${esc(r.image)}" loading="lazy" style="width:90px;height:90px;object-fit:cover;border-radius:8px;flex:none;background:#eee" onerror="this.style.display='none'">`:'';
+    const nameHtml=r.url?`<a href="${esc(r.url)}" target="_blank" style="color:#d32323;text-decoration:none">${esc(r.name||'—')}</a>`:esc(r.name||'—');
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:14px;margin-bottom:12px;display:flex;gap:14px">
+      ${img}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:16px;font-weight:700;color:#d32323">${nameHtml}</div>
+        <div style="font-size:13px;color:#5f6368;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 14px">
+          ${r.rating?`<span>⭐ ${esc(String(r.rating))}</span>`:''}
+          ${r.reviews?`<span>(${esc(String(r.reviews))} reviews)</span>`:''}
+          ${r.price?`<span>${esc(r.price)}</span>`:''}
+          ${r.categories?`<span>${esc(r.categories)}</span>`:''}
+        </div>
+        <div style="font-size:13px;color:#5f6368;margin-top:5px;display:flex;flex-wrap:wrap;gap:4px 14px">
+          ${r.phone?`<span>📞 ${esc(r.phone)}</span>`:''}
+          ${r.address?`<span>📍 ${esc(r.address)}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('yelpResults').innerHTML=h;
+}
+
+function yelpFileName(){ return 'yelp-businesses_'+(new Date().toISOString().slice(0,10)); }
+function yelpUpdateDownload(){
+  const dl=document.getElementById('yelpDownload'), xl=document.getElementById('yelpDownloadXlsx');
+  if(!_yelpRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_yelpDlUrl) URL.revokeObjectURL(_yelpDlUrl);
+  const rows=_yelpRows.map(r=>{ const o={}; for(const c of YELP_COLUMNS) o[c]=r[c]??''; return o; });
+  _yelpDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_yelpDlUrl; dl.setAttribute('download', yelpFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function yelpDownloadExcel(){
+  if(!_yelpRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_yelpRows.map(r=>{ const o={}; for(const c of YELP_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:YELP_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Yelp');
+  XLSX.writeFile(wb, yelpFileName()+'.xlsx');
+}
+/* ---------- end Yelp Businesses ---------- */
+
+/* ---------- Yelp Reviews ---------- */
+const YRV_COLUMNS = ["query","business","reviewer","location","rating","date","review"];
+let yrvTimer=null, yrvJob=null, _yrvRows=[], _yrvDlUrl=null;
+
+async function yrvFilePicked(){
+  const f=document.getElementById('yrvFile').files[0];
+  const nameEl=document.getElementById('yrvFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('yrvInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' business'+(lines.length===1?'':'es')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function yrvSetRunning(on){
+  document.getElementById('yrvStartBtn').disabled=on;
+  document.getElementById('yrvStopBtn').disabled=!on;
+  ['yrvInput','yrvLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function yrvStart(){
+  const typed=document.getElementById('yrvInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a Yelp business URL / slug / id (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('yrvLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/yelp-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, limit:(lim>0?lim:0)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  yrvJob=(await r.json()).job_id;
+  _yrvRows=[];
+  document.getElementById('yrvResbar').style.display='none';
+  document.getElementById('yrvResults').innerHTML='';
+  document.getElementById('yrvCount').textContent='';
+  document.getElementById('yrvBar').style.display='block';
+  document.querySelector('#yrvBar>i').style.width='30%';
+  yrvSetRunning(true);
+  if(yrvTimer) clearInterval(yrvTimer);
+  yrvTimer=setInterval(()=>yrvPoll(yrvJob),1500);
+  yrvPoll(yrvJob);
+}
+
+async function yrvStop(){ if(yrvJob){ document.getElementById('yrvStopBtn').disabled=true; await fetch('/api/stop/'+yrvJob,{method:'POST'}); } }
+
+async function yrvPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('yrvStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping reviews… '+got+' found';
+  } else {
+    clearInterval(yrvTimer); yrvSetRunning(false);
+    document.getElementById('yrvBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      yrvShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function yrvShowResults(job_id, note){
+  _yrvRows=await (await fetch('/api/yelp-reviews/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('yrvResbar');
+  if(!_yrvRows.length){
+    document.getElementById('yrvResults').innerHTML='';
+    document.getElementById('yrvCount').innerHTML='<span class="empty">'+esc(note||'No reviews — Yelp blocks free proxies; set a US residential PROXY_URL.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('yrvDownload').style.display='none';
+    document.getElementById('yrvDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  yrvRender();
+  document.getElementById('yrvCount').textContent='Showing '+_yrvRows.length+' review'+(_yrvRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  yrvUpdateDownload();
+}
+
+function yrvStars(n){ n=Math.round(parseFloat(n))||0; let s=''; for(let i=1;i<=5;i++) s+='<span style="color:'+(i<=n?'#d32323':'#dadce0')+'">★</span>'; return s; }
+function yrvRender(){
+  let h='';
+  _yrvRows.forEach((r)=>{
+    const initial=(r.reviewer||'?').trim().charAt(0).toUpperCase();
+    h+=`<div style="border-bottom:1px solid #eee;padding:16px 4px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:30px;height:30px;border-radius:50%;background:#d32323;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none">${esc(initial)}</span>
+        <div><div style="font-size:14px;font-weight:600;color:#202124">${esc(r.reviewer||'Anonymous')}</div>
+        ${r.location?`<div style="font-size:12px;color:#9aa0a6">${esc(r.location)}</div>`:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:7px 0 5px;font-size:13px;color:#5f6368">
+        <span style="letter-spacing:1px;font-size:14px">${yrvStars(r.rating)}</span>
+        ${r.date?`<span>${esc(String(r.date).slice(0,10))}</span>`:''}
+      </div>
+      <div style="font-size:14px;color:#3c4043;line-height:1.5;white-space:pre-wrap">${esc(r.review||'')}</div>
+    </div>`;
+  });
+  document.getElementById('yrvResults').innerHTML=h;
+}
+
+function yrvFileName(){ return 'yelp-reviews_'+((_yrvRows[0]&&_yrvRows[0].business||'reviews').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function yrvUpdateDownload(){
+  const dl=document.getElementById('yrvDownload'), xl=document.getElementById('yrvDownloadXlsx');
+  if(!_yrvRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_yrvDlUrl) URL.revokeObjectURL(_yrvDlUrl);
+  const rows=_yrvRows.map(r=>{ const o={}; for(const c of YRV_COLUMNS) o[c]=r[c]??''; return o; });
+  _yrvDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_yrvDlUrl; dl.setAttribute('download', yrvFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function yrvDownloadExcel(){
+  if(!_yrvRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_yrvRows.map(r=>{ const o={}; for(const c of YRV_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:YRV_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'YelpReviews');
+  XLSX.writeFile(wb, yrvFileName()+'.xlsx');
+}
+/* ---------- end Yelp Reviews ---------- */
+
+/* ---------- Yelp Photos ---------- */
+const YPH_COLUMNS = ["query","business","photo_url","caption"];
+let yphTimer=null, yphJob=null, _yphRows=[], _yphDlUrl=null;
+
+async function yphFilePicked(){
+  const f=document.getElementById('yphFile').files[0];
+  const nameEl=document.getElementById('yphFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('yphInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' business'+(lines.length===1?'':'es')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function yphSetRunning(on){
+  document.getElementById('yphStartBtn').disabled=on;
+  document.getElementById('yphStopBtn').disabled=!on;
+  ['yphInput','yphLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function yphStart(){
+  const typed=document.getElementById('yphInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a Yelp business URL / slug / id (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('yphLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/yelp-photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, limit:(lim>0?lim:0)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  yphJob=(await r.json()).job_id;
+  _yphRows=[];
+  document.getElementById('yphResbar').style.display='none';
+  document.getElementById('yphResults').innerHTML='';
+  document.getElementById('yphCount').textContent='';
+  document.getElementById('yphBar').style.display='block';
+  document.querySelector('#yphBar>i').style.width='30%';
+  yphSetRunning(true);
+  if(yphTimer) clearInterval(yphTimer);
+  yphTimer=setInterval(()=>yphPoll(yphJob),1500);
+  yphPoll(yphJob);
+}
+
+async function yphStop(){ if(yphJob){ document.getElementById('yphStopBtn').disabled=true; await fetch('/api/stop/'+yphJob,{method:'POST'}); } }
+
+async function yphPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('yphStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping photos… '+got+' found';
+  } else {
+    clearInterval(yphTimer); yphSetRunning(false);
+    document.getElementById('yphBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' photos';
+      yphShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function yphShowResults(job_id, note){
+  _yphRows=await (await fetch('/api/yelp-photos/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('yphResbar');
+  if(!_yphRows.length){
+    document.getElementById('yphResults').innerHTML='';
+    document.getElementById('yphCount').innerHTML='<span class="empty">'+esc(note||'No photos — Yelp blocks free proxies; set a US residential PROXY_URL.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('yphDownload').style.display='none';
+    document.getElementById('yphDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  yphRender();
+  document.getElementById('yphCount').textContent='Showing '+_yphRows.length+' photo'+(_yphRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  yphUpdateDownload();
+}
+
+function yphRender(){
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">';
+  _yphRows.forEach((r)=>{
+    h+=`<a href="${esc(r.photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.photo_url)}" loading="lazy" style="width:100%;height:150px;object-fit:cover;border-radius:8px;background:#eee" onerror="this.parentElement.style.display='none'"></a>`;
+  });
+  h+='</div>';
+  document.getElementById('yphResults').innerHTML=h;
+}
+
+function yphFileName(){ return 'yelp-photos_'+((_yphRows[0]&&_yphRows[0].business||'photos').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function yphUpdateDownload(){
+  const dl=document.getElementById('yphDownload'), xl=document.getElementById('yphDownloadXlsx');
+  if(!_yphRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_yphDlUrl) URL.revokeObjectURL(_yphDlUrl);
+  const rows=_yphRows.map(r=>{ const o={}; for(const c of YPH_COLUMNS) o[c]=r[c]??''; return o; });
+  _yphDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_yphDlUrl; dl.setAttribute('download', yphFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function yphDownloadExcel(){
+  if(!_yphRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_yphRows.map(r=>{ const o={}; for(const c of YPH_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:YPH_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'YelpPhotos');
+  XLSX.writeFile(wb, yphFileName()+'.xlsx');
+}
+/* ---------- end Yelp Photos ---------- */
+
+/* ---------- YouTube Transcripts ---------- */
+const YTT_COLUMNS = ["query","video_id","language","segments","transcript"];
+let yttTimer=null, yttJob=null, _yttRows=[], _yttDlUrl=null;
+
+async function yttFilePicked(){
+  const f=document.getElementById('yttFile').files[0];
+  const nameEl=document.getElementById('yttFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('yttInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' video'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste IDs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function yttSetRunning(on){
+  document.getElementById('yttStartBtn').disabled=on;
+  document.getElementById('yttStopBtn').disabled=!on;
+  document.getElementById('yttInput').disabled=on;
+}
+
+async function yttStart(){
+  const typed=document.getElementById('yttInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a YouTube video id or URL (one per line), or upload a file.'); return; }
+  let r;
+  try{ r=await fetch('/api/yt-transcripts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  yttJob=(await r.json()).job_id;
+  _yttRows=[];
+  document.getElementById('yttResbar').style.display='none';
+  document.getElementById('yttResults').innerHTML='';
+  document.getElementById('yttCount').textContent='';
+  document.getElementById('yttBar').style.display='block';
+  document.querySelector('#yttBar>i').style.width='30%';
+  yttSetRunning(true);
+  if(yttTimer) clearInterval(yttTimer);
+  yttTimer=setInterval(()=>yttPoll(yttJob),1500);
+  yttPoll(yttJob);
+}
+
+async function yttStop(){ if(yttJob){ document.getElementById('yttStopBtn').disabled=true; await fetch('/api/stop/'+yttJob,{method:'POST'}); } }
+
+async function yttPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('yttStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching transcripts… '+got+' done';
+  } else {
+    clearInterval(yttTimer); yttSetRunning(false);
+    document.getElementById('yttBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' transcripts';
+      yttShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function yttShowResults(job_id, note){
+  _yttRows=await (await fetch('/api/yt-transcripts/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('yttResbar');
+  if(!_yttRows.length){
+    document.getElementById('yttResults').innerHTML='';
+    document.getElementById('yttCount').innerHTML='<span class="empty">'+esc(note||'No transcripts — the video may have captions disabled.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('yttDownload').style.display='none';
+    document.getElementById('yttDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  yttRender();
+  document.getElementById('yttCount').textContent='Showing '+_yttRows.length+' transcript'+(_yttRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  yttUpdateDownload();
+}
+
+function yttRender(){
+  let h='';
+  _yttRows.forEach((r)=>{
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <a href="https://www.youtube.com/watch?v=${esc(r.video_id)}" target="_blank" style="color:#c00;font-weight:700;text-decoration:none">▶ ${esc(r.video_id)}</a>
+        <span style="font-size:12px;color:#5f6368">${esc(r.language||'')} · ${esc(String(r.segments||0))} segments · ${esc(String((r.transcript||'').length))} chars</span>
+      </div>
+      <div style="font-size:13px;color:#3c4043;line-height:1.6;max-height:200px;overflow:auto;white-space:pre-wrap;background:#fafafa;border-radius:8px;padding:12px">${esc(r.transcript||'')}</div>
+    </div>`;
+  });
+  document.getElementById('yttResults').innerHTML=h;
+}
+
+function yttFileName(){ return 'youtube-transcripts_'+((_yttRows[0]&&_yttRows[0].video_id||'transcripts')); }
+function yttUpdateDownload(){
+  const dl=document.getElementById('yttDownload'), xl=document.getElementById('yttDownloadXlsx');
+  if(!_yttRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_yttDlUrl) URL.revokeObjectURL(_yttDlUrl);
+  const rows=_yttRows.map(r=>{ const o={}; for(const c of YTT_COLUMNS) o[c]=r[c]??''; return o; });
+  _yttDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_yttDlUrl; dl.setAttribute('download', yttFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function yttDownloadExcel(){
+  if(!_yttRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_yttRows.map(r=>{ const o={}; for(const c of YTT_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:YTT_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Transcripts');
+  XLSX.writeFile(wb, yttFileName()+'.xlsx');
+}
+/* ---------- end YouTube Transcripts ---------- */
 
 /* ---------- Google Play Reviews Monitoring ---------- */
 let gplmTimer=null, gplmJob=null, _gplmRows=[], _gplmDlUrl=null, _gplmThreshold=3, _gplmEmailed='';
