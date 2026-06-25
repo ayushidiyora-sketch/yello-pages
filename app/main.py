@@ -19,6 +19,7 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  gsreviews_results, linkedin_profiles, gflights_results, gmaps_autocomplete,
                  gsearch_autocomplete, booking_reviews_results, booking_prices_results,
                  olx_results, apollo_results, upwork_results, youtube_videos_results,
+                 glassdoor_company_jobs_results,
                  booking_results, bestbuy_results, yelp_results, yelp_reviews,
                  yelp_photos, yt_transcripts,
                  ensure_indexes)
@@ -39,7 +40,8 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      GPlayMonitorRequest, LinkedInProfilesRequest, GFlightsRequest,
                      GMapsAutocompleteRequest, GSearchAutocompleteRequest, BookingReviewsRequest,
                      BookingReviewsMonitorRequest, BookingPricesRequest, OLXRequest, ApolloRequest,
-                     UpworkRequest, YouTubeVideosRequest, BookingSearchRequest,
+                     UpworkRequest, YouTubeVideosRequest, GlassdoorCompanyJobsRequest,
+                     BookingSearchRequest,
                      BestBuyProductsRequest, YelpBusinessRequest, YelpReviewsRequest,
                      YelpPhotosRequest, YTTranscriptsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
@@ -56,7 +58,8 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                gsjobs, gshop, gsreviews, gplay,
                linkedin_profiles as linkedin_profiles_mod, gflights,
                gmaps_autocomplete as gmaps_autocomplete_mod, booking_reviews, booking_prices, olx,
-               apollo, upwork, youtube_videos as yt_videos, booking, bestbuy, yelp,
+               apollo, upwork, youtube_videos as yt_videos,
+               glassdoor_company_jobs as gd_company_jobs, booking, bestbuy, yelp,
                yelp_reviews as yelp_reviews_mod, yelp_photos as yelp_photos_mod,
                yt_transcripts as yt_transcripts_mod)
 
@@ -157,6 +160,13 @@ async def _yt_videos_rows(job_id):
     rows = [yt_videos.to_export(d) async for d in youtube_videos_results.find({"job_id": job_id}, {"_id": 0})]
     rows.sort(key=lambda r: r.get("position") or 0)
     return rows, yt_videos.YOUTUBE_VIDEO_COLUMNS
+
+
+async def _gd_company_jobs_rows(job_id):
+    rows = [gd_company_jobs.to_export(d) async for d in
+            glassdoor_company_jobs_results.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, gd_company_jobs.GLASSDOOR_COMPANY_JOB_COLUMNS
 
 
 async def _apollo_rows(job_id):
@@ -1483,6 +1493,32 @@ async def youtube_videos_start(req: YouTubeVideosRequest):
 @app.get("/api/youtube-videos-results/{job_id}")
 async def youtube_videos_results_get(job_id: str, limit: int = 5000):
     rows, _ = await _yt_videos_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/glassdoor-company-jobs")
+async def glassdoor_company_jobs_start(req: GlassdoorCompanyJobsRequest):
+    """Glassdoor Company Jobs — all open jobs for a company from its Glassdoor URL."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Glassdoor company URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    srt = "newest" if (req.sort or "").lower().startswith("new") else "relevant"
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "glassdoor_company_jobs", "queries": queries, "limit": lim,
+        "sort": srt, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gd_company_jobs.run_job(job_id, queries, lim, srt),
+        "glassdoor_company_jobs", job_id, _gd_company_jobs_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/glassdoor-company-jobs-results/{job_id}")
+async def glassdoor_company_jobs_results_get(job_id: str, limit: int = 5000):
+    rows, _ = await _gd_company_jobs_rows(job_id)
     return rows[:limit]
 
 

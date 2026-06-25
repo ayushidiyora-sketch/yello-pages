@@ -1858,11 +1858,12 @@
   "no": "180",
   "name": "Glassdoor Company Jobs",
   "brand": "Glassdoor",
-  "description": "",
+  "description": "Returns all open jobs for a company from a list of Glassdoor company URLs",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_company_jobs"
  },
  {
   "no": "181",

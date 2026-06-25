@@ -1371,6 +1371,53 @@
   <div id="ytvPager"></div>
   </div><!-- /ytvView -->
 
+  <div id="gcjView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="gcjInput" placeholder="https://www.glassdoor.com/Jobs/USA-Jobs-Jobs-E221792.htm&#10;https://www.glassdoor.com/Overview/Working-at-USA-Jobs-EI_IE221792.11,19.htm"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="gcjFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gcjFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('gcjFile').click()">⬆ Upload file</button>
+          <span class="hint" id="gcjFileName"></span>
+        </div>
+        <span class="hint">One Glassdoor company URL per line — a company Jobs page (<code>…-Jobs-E&lt;id&gt;.htm</code>) or an Overview page (<code>…-EI_IE&lt;id&gt;…</code>). Glassdoor is Cloudflare-protected, so the free pool is often blocked (0 results) until a paid <code>PROXY_URL</code> is set; the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="gcjLimit" type="number" min="1" value="100" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="gcjSort">
+          <option value="relevant">Most relevant</option>
+          <option value="newest">Newest First</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="gcjStartBtn" onclick="gcjStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="gcjStopBtn" onclick="gcjStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="gcjStatus"></div>
+  <div class="bar" id="gcjBar"><i></i></div>
+
+  <div class="resbar" id="gcjResbar" style="display:none">
+    <div class="count" id="gcjCount"></div>
+    <div class="resbar-controls">
+      <a id="gcjDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="gcjDownloadXlsx" style="display:none" onclick="gcjDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="gcjResults"></div>
+  <div id="gcjPager"></div>
+  </div><!-- /gcjView -->
+
   <div id="apolloView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -4072,7 +4119,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -4221,6 +4268,7 @@ function selectService(s, keep, fromHistory){
   document.getElementById('apolloView').style.display = vt==='apollo' ? '' : 'none';
   document.getElementById('upworkView').style.display = vt==='upwork' ? '' : 'none';
   document.getElementById('ytvView').style.display = vt==='youtube_video' ? '' : 'none';
+  document.getElementById('gcjView').style.display = vt==='glassdoor_company_jobs' ? '' : 'none';
 
   document.getElementById('gsjobsView').style.display = vt==='gsjobs' ? '' : 'none';
   if(vt==='gsjobs') gsjInit();
@@ -4301,6 +4349,7 @@ function viewType(s){
   if(s.ui === 'apollo') return 'apollo';
   if(s.ui === 'upwork') return 'upwork';
   if(s.ui === 'youtube_video') return 'youtube_video';
+  if(s.ui === 'glassdoor_company_jobs') return 'glassdoor_company_jobs';
 
   if(s.ui === 'gsjobs') return 'gsjobs';
   if(s.ui === 'gshop') return 'gshop';
@@ -7193,6 +7242,160 @@ function ytvDownloadExcel(){
   XLSX.writeFile(wb, ytvFileName()+'.xlsx');
 }
 /* ---------- end YouTube Video ---------- */
+
+/* ---------- Glassdoor Company Jobs ---------- */
+const GCJ_COLUMNS = ["query","job_title","company","company_rating","location","salary","date_posted","easy_apply","job_url","snippet","logo","position"];
+const GCJ_PAGE_SIZE = 25;
+let gcjTimer=null, gcjJob=null, _gcjRows=[], _gcjDlUrl=null, _gcjPage=0;
+
+async function gcjFilePicked(){
+  const f=document.getElementById('gcjFile').files[0];
+  const nameEl=document.getElementById('gcjFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('gcjInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function gcjSetRunning(on){
+  document.getElementById('gcjStartBtn').disabled=on;
+  document.getElementById('gcjStopBtn').disabled=!on;
+  ['gcjInput','gcjLimit','gcjSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function gcjStart(){
+  const typed=document.getElementById('gcjInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Glassdoor company URL (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('gcjLimit').value,10);
+  const sort=document.getElementById('gcjSort').value;
+  const body={ queries, limit:(lim>0?lim:0), sort };
+  let r;
+  try{ r=await fetch('/api/glassdoor-company-jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  gcjJob=(await r.json()).job_id;
+  _gcjRows=[]; _gcjPage=0;
+  document.getElementById('gcjResbar').style.display='none';
+  document.getElementById('gcjResults').innerHTML='';
+  document.getElementById('gcjPager').innerHTML='';
+  document.getElementById('gcjCount').textContent='';
+  document.getElementById('gcjBar').style.display='block';
+  document.querySelector('#gcjBar>i').style.width='30%';
+  gcjSetRunning(true);
+  if(gcjTimer) clearInterval(gcjTimer);
+  gcjTimer=setInterval(()=>gcjPoll(gcjJob),1500);
+  gcjPoll(gcjJob);
+}
+
+async function gcjStop(){ if(gcjJob){ document.getElementById('gcjStopBtn').disabled=true; await fetch('/api/stop/'+gcjJob,{method:'POST'}); } }
+
+async function gcjPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('gcjStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping Glassdoor… '+got+' jobs';
+  } else {
+    clearInterval(gcjTimer); gcjSetRunning(false);
+    document.getElementById('gcjBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' jobs';
+      gcjShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function gcjShowResults(job_id){
+  _gcjRows=await (await fetch('/api/glassdoor-company-jobs-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('gcjResbar');
+  if(!_gcjRows.length){
+    document.getElementById('gcjResults').innerHTML='';
+    document.getElementById('gcjCount').innerHTML='<span class="empty">No jobs — Glassdoor is Cloudflare-protected; the free pool may have been blocked. Set a paid PROXY_URL and try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('gcjDownload').style.display='none';
+    document.getElementById('gcjDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _gcjPage=0;
+  gcjRender();
+  document.getElementById('gcjCount').textContent='Showing '+_gcjRows.length+' jobs ('+GCJ_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  gcjUpdateDownload();
+}
+
+function gcjRender(){
+  const start=_gcjPage*GCJ_PAGE_SIZE;
+  let h='<table style="display:table;width:100%"><thead><tr><th>#</th><th>Job Title</th><th>Company</th><th>Rating</th><th>Location</th><th>Salary</th><th>Posted</th></tr></thead><tbody>';
+  _gcjRows.slice(start, start+GCJ_PAGE_SIZE).forEach((r,i)=>{
+    const title=r.job_url?`<a href="${esc(r.job_url)}" target="_blank" rel="noopener">${esc(r.job_title||'')}</a>`:esc(r.job_title||'');
+    h+=`<tr>
+      <td>${start+i+1}</td>
+      <td>${title}${r.easy_apply?' <span style="font-size:11px;color:var(--yp)">⚡ Easy Apply</span>':''}</td>
+      <td>${esc(r.company||'')}</td>
+      <td>${esc(r.company_rating||'')}</td>
+      <td>${esc(r.location||'')}</td>
+      <td>${esc(r.salary||'')}</td>
+      <td>${esc(r.date_posted||'')}</td>
+    </tr>`;
+  });
+  h+='</tbody></table>';
+  document.getElementById('gcjResults').innerHTML=h;
+  gcjRenderPager(_gcjRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gcjRenderPager(total){
+  const pg=document.getElementById('gcjPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/GCJ_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_gcjPage=page; gcjRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_gcjPage-1,{disabled:_gcjPage===0}));
+  let s=Math.max(0,_gcjPage-2), e=Math.min(pages-1,_gcjPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_gcjPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_gcjPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_gcjPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_gcjPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_gcjPage+1,{disabled:_gcjPage>=pages-1}));
+}
+
+function gcjFileName(){
+  const q=(document.getElementById('gcjInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'glassdoor_company_jobs_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function gcjUpdateDownload(){
+  const dl=document.getElementById('gcjDownload'), xl=document.getElementById('gcjDownloadXlsx');
+  if(!_gcjRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_gcjDlUrl) URL.revokeObjectURL(_gcjDlUrl);
+  const rows=_gcjRows.map(r=>{ const o={}; for(const c of GCJ_COLUMNS) o[c]=r[c]??''; return o; });
+  _gcjDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_gcjDlUrl; dl.setAttribute('download', gcjFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function gcjDownloadExcel(){
+  if(!_gcjRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_gcjRows.map(r=>{ const o={}; for(const c of GCJ_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:GCJ_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Glassdoor Company Jobs');
+  XLSX.writeFile(wb, gcjFileName()+'.xlsx');
+}
+/* ---------- end Glassdoor Company Jobs ---------- */
 
 /* ---------- Apollo Scraper ---------- */
 const APO_COLUMNS = ["query","type","name","title","email","phone","company","domain","industry","employees","location","linkedin_url"];

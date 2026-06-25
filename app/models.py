@@ -320,6 +320,13 @@ class YouTubeVideosRequest(BaseModel):
     video_type: str = Field("video", examples=["video", "short"])      # "short" = Shorts Only
 
 
+class GlassdoorCompanyJobsRequest(BaseModel):
+    # one line each: a Glassdoor company Jobs URL (…-Jobs-E<id>.htm) or Overview URL (…-EI_IE<id>…).
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.glassdoor.com/Jobs/USA-Jobs-Jobs-E221792.htm"]])
+    limit: Optional[int] = Field(None, ge=1, le=2000, examples=[100])  # jobs/query; None = all
+    sort: str = Field("relevant", examples=["relevant", "newest"])     # "newest" = Newest First
+
+
 class AirbnbReviewsRequest(BaseModel):
     # one line each: an airbnb.com room URL (/rooms/<id>) or a bare listing id.
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.airbnb.com/rooms/927539322986647456"]])
