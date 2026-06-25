@@ -1501,11 +1501,12 @@
   "no": "145",
   "name": "YouTube Video Scraper",
   "brand": "Youtube",
-  "description": "",
+  "description": "Returns a channel's videos or shorts from a list of channel URLs or @handles",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "youtube_video"
  },
  {
   "no": "146",

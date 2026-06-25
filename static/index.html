@@ -1324,6 +1324,53 @@
   <div id="olxPager"></div>
   </div><!-- /olxView -->
 
+  <div id="ytvView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="ytvInput" placeholder="https://www.youtube.com/@Google/videos&#10;https://www.youtube.com/watch?v=...&list=PL...   (playlist)&#10;@Google&#10;lofi beats   (keyword search)"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ytvFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ytvFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ytvFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ytvFileName"></span>
+        </div>
+        <span class="hint">One per line: a channel URL / @handle / channel id, a playlist URL (<code>?list=</code>), or a plain keyword (searches YouTube). The Video Type toggle (Shorts / Regular) applies to all of them. Uses YouTube's own JSON API (youtubei) — no HTML scraping; goes through a paid <code>PROXY_URL</code> when set.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="ytvLimit" type="number" min="1" value="100" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Video Type</label>
+        <div style="display:flex;gap:18px;align-items:center;padding-top:6px">
+          <label style="display:flex;gap:6px;align-items:center;font-weight:400;cursor:pointer"><input type="radio" name="ytvType" value="short" checked> Shorts Only</label>
+          <label style="display:flex;gap:6px;align-items:center;font-weight:400;cursor:pointer"><input type="radio" name="ytvType" value="video"> Regular Videos Only</label>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ytvStartBtn" onclick="ytvStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ytvStopBtn" onclick="ytvStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="ytvStatus"></div>
+  <div class="bar" id="ytvBar"><i></i></div>
+
+  <div class="resbar" id="ytvResbar" style="display:none">
+    <div class="count" id="ytvCount"></div>
+    <div class="resbar-controls">
+      <a id="ytvDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ytvDownloadXlsx" style="display:none" onclick="ytvDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ytvResults"></div>
+  <div id="ytvPager"></div>
+  </div><!-- /ytvView -->
+
   <div id="apolloView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -4025,7 +4072,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -4173,7 +4220,8 @@ function selectService(s, keep, fromHistory){
   document.getElementById('olxView').style.display = vt==='olx' ? '' : 'none';
   document.getElementById('apolloView').style.display = vt==='apollo' ? '' : 'none';
   document.getElementById('upworkView').style.display = vt==='upwork' ? '' : 'none';
-  
+  document.getElementById('ytvView').style.display = vt==='youtube_video' ? '' : 'none';
+
   document.getElementById('gsjobsView').style.display = vt==='gsjobs' ? '' : 'none';
   if(vt==='gsjobs') gsjInit();
   document.getElementById('gshopView').style.display = vt==='gshop' ? '' : 'none';
@@ -4252,6 +4300,7 @@ function viewType(s){
   if(s.ui === 'olx') return 'olx';
   if(s.ui === 'apollo') return 'apollo';
   if(s.ui === 'upwork') return 'upwork';
+  if(s.ui === 'youtube_video') return 'youtube_video';
 
   if(s.ui === 'gsjobs') return 'gsjobs';
   if(s.ui === 'gshop') return 'gshop';
@@ -6990,6 +7039,160 @@ function olxDownloadExcel(){
   XLSX.writeFile(wb, olxFileName()+'.xlsx');
 }
 /* ---------- end OLX ---------- */
+
+/* ---------- YouTube Video Scraper ---------- */
+const YTV_COLUMNS = ["query","video_id","title","url","channel_title","channel_id","views","views_parsed","published","length","video_type","thumbnail"];
+const YTV_PAGE_SIZE = 30;
+let ytvTimer=null, ytvJob=null, _ytvRows=[], _ytvDlUrl=null, _ytvPage=0;
+
+async function ytvFilePicked(){
+  const f=document.getElementById('ytvFile').files[0];
+  const nameEl=document.getElementById('ytvFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('ytvInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function ytvSetRunning(on){
+  document.getElementById('ytvStartBtn').disabled=on;
+  document.getElementById('ytvStopBtn').disabled=!on;
+  ['ytvInput','ytvLimit'].forEach(id=>document.getElementById(id).disabled=on);
+  document.querySelectorAll('input[name="ytvType"]').forEach(el=>el.disabled=on);
+}
+
+async function ytvStart(){
+  const typed=document.getElementById('ytvInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one channel URL or @handle (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('ytvLimit').value,10);
+  const vtype=(document.querySelector('input[name="ytvType"]:checked')||{}).value||'video';
+  const body={ queries, limit:(lim>0?lim:0), video_type:vtype };
+  let r;
+  try{ r=await fetch('/api/youtube-videos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  ytvJob=(await r.json()).job_id;
+  _ytvRows=[]; _ytvPage=0;
+  document.getElementById('ytvResbar').style.display='none';
+  document.getElementById('ytvResults').innerHTML='';
+  document.getElementById('ytvPager').innerHTML='';
+  document.getElementById('ytvCount').textContent='';
+  document.getElementById('ytvBar').style.display='block';
+  document.querySelector('#ytvBar>i').style.width='30%';
+  ytvSetRunning(true);
+  if(ytvTimer) clearInterval(ytvTimer);
+  ytvTimer=setInterval(()=>ytvPoll(ytvJob),1500);
+  ytvPoll(ytvJob);
+}
+
+async function ytvStop(){ if(ytvJob){ document.getElementById('ytvStopBtn').disabled=true; await fetch('/api/stop/'+ytvJob,{method:'POST'}); } }
+
+async function ytvPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('ytvStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping YouTube… '+got+' videos';
+  } else {
+    clearInterval(ytvTimer); ytvSetRunning(false);
+    document.getElementById('ytvBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' videos';
+      ytvShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function ytvShowResults(job_id){
+  _ytvRows=await (await fetch('/api/youtube-videos-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('ytvResbar');
+  if(!_ytvRows.length){
+    document.getElementById('ytvResults').innerHTML='';
+    document.getElementById('ytvCount').innerHTML='<span class="empty">No videos — check the channel URL/handle, or the proxy may have been rate-limited. Try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('ytvDownload').style.display='none';
+    document.getElementById('ytvDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _ytvPage=0;
+  ytvRender();
+  document.getElementById('ytvCount').textContent='Showing '+_ytvRows.length+' videos ('+YTV_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  ytvUpdateDownload();
+}
+
+function ytvRender(){
+  const start=_ytvPage*YTV_PAGE_SIZE;
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">';
+  for(const r of _ytvRows.slice(start, start+YTV_PAGE_SIZE)){
+    const thumb=esc(r.thumbnail||'');
+    const len=esc(r.length||'');
+    h+=`<a href="${esc(r.url||'#')}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);display:flex;flex-direction:column">
+      <div style="position:relative;aspect-ratio:16/9;background:#eef1f6;overflow:hidden">${thumb?`<img src="${thumb}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">`:''}${len?`<span style="position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.8);color:#fff;font-size:11px;padding:1px 5px;border-radius:4px">${len}</span>`:''}</div>
+      <div style="padding:8px 10px">
+        <div style="font-size:13px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.title||'')}</div>
+        <div style="font-size:12px;color:#70757a;margin-top:4px">${esc(r.views||'')}${r.published?(' · '+esc(r.published)):''}</div>
+      </div>
+    </a>`;
+  }
+  h+='</div>';
+  document.getElementById('ytvResults').innerHTML=h;
+  ytvRenderPager(_ytvRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function ytvRenderPager(total){
+  const pg=document.getElementById('ytvPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/YTV_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_ytvPage=page; ytvRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_ytvPage-1,{disabled:_ytvPage===0}));
+  let s=Math.max(0,_ytvPage-2), e=Math.min(pages-1,_ytvPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_ytvPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_ytvPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_ytvPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_ytvPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_ytvPage+1,{disabled:_ytvPage>=pages-1}));
+}
+
+function ytvFileName(){
+  const q=(document.getElementById('ytvInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'youtube_videos_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function ytvUpdateDownload(){
+  const dl=document.getElementById('ytvDownload'), xl=document.getElementById('ytvDownloadXlsx');
+  if(!_ytvRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_ytvDlUrl) URL.revokeObjectURL(_ytvDlUrl);
+  const rows=_ytvRows.map(r=>{ const o={}; for(const c of YTV_COLUMNS) o[c]=r[c]??''; return o; });
+  _ytvDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_ytvDlUrl; dl.setAttribute('download', ytvFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function ytvDownloadExcel(){
+  if(!_ytvRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_ytvRows.map(r=>{ const o={}; for(const c of YTV_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:YTV_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'YouTube Videos');
+  XLSX.writeFile(wb, ytvFileName()+'.xlsx');
+}
+/* ---------- end YouTube Video ---------- */
 
 /* ---------- Apollo Scraper ---------- */
 const APO_COLUMNS = ["query","type","name","title","email","phone","company","domain","industry","employees","location","linkedin_url"];

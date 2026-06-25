@@ -18,7 +18,7 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  gsjobs_results, gshop_results, gplay_results,
                  gsreviews_results, linkedin_profiles, gflights_results, gmaps_autocomplete,
                  gsearch_autocomplete, booking_reviews_results, booking_prices_results,
-                 olx_results, apollo_results, upwork_results,
+                 olx_results, apollo_results, upwork_results, youtube_videos_results,
                  booking_results, bestbuy_results, yelp_results, yelp_reviews,
                  yelp_photos, yt_transcripts,
                  ensure_indexes)
@@ -39,7 +39,7 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      GPlayMonitorRequest, LinkedInProfilesRequest, GFlightsRequest,
                      GMapsAutocompleteRequest, GSearchAutocompleteRequest, BookingReviewsRequest,
                      BookingReviewsMonitorRequest, BookingPricesRequest, OLXRequest, ApolloRequest,
-                     UpworkRequest, BookingSearchRequest,
+                     UpworkRequest, YouTubeVideosRequest, BookingSearchRequest,
                      BestBuyProductsRequest, YelpBusinessRequest, YelpReviewsRequest,
                      YelpPhotosRequest, YTTranscriptsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
@@ -56,7 +56,7 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                gsjobs, gshop, gsreviews, gplay,
                linkedin_profiles as linkedin_profiles_mod, gflights,
                gmaps_autocomplete as gmaps_autocomplete_mod, booking_reviews, booking_prices, olx,
-               apollo, upwork, booking, bestbuy, yelp,
+               apollo, upwork, youtube_videos as yt_videos, booking, bestbuy, yelp,
                yelp_reviews as yelp_reviews_mod, yelp_photos as yelp_photos_mod,
                yt_transcripts as yt_transcripts_mod)
 
@@ -151,6 +151,12 @@ async def _booking_prices_rows(job_id):
 async def _olx_rows(job_id):
     rows = [d async for d in olx_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, olx.OLX_COLUMNS
+
+
+async def _yt_videos_rows(job_id):
+    rows = [yt_videos.to_export(d) async for d in youtube_videos_results.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, yt_videos.YOUTUBE_VIDEO_COLUMNS
 
 
 async def _apollo_rows(job_id):
@@ -1451,6 +1457,32 @@ async def olx_start(req: OLXRequest):
 @app.get("/api/olx-results/{job_id}")
 async def olx_results_get(job_id: str, limit: int = 5000):
     rows = [d async for d in olx_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/youtube-videos")
+async def youtube_videos_start(req: YouTubeVideosRequest):
+    """YouTube Video Scraper — a channel's videos or shorts from a channel URL / @handle."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one channel URL or handle is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    vtype = "short" if (req.video_type or "").lower().startswith("short") else "video"
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "youtube_videos", "queries": queries, "limit": lim,
+        "video_type": vtype, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yt_videos.run_job(job_id, queries, lim, vtype),
+        "youtube_videos", job_id, _yt_videos_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/youtube-videos-results/{job_id}")
+async def youtube_videos_results_get(job_id: str, limit: int = 5000):
+    rows, _ = await _yt_videos_rows(job_id)
     return rows[:limit]
 
 

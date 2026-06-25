@@ -64,6 +64,7 @@ booking_prices_results = db["booking_prices_results"]  # one doc per Booking.com
 olx_results = db["olx_results"]  # one doc per OLX listing (OLX Scraper)
 apollo_results = db["apollo_results"]  # one doc per Apollo person/company (Apollo Scraper)
 upwork_results = db["upwork_results"]  # one doc per Upwork job listing (Upwork Jobs Scraper)
+youtube_videos_results = db["youtube_videos_results"]  # one doc per video/short (YouTube Video Scraper)
 
 
 async def ensure_indexes():
@@ -137,3 +138,4 @@ async def ensure_indexes():
     await olx_results.create_index("job_id")
     await apollo_results.create_index("job_id")
     await upwork_results.create_index("job_id")
+    await youtube_videos_results.create_index("job_id")

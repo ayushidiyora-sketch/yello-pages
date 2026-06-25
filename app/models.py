@@ -313,6 +313,13 @@ class YouTubeChannelsRequest(BaseModel):
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.youtube.com/@outscraper", "outscraper"]])
 
 
+class YouTubeVideosRequest(BaseModel):
+    # one line each: a channel URL (/@handle, /channel/UC..., /@handle/videos, /@handle/shorts) or a handle.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.youtube.com/@Google", "@Google/shorts"]])
+    limit: Optional[int] = Field(None, ge=1, le=5000, examples=[100])  # videos/query; None = all
+    video_type: str = Field("video", examples=["video", "short"])      # "short" = Shorts Only
+
+
 class AirbnbReviewsRequest(BaseModel):
     # one line each: an airbnb.com room URL (/rooms/<id>) or a bare listing id.
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.airbnb.com/rooms/927539322986647456"]])
