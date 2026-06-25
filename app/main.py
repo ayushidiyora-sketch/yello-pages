@@ -20,7 +20,7 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  gsearch_autocomplete, booking_reviews_results, booking_prices_results,
                  olx_results, apollo_results, upwork_results,
                  booking_results, bestbuy_results, yelp_results, yelp_reviews,
-                 yelp_photos, yt_transcripts,
+                 yelp_photos, yt_transcripts, yt_search,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -41,7 +41,7 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      BookingReviewsMonitorRequest, BookingPricesRequest, OLXRequest, ApolloRequest,
                      UpworkRequest, BookingSearchRequest,
                      BestBuyProductsRequest, YelpBusinessRequest, YelpReviewsRequest,
-                     YelpPhotosRequest, YTTranscriptsRequest)
+                     YelpPhotosRequest, YTTranscriptsRequest, YTSearchRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -58,7 +58,7 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                gmaps_autocomplete as gmaps_autocomplete_mod, booking_reviews, booking_prices, olx,
                apollo, upwork, booking, bestbuy, yelp,
                yelp_reviews as yelp_reviews_mod, yelp_photos as yelp_photos_mod,
-               yt_transcripts as yt_transcripts_mod)
+               yt_transcripts as yt_transcripts_mod, yt_search as yt_search_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -228,6 +228,11 @@ async def _yph_rows(job_id):
 async def _ytt_rows(job_id):
     rows = [d async for d in yt_transcripts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, yt_transcripts_mod.YT_COLUMNS
+
+
+async def _yts_rows(job_id):
+    rows = [d async for d in yt_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yt_search_mod.YTS_COLUMNS
 
 
 async def _gplay_rows(job_id):
@@ -1817,6 +1822,29 @@ async def yt_transcripts_start(req: YTTranscriptsRequest):
 @app.get("/api/yt-transcripts/results/{job_id}")
 async def yt_transcripts_results(job_id: str, limit: int = 5000):
     rows = [d async for d in yt_transcripts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yt-search")
+async def yt_search_start(req: YTSearchRequest):
+    """YouTube Search Scraper — video search results from YouTube (proxy-only, works on free pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one search query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yt_search", "queries": queries, "limit": lim, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yt_search_mod.run_job(job_id, queries, lim), "yt_search", job_id, _yts_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yt-search/results/{job_id}")
+async def yt_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yt_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 
