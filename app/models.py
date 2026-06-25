@@ -140,6 +140,12 @@ class GShopRequest(BaseModel):
     region: str = Field("us", examples=["us"])
 
 
+class YTSearchRequest(BaseModel):
+    # each line: a YouTube search phrase (e.g. "funny cats videos")
+    queries: list[str] = Field(..., min_length=1, examples=[["funny cats videos"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # videos/query; None/0 = all
+
+
 class YelpBusinessRequest(BaseModel):
     # each line: a yelp.com /search URL or a "Category | Location" pair (built from cats x locations)
     queries: list[str] = Field(..., min_length=1, examples=[["Plumbing | San Francisco, CA"]])

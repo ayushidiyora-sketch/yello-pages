@@ -2093,6 +2093,45 @@
   <div id="yttResults"></div>
   </div><!-- /ytTranscriptsView -->
 
+  <div id="ytSearchView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="ytsInput" placeholder="funny cats videos&#10;python tutorial&#10;lofi hip hop"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ytsFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ytsFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ytsFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ytsFileName"></span>
+        </div>
+        <span class="hint">YouTube video search results from YouTube's own embedded data, through the proxy pool — works on the free pool; the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="ytsLimit" type="number" min="1" placeholder="all" value="100">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ytsStartBtn" onclick="ytsStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ytsStopBtn" onclick="ytsStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="ytsStatus"></div>
+  <div class="bar" id="ytsBar"><i></i></div>
+
+  <div class="resbar" id="ytsResbar" style="display:none">
+    <div class="count" id="ytsCount"></div>
+    <div class="resbar-controls">
+      <a id="ytsDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ytsDownloadXlsx" style="display:none" onclick="ytsDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ytsResults"></div>
+  </div><!-- /ytSearchView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -4119,7 +4158,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -4289,6 +4328,7 @@ function selectService(s, keep, fromHistory){
   document.getElementById('yelpReviewsView').style.display = vt==='yelp_reviews' ? '' : 'none';
   document.getElementById('yelpPhotosView').style.display = vt==='yelp_photos' ? '' : 'none';
   document.getElementById('ytTranscriptsView').style.display = vt==='yt_transcripts' ? '' : 'none';
+  document.getElementById('ytSearchView').style.display = vt==='yt_search' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -4364,6 +4404,7 @@ function viewType(s){
   if(s.ui === 'yelp_reviews') return 'yelp_reviews';
   if(s.ui === 'yelp_photos') return 'yelp_photos';
   if(s.ui === 'yt_transcripts') return 'yt_transcripts';
+  if(s.ui === 'yt_search') return 'yt_search';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -9873,6 +9914,137 @@ function yttDownloadExcel(){
   XLSX.writeFile(wb, yttFileName()+'.xlsx');
 }
 /* ---------- end YouTube Transcripts ---------- */
+
+/* ---------- YouTube Search ---------- */
+const YTS_COLUMNS = ["query","video_id","title","channel","views","duration","published","url","thumbnail"];
+let ytsTimer=null, ytsJob=null, _ytsRows=[], _ytsDlUrl=null;
+
+async function ytsFilePicked(){
+  const f=document.getElementById('ytsFile').files[0];
+  const nameEl=document.getElementById('ytsFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('ytsInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste queries or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function ytsSetRunning(on){
+  document.getElementById('ytsStartBtn').disabled=on;
+  document.getElementById('ytsStopBtn').disabled=!on;
+  ['ytsInput','ytsLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function ytsStart(){
+  const typed=document.getElementById('ytsInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a YouTube search query (one per line), or upload a file.'); return; }
+  const lim=parseInt(document.getElementById('ytsLimit').value,10);
+  let r;
+  try{ r=await fetch('/api/yt-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, limit:(lim>0?lim:0)})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  ytsJob=(await r.json()).job_id;
+  _ytsRows=[];
+  document.getElementById('ytsResbar').style.display='none';
+  document.getElementById('ytsResults').innerHTML='';
+  document.getElementById('ytsCount').textContent='';
+  document.getElementById('ytsBar').style.display='block';
+  document.querySelector('#ytsBar>i').style.width='30%';
+  ytsSetRunning(true);
+  if(ytsTimer) clearInterval(ytsTimer);
+  ytsTimer=setInterval(()=>ytsPoll(ytsJob),1500);
+  ytsPoll(ytsJob);
+}
+
+async function ytsStop(){ if(ytsJob){ document.getElementById('ytsStopBtn').disabled=true; await fetch('/api/stop/'+ytsJob,{method:'POST'}); } }
+
+async function ytsPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('ytsStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching… '+got+' videos';
+  } else {
+    clearInterval(ytsTimer); ytsSetRunning(false);
+    document.getElementById('ytsBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' videos';
+      ytsShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function ytsShowResults(job_id, note){
+  _ytsRows=await (await fetch('/api/yt-search/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('ytsResbar');
+  if(!_ytsRows.length){
+    document.getElementById('ytsResults').innerHTML='';
+    document.getElementById('ytsCount').innerHTML='<span class="empty">'+esc(note||'No videos — the proxy may have been blocked; try again.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('ytsDownload').style.display='none';
+    document.getElementById('ytsDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  ytsRender();
+  document.getElementById('ytsCount').textContent='Showing '+_ytsRows.length+' video'+(_ytsRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  ytsUpdateDownload();
+}
+
+function ytsRender(){
+  let h='';
+  _ytsRows.forEach((r)=>{
+    const thumb=r.thumbnail?`<div style="position:relative;flex:none"><img src="${esc(r.thumbnail)}" loading="lazy" style="width:160px;height:90px;object-fit:cover;border-radius:8px;background:#eee" onerror="this.style.display='none'">${r.duration?`<span style="position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.8);color:#fff;font-size:11px;padding:1px 4px;border-radius:3px">${esc(r.duration)}</span>`:''}</div>`:'';
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:14px">
+      ${thumb}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:#202124"><a href="${esc(r.url)}" target="_blank" style="color:#c00;text-decoration:none">${esc(r.title||r.video_id)}</a></div>
+        <div style="font-size:13px;color:#5f6368;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 14px">
+          ${r.channel?`<span>📺 ${esc(r.channel)}</span>`:''}
+          ${r.views?`<span>${esc(r.views)}</span>`:''}
+          ${r.published?`<span>${esc(r.published)}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('ytsResults').innerHTML=h;
+}
+
+function ytsFileName(){ const q=(document.getElementById('ytsInput').value.trim().split(/\r?\n/)[0]||'youtube'); return 'youtube-search_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+function ytsUpdateDownload(){
+  const dl=document.getElementById('ytsDownload'), xl=document.getElementById('ytsDownloadXlsx');
+  if(!_ytsRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_ytsDlUrl) URL.revokeObjectURL(_ytsDlUrl);
+  const rows=_ytsRows.map(r=>{ const o={}; for(const c of YTS_COLUMNS) o[c]=r[c]??''; return o; });
+  _ytsDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_ytsDlUrl; dl.setAttribute('download', ytsFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function ytsDownloadExcel(){
+  if(!_ytsRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_ytsRows.map(r=>{ const o={}; for(const c of YTS_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:YTS_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'YouTube');
+  XLSX.writeFile(wb, ytsFileName()+'.xlsx');
+}
+/* ---------- end YouTube Search ---------- */
 
 /* ---------- Google Play Reviews Monitoring ---------- */
 let gplmTimer=null, gplmJob=null, _gplmRows=[], _gplmDlUrl=null, _gplmThreshold=3, _gplmEmailed='';
