@@ -17,8 +17,8 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  gtrends_results, linkedin_companies_results, linkedin_posts_results,
                  gsjobs_results, gshop_results, gplay_results,
                  gsreviews_results, linkedin_profiles, gflights_results, gmaps_autocomplete,
-                 gsearch_autocomplete,
-                 ensure_indexes)
+                 gsearch_autocomplete, booking_reviews_results, booking_prices_results,
+                 olx_results, apollo_results, upwork_results, ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorCompaniesRequest, GlassdoorReviewsRequest,
@@ -34,7 +34,9 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      LinkedInPostsRequest,
                      GSJobsRequest, GShopRequest, GShopReviewsRequest, GPlayRequest,
                      GPlayMonitorRequest, LinkedInProfilesRequest, GFlightsRequest,
-                     GMapsAutocompleteRequest, GSearchAutocompleteRequest)
+                     GMapsAutocompleteRequest, GSearchAutocompleteRequest, BookingReviewsRequest,
+                     BookingReviewsMonitorRequest, BookingPricesRequest, OLXRequest, ApolloRequest,
+                     UpworkRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -48,7 +50,8 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                linkedin_companies, linkedin_posts,
                gsjobs, gshop, gsreviews, gplay,
                linkedin_profiles as linkedin_profiles_mod, gflights,
-               gmaps_autocomplete as gmaps_autocomplete_mod)
+               gmaps_autocomplete as gmaps_autocomplete_mod, booking_reviews, booking_prices, olx,
+               apollo, upwork)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -126,6 +129,31 @@ async def _linkedin_companies_rows(job_id):
 async def _linkedin_posts_rows(job_id):
     rows = [d async for d in linkedin_posts_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, linkedin_posts.LINKEDIN_POSTS_COLUMNS
+
+
+async def _booking_reviews_rows(job_id):
+    rows = [d async for d in booking_reviews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, booking_reviews.BOOKING_REVIEW_COLUMNS
+
+
+async def _booking_prices_rows(job_id):
+    rows = [d async for d in booking_prices_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, booking_prices.BOOKING_PRICE_COLUMNS
+
+
+async def _olx_rows(job_id):
+    rows = [d async for d in olx_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, olx.OLX_COLUMNS
+
+
+async def _apollo_rows(job_id):
+    rows = [d async for d in apollo_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, apollo.APOLLO_COLUMNS
+
+
+async def _upwork_rows(job_id):
+    rows = [d async for d in upwork_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, upwork.UPWORK_COLUMNS
 
 
 async def _gsjobs_rows(job_id):
@@ -1313,6 +1341,131 @@ async def linkedin_posts_results_get(job_id: str, limit: int = 3000):
     return rows[:limit]
 
 
+@app.post("/api/booking-reviews")
+async def booking_reviews_start(req: BookingReviewsRequest):
+    """Booking Reviews Scraper — guest reviews for a booking.com hotel (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "booking_reviews", "queries": queries, "limit": lim,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        booking_reviews.run_job(job_id, queries, lim, req.sort),
+        "booking_reviews", job_id, _booking_reviews_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/booking-reviews-results/{job_id}")
+async def booking_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in booking_reviews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/booking-prices")
+async def booking_prices_start(req: BookingPricesRequest):
+    """Booking Prices Scraper — room types + nightly prices for a booking.com hotel (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "booking_prices", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        booking_prices.run_job(job_id, queries, lim),
+        "booking_prices", job_id, _booking_prices_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/booking-prices-results/{job_id}")
+async def booking_prices_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in booking_prices_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/olx")
+async def olx_start(req: OLXRequest):
+    """OLX Scraper — product/classified listings from an olx.* search URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one search URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "olx", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        olx.run_job(job_id, queries, lim),
+        "olx", job_id, _olx_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/olx-results/{job_id}")
+async def olx_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in olx_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/apollo")
+async def apollo_start(req: ApolloRequest):
+    """Apollo Scraper — people/companies from app.apollo.io search URLs (auth via your cookies)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Apollo search URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "apollo", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        apollo.run_job(job_id, queries, req.cookies, lim),
+        "apollo", job_id, _apollo_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/apollo-results/{job_id}")
+async def apollo_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in apollo_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/upwork")
+async def upwork_start(req: UpworkRequest):
+    """Upwork Jobs Scraper — job listings from an upwork.com search URL (headless, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one search URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "upwork", "queries": queries, "limit": lim, "sort": req.sort,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        upwork.run_job(job_id, queries, lim, req.sort),
+        "upwork", job_id, _upwork_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/upwork-results/{job_id}")
+async def upwork_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in upwork_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
 @app.post("/api/gsjobs")
 async def gsjobs_start(req: GSJobsRequest):
     """Google Search Jobs Scraper — job listings via Google Jobs (proxy-only)."""
@@ -1529,6 +1682,29 @@ async def gplay_monitoring_start(req: GPlayMonitorRequest):
 
 @app.get("/api/gplay-monitoring/{monitor_id}")
 async def gplay_monitoring_get(monitor_id: str):
+    doc = await monitors.find_one({"monitor_id": monitor_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "monitor not found")
+    return doc
+
+
+@app.post("/api/booking-reviews-monitoring")
+async def booking_reviews_monitoring_start(req: BookingReviewsMonitorRequest):
+    """Booking Reviews Monitoring — recurring hotel-review scan + email report. Reuses the Booking
+    Reviews scraper (headless browser, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one booking.com hotel URL/slug is required")
+    if req.frequency not in monitor.FREQ_DAYS:
+        raise HTTPException(400, f"frequency must be one of {list(monitor.FREQ_DAYS)}")
+    res = await monitor.start_monitor(queries, req.frequency, req.email, req.threshold,
+                                      limit=req.limit, kind="booking_reviews", sort="newest")
+    res["frequency"] = monitor.FREQ_LABEL[req.frequency]
+    return res
+
+
+@app.get("/api/booking-reviews-monitoring/{monitor_id}")
+async def booking_reviews_monitoring_get(monitor_id: str):
     doc = await monitors.find_one({"monitor_id": monitor_id}, {"_id": 0})
     if not doc:
         raise HTTPException(404, "monitor not found")

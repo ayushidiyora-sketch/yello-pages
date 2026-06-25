@@ -53,6 +53,11 @@ gcareers_results = db["gcareers_results"]  # one doc per Google Careers job (Goo
 gtrends_results = db["gtrends_results"]  # one doc per region/term interest value (Google Trends)
 linkedin_companies_results = db["linkedin_companies_results"]  # one doc per LinkedIn company
 linkedin_posts_results = db["linkedin_posts_results"]  # one doc per LinkedIn company post
+booking_reviews_results = db["booking_reviews_results"]  # one doc per Booking.com hotel review
+booking_prices_results = db["booking_prices_results"]  # one doc per Booking.com room price
+olx_results = db["olx_results"]  # one doc per OLX listing (OLX Scraper)
+apollo_results = db["apollo_results"]  # one doc per Apollo person/company (Apollo Scraper)
+upwork_results = db["upwork_results"]  # one doc per Upwork job listing (Upwork Jobs Scraper)
 
 
 async def ensure_indexes():
@@ -115,3 +120,8 @@ async def ensure_indexes():
     await gtrends_results.create_index("job_id")
     await linkedin_companies_results.create_index("job_id")
     await linkedin_posts_results.create_index("job_id")
+    await booking_reviews_results.create_index("job_id")
+    await booking_prices_results.create_index("job_id")
+    await olx_results.create_index("job_id")
+    await apollo_results.create_index("job_id")
+    await upwork_results.create_index("job_id")

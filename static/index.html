@@ -1144,6 +1144,283 @@
   <div id="lpPager"></div>
   </div><!-- /linkedinPostsView -->
 
+  <div id="bookingReviewsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="bkInput" placeholder="https://www.booking.com/hotel/tr/old-town-point-amp-spa-antalya.html&#10;old-town-point-amp-spa-antalya"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="bkFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bkFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('bkFile').click()">⬆ Upload file</button>
+          <span class="hint" id="bkFileName"></span>
+        </div>
+        <span class="hint">One booking.com/hotel/&lt;cc&gt;/&lt;slug&gt;.html URL per line (a bare hotel slug also works). Booking blocks free/datacenter IPs, so a paid residential <code>PROXY_URL</code> is needed; the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="bkLimit" type="number" min="1" value="100" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="bkSort">
+          <option value="most_relevant" selected>Most Relevant</option>
+          <option value="newest">Newest First</option>
+          <option value="oldest">Older First</option>
+          <option value="highest">Highest Scores</option>
+          <option value="lowest">Lowest Scores</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="bkStartBtn" onclick="bkStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="bkStopBtn" onclick="bkStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="bkStatus"></div>
+  <div class="bar" id="bkBar"><i></i></div>
+
+  <div class="resbar" id="bkResbar" style="display:none">
+    <div class="count" id="bkCount"></div>
+    <div class="resbar-controls">
+      <a id="bkDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="bkDownloadXlsx" style="display:none" onclick="bkDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="bkResults"></div>
+  <div id="bkPager"></div>
+  </div><!-- /bookingReviewsView -->
+
+  <div id="bookingMonitoringView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="bmoInput" placeholder="https://www.booking.com/hotel/tr/old-town-point-amp-spa-antalya.html&#10;old-town-point-amp-spa-antalya"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="bmoFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bmoFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('bmoFile').click()">⬆ Upload file</button>
+          <span class="hint" id="bmoFileName"></span>
+        </div>
+        <span class="hint">Re-scans each hotel's reviews on schedule (headless browser via the proxy pool — Booking blocks free/datacenter IPs, so a residential <code>PROXY_URL</code> is best). Emails a report; the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Monitoring Frequency</label>
+        <select id="bmoFreq">
+          <option value="daily">Once a day</option>
+          <option value="weekly" selected>Once a week</option>
+          <option value="3weeks">Once every 3 weeks</option>
+          <option value="monthly">Once a month</option>
+          <option value="3months">Once every 3 months</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Email for Notifications</label>
+        <input id="bmoEmail" type="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Negative Review Threshold</label>
+        <input id="bmoThreshold" type="number" min="1" max="10" value="3">
+        <span class="hint">Reviews scored at or below this (out of 10) are flagged negative.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="bmoStartBtn" onclick="bmoStart()">🔍 Start Monitoring</button>
+      <button class="btn-stop" id="bmoStopBtn" onclick="bmoStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="bmoStatus"></div>
+  <div class="bar" id="bmoBar"><i></i></div>
+  <div id="bmoBanner"></div>
+
+  <div class="resbar" id="bmoResbar" style="display:none">
+    <div class="count" id="bmoCount"></div>
+    <div class="resbar-controls">
+      <a id="bmoDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="bmoDownloadXlsx" style="display:none" onclick="bmoDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="bmoResults"></div>
+  <div id="bmoPager"></div>
+  </div><!-- /bookingMonitoringView -->
+
+  <div id="bookingPricesView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="bprInput" placeholder="https://www.booking.com/hotel/tr/old-town-point-amp-spa-antalya.html&#10;old-town-point-amp-spa-antalya"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="bprFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bprFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('bprFile').click()">⬆ Upload file</button>
+          <span class="hint" id="bprFileName"></span>
+        </div>
+        <span class="hint">One booking.com/hotel/&lt;cc&gt;/&lt;slug&gt;.html URL per line (a bare slug also works). Check-in/out dates are added automatically. Rendered via the proxy pool — Booking blocks free/datacenter IPs, so a residential <code>PROXY_URL</code> is needed for prices; the real IP is never used.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="bprStartBtn" onclick="bprStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="bprStopBtn" onclick="bprStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="bprStatus"></div>
+  <div class="bar" id="bprBar"><i></i></div>
+
+  <div class="resbar" id="bprResbar" style="display:none">
+    <div class="count" id="bprCount"></div>
+    <div class="resbar-controls">
+      <a id="bprDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="bprDownloadXlsx" style="display:none" onclick="bprDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="bprResults"></div>
+  <div id="bprPager"></div>
+  </div><!-- /bookingPricesView -->
+
+  <div id="olxView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search URLs <span class="req">*</span></label>
+        <textarea id="olxInput" placeholder="https://www.olx.ro/oferte/q-bmw/&#10;https://www.olx.kz/list/q-audi/"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="olxFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="olxFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('olxFile').click()">⬆ Upload file</button>
+          <span class="hint" id="olxFileName"></span>
+        </div>
+        <span class="hint">One olx.* search URL per line (any country: olx.ro, olx.kz, olx.pl, olx.in…). Fetched through the proxy pool (paid <code>PROXY_URL</code> if set, else the free pool); the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="olxLimit" type="number" min="1" value="100" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="olxStartBtn" onclick="olxStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="olxStopBtn" onclick="olxStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="olxStatus"></div>
+  <div class="bar" id="olxBar"><i></i></div>
+
+  <div class="resbar" id="olxResbar" style="display:none">
+    <div class="count" id="olxCount"></div>
+    <div class="resbar-controls">
+      <a id="olxDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="olxDownloadXlsx" style="display:none" onclick="olxDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="olxResults"></div>
+  <div id="olxPager"></div>
+  </div><!-- /olxView -->
+
+  <div id="apolloView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>URLs to companies or contacts search <span class="req">*</span></label>
+        <textarea id="apoInput" placeholder="https://app.apollo.io/#/people?page=1&amp;personTitles[]=project%20manager&#10;https://app.apollo.io/#/companies?qOrganizationKeywordTags[]=AWS"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="apoFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="apoFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('apoFile').click()">⬆ Upload file</button>
+          <span class="hint" id="apoFileName"></span>
+        </div>
+      </div>
+      <div class="field full">
+        <label>Apollo Cookies <span class="req">*</span> <span class="hint">(JSON format)</span></label>
+        <div class="hint" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;margin:6px 0;color:#7c2d12">
+          <b>How to get Apollo cookies:</b><br>
+          1. Install the <b>Cookie-Editor</b> Chrome extension<br>
+          2. Go to <b>app.apollo.io</b> and log in to your account<br>
+          3. Click the Cookie-Editor extension icon → <b>Export</b> → <b>Export as JSON</b><br>
+          4. Paste all cookies (JSON) below
+        </div>
+        <textarea id="apoCookies" placeholder='[{"name":"session_id","value":"your_session_value","domain":".apollo.io"}, ...]'></textarea>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="apoLimit" type="number" min="1" value="100" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="apoStartBtn" onclick="apoStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="apoStopBtn" onclick="apoStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="apoStatus"></div>
+  <div class="bar" id="apoBar"><i></i></div>
+
+  <div class="resbar" id="apoResbar" style="display:none">
+    <div class="count" id="apoCount"></div>
+    <div class="resbar-controls">
+      <a id="apoDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="apoDownloadXlsx" style="display:none" onclick="apoDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="apoResults"></div>
+  <div id="apoPager"></div>
+  </div><!-- /apolloView -->
+
+  <div id="upworkView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search URLs <span class="req">*</span></label>
+        <textarea id="upwInput" placeholder="https://www.upwork.com/nx/search/jobs/?q=marketing%20automation&amp;sort=recency&#10;https://www.upwork.com/nx/search/jobs/?q=python"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="upwFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="upwFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('upwFile').click()">⬆ Upload file</button>
+          <span class="hint" id="upwFileName"></span>
+        </div>
+        <span class="hint">One upwork.com/nx/search/jobs/ URL per line. Rendered via the proxy pool — Upwork uses Cloudflare, so a residential <code>PROXY_URL</code> is needed; the real IP is never used.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="upwLimit" type="number" min="1" value="100" placeholder="all">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="upwSort">
+          <option value="relevance">Relevance</option>
+          <option value="recency" selected>Most recent</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="upwStartBtn" onclick="upwStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="upwStopBtn" onclick="upwStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="upwStatus"></div>
+  <div class="bar" id="upwBar"><i></i></div>
+
+  <div class="resbar" id="upwResbar" style="display:none">
+    <div class="count" id="upwCount"></div>
+    <div class="resbar-controls">
+      <a id="upwDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="upwDownloadXlsx" style="display:none" onclick="upwDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="upwResults"></div>
+  <div id="upwPager"></div>
+  </div><!-- /upworkView -->
+
   
 
   <div id="gsjobsView" style="display:none">
@@ -3505,7 +3782,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','gplayView','gplayMonitoringView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -3647,6 +3924,12 @@ function selectService(s, keep, fromHistory){
   if(vt==='gtrends') gtInit();
   document.getElementById('linkedinCompaniesView').style.display = vt==='linkedin_companies' ? '' : 'none';
   document.getElementById('linkedinPostsView').style.display = vt==='linkedin_posts' ? '' : 'none';
+  document.getElementById('bookingReviewsView').style.display = vt==='booking_reviews' ? '' : 'none';
+  document.getElementById('bookingMonitoringView').style.display = vt==='booking_monitoring' ? '' : 'none';
+  document.getElementById('bookingPricesView').style.display = vt==='booking_prices' ? '' : 'none';
+  document.getElementById('olxView').style.display = vt==='olx' ? '' : 'none';
+  document.getElementById('apolloView').style.display = vt==='apollo' ? '' : 'none';
+  document.getElementById('upworkView').style.display = vt==='upwork' ? '' : 'none';
   
   document.getElementById('gsjobsView').style.display = vt==='gsjobs' ? '' : 'none';
   if(vt==='gsjobs') gsjInit();
@@ -3714,6 +3997,12 @@ function viewType(s){
   if(s.ui === 'gtrends') return 'gtrends';
   if(s.ui === 'linkedin_companies') return 'linkedin_companies';
   if(s.ui === 'linkedin_posts') return 'linkedin_posts';
+  if(s.ui === 'booking_reviews') return 'booking_reviews';
+  if(s.ui === 'booking_monitoring') return 'booking_monitoring';
+  if(s.ui === 'booking_prices') return 'booking_prices';
+  if(s.ui === 'olx') return 'olx';
+  if(s.ui === 'apollo') return 'apollo';
+  if(s.ui === 'upwork') return 'upwork';
 
   if(s.ui === 'gsjobs') return 'gsjobs';
   if(s.ui === 'gshop') return 'gshop';
@@ -5819,6 +6108,939 @@ function lpDownloadExcel(){
   XLSX.writeFile(wb, lpFileName()+'.xlsx');
 }
 /* ---------- end LinkedIn Posts ---------- */
+
+/* ---------- Booking Reviews Scraper ---------- */
+const BK_COLUMNS = ["query","reviewer_name","reviewer_country","score","review_title","liked","disliked","date","stay_date","room_type","traveler_type"];
+const BK_PAGE_SIZE = 25;
+let bkTimer=null, bkJob=null, _bkRows=[], _bkDlUrl=null, _bkPage=0;
+
+async function bkFilePicked(){
+  const f=document.getElementById('bkFile').files[0];
+  const nameEl=document.getElementById('bkFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('bkInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste links or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function bkSetRunning(on){
+  document.getElementById('bkStartBtn').disabled=on;
+  document.getElementById('bkStopBtn').disabled=!on;
+  ['bkInput','bkLimit','bkSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function bkStart(){
+  const typed=document.getElementById('bkInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one booking.com hotel URL/slug (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('bkLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), sort:document.getElementById('bkSort').value };
+  let r;
+  try{ r=await fetch('/api/booking-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  bkJob=(await r.json()).job_id;
+  _bkRows=[]; _bkPage=0;
+  document.getElementById('bkResbar').style.display='none';
+  document.getElementById('bkResults').innerHTML='';
+  document.getElementById('bkPager').innerHTML='';
+  document.getElementById('bkCount').textContent='';
+  document.getElementById('bkBar').style.display='block';
+  document.querySelector('#bkBar>i').style.width='30%';
+  bkSetRunning(true);
+  if(bkTimer) clearInterval(bkTimer);
+  bkTimer=setInterval(()=>bkPoll(bkJob),1500);
+  bkPoll(bkJob);
+}
+
+async function bkStop(){ if(bkJob){ document.getElementById('bkStopBtn').disabled=true; await fetch('/api/stop/'+bkJob,{method:'POST'}); } }
+
+async function bkPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('bkStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching reviews… '+got+' found';
+  } else {
+    clearInterval(bkTimer); bkSetRunning(false);
+    document.getElementById('bkBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' reviews';
+      bkShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function bkShowResults(job_id){
+  _bkRows=await (await fetch('/api/booking-reviews-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('bkResbar');
+  if(!_bkRows.length){
+    document.getElementById('bkResults').innerHTML='';
+    document.getElementById('bkCount').innerHTML='<span class="empty">No reviews — Booking.com blocks free/datacenter IPs. Set a paid residential PROXY_URL and try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('bkDownload').style.display='none';
+    document.getElementById('bkDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _bkPage=0;
+  bkRender();
+  document.getElementById('bkCount').textContent='Showing '+_bkRows.length+' reviews ('+BK_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  bkUpdateDownload();
+}
+
+function bkRender(){
+  const start=_bkPage*BK_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _bkRows.slice(start, start+BK_PAGE_SIZE)){
+    const head=[r.reviewer_name, r.reviewer_country].filter(Boolean).map(esc).join(' · ');
+    const meta=[r.date, r.room_type, r.traveler_type].filter(Boolean).map(esc).join(' · ');
+    const sc=r.score?`<span style="float:right;background:var(--yp);color:#fff;font-weight:700;font-size:13px;padding:2px 8px;border-radius:6px">${esc(r.score)}</span>`:'';
+    h+=`<div style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      ${sc}
+      <div style="font-size:14px;font-weight:600">${head}</div>
+      ${r.review_title?`<div style="font-size:13px;font-weight:600;margin-top:3px">${esc(r.review_title)}</div>`:''}
+      ${r.liked?`<div style="font-size:13px;color:#1a7f37;margin-top:5px">👍 ${esc(r.liked)}</div>`:''}
+      ${r.disliked?`<div style="font-size:13px;color:#b00020;margin-top:3px">👎 ${esc(r.disliked)}</div>`:''}
+      ${meta?`<div style="font-size:12px;color:#70757a;margin-top:5px">${meta}</div>`:''}
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('bkResults').innerHTML=h;
+  bkRenderPager(_bkRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function bkRenderPager(total){
+  const pg=document.getElementById('bkPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/BK_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_bkPage=page; bkRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_bkPage-1,{disabled:_bkPage===0}));
+  let s=Math.max(0,_bkPage-2), e=Math.min(pages-1,_bkPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_bkPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_bkPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_bkPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_bkPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_bkPage+1,{disabled:_bkPage>=pages-1}));
+}
+
+function bkFileName(){
+  const q=(document.getElementById('bkInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'booking-reviews_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function bkUpdateDownload(){
+  const dl=document.getElementById('bkDownload'), xl=document.getElementById('bkDownloadXlsx');
+  if(!_bkRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_bkDlUrl) URL.revokeObjectURL(_bkDlUrl);
+  const rows=_bkRows.map(r=>{ const o={}; for(const c of BK_COLUMNS) o[c]=r[c]??''; return o; });
+  _bkDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_bkDlUrl; dl.setAttribute('download', bkFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function bkDownloadExcel(){
+  if(!_bkRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_bkRows.map(r=>{ const o={}; for(const c of BK_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:BK_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Reviews');
+  XLSX.writeFile(wb, bkFileName()+'.xlsx');
+}
+/* ---------- end Booking Reviews ---------- */
+
+/* ---------- Booking Reviews Monitoring ---------- */
+const BMO_COLUMNS = ["query","reviewer_name","reviewer_country","score","review_title","liked","disliked","date","stay_date","room_type","traveler_type"];
+const BMO_PAGE_SIZE = 15;
+let bmoTimer=null, bmoJob=null, _bmoRows=[], _bmoDlUrl=null, _bmoPage=0, _bmoThreshold=3, _bmoEmailed='';
+
+async function bmoFilePicked(){
+  const f=document.getElementById('bmoFile').files[0];
+  const nameEl=document.getElementById('bmoFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('bmoInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' quer'+(lines.length===1?'y':'ies')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste links or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function bmoSetRunning(on){
+  document.getElementById('bmoStartBtn').disabled=on;
+  document.getElementById('bmoStopBtn').disabled=!on;
+  ['bmoInput','bmoFreq','bmoEmail','bmoThreshold'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function bmoStart(){
+  const typed=document.getElementById('bmoInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a booking.com hotel URL or slug (one per line).'); return; }
+  const email=document.getElementById('bmoEmail').value.trim();
+  if(!email){ alert('Enter an email for the monitoring report.'); return; }
+  _bmoThreshold=parseInt(document.getElementById('bmoThreshold').value,10)||3;
+  let r;
+  try{ r=await fetch('/api/booking-reviews-monitoring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries, frequency:document.getElementById('bmoFreq').value, email, threshold:_bmoThreshold})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  bmoJob=(await r.json()).job_id;
+  _bmoRows=[]; _bmoPage=0;
+  document.getElementById('bmoBanner').innerHTML='';
+  document.getElementById('bmoResbar').style.display='none';
+  document.getElementById('bmoResults').innerHTML='';
+  document.getElementById('bmoPager').innerHTML='';
+  document.getElementById('bmoCount').textContent='';
+  document.getElementById('bmoBar').style.display='block';
+  document.querySelector('#bmoBar>i').style.width='30%';
+  bmoSetRunning(true);
+  if(bmoTimer) clearInterval(bmoTimer);
+  bmoTimer=setInterval(()=>bmoPoll(bmoJob),1500);
+  bmoPoll(bmoJob);
+}
+
+async function bmoStop(){ if(bmoJob){ document.getElementById('bmoStopBtn').disabled=true; await fetch('/api/stop/'+bmoJob,{method:'POST'}); } }
+
+async function bmoPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('bmoStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Running first scan… '+got+' reviews';
+  } else {
+    clearInterval(bmoTimer); bmoSetRunning(false);
+    document.getElementById('bmoBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ First scan done':'⏹ Stopped')+' — '+got+' reviews';
+      _bmoEmailed=s.emailed||'';
+      bmoShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+      bmoBanner(0,0,s.error||'');
+    }
+  }
+}
+
+function _bmoNeg(r){ const v=parseFloat(r.score); return !isNaN(v) && v<=_bmoThreshold; }
+
+function bmoBanner(total, negatives, err){
+  const freq=document.getElementById('bmoFreq').selectedOptions[0].text;
+  const email=document.getElementById('bmoEmail').value.trim();
+  document.getElementById('bmoBanner').innerHTML=
+    `<div class="status done" style="margin-bottom:14px">✅ <b>Monitoring active</b> — ${esc(freq)}, alerts to <b>${esc(email)}</b>, negative if score ≤ ${_bmoThreshold}.`+
+    (total?` This scan: <b style="color:#c0392b">${negatives}</b> negative of ${total} reviews.${(typeof _monEmailLine==='function')?_monEmailLine(_bmoEmailed,email):''}`:` First scan returned no reviews${err?(' — '+esc(err)):' — Booking blocks free/datacenter IPs; set a residential PROXY_URL.'} The monitor is saved and will retry on schedule.`)+
+    `</div>`;
+}
+
+async function bmoShowResults(job_id){
+  _bmoRows=await (await fetch('/api/booking-reviews-results/'+job_id+'?limit=5000')).json();
+  const negs=_bmoRows.filter(_bmoNeg).length;
+  bmoBanner(_bmoRows.length, negs, '');
+  const resbar=document.getElementById('bmoResbar');
+  if(!_bmoRows.length){
+    document.getElementById('bmoResults').innerHTML='';
+    document.getElementById('bmoCount').innerHTML='<span class="empty">No reviews this scan. The monitor is saved; Booking blocks free/datacenter IPs — set a residential PROXY_URL.</span>';
+    resbar.style.display='flex';
+    document.getElementById('bmoDownload').style.display='none';
+    document.getElementById('bmoDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _bmoPage=0;
+  bmoRender();
+  const scored=_bmoRows.filter(r=>!isNaN(parseFloat(r.score))).length;
+  let note='Showing '+_bmoRows.length+' reviews ('+negs+' negative · '+BMO_PAGE_SIZE+' per page · download for the full set).';
+  if(scored===0) note+=' ⚠ These are featured reviews with no score, so the threshold can’t flag them — set a residential PROXY_URL to get scored reviews (X/10).';
+  document.getElementById('bmoCount').textContent=note;
+  bmoUpdateDownload();
+}
+
+function bmoRender(){
+  const start=_bmoPage*BMO_PAGE_SIZE;
+  let h='';
+  _bmoRows.slice(start, start+BMO_PAGE_SIZE).forEach((r)=>{
+    const neg=_bmoNeg(r);
+    const who=[r.reviewer_name, r.reviewer_country].filter(Boolean).map(esc).join(' · ');
+    h+=`<div class="bbr-card"${neg?' style="border-left:4px solid #e74c3c"':''}>
+      <div class="bbr-name"><span class="ic">👤</span>${who||'Anonymous'}${neg?' <span style="color:#c0392b;font-size:12px;font-weight:600">NEGATIVE</span>':''}${r.score?' <span style="color:#1a7f37;font-weight:700">'+esc(r.score)+'/10</span>':''}</div>
+      <div class="bbr-date"><b>Date:</b> ${esc(String(r.date||'').replace('Reviewed:','').trim())}${r.room_type?(' · '+esc(r.room_type)):''}${r.traveler_type?(' · '+esc(r.traveler_type)):''}</div>
+      ${r.review_title?`<div class="bbr-text"><b>${esc(r.review_title)}</b></div>`:''}
+      ${r.liked?`<div class="bbr-text" style="color:#1a7f37">👍 ${esc(r.liked)}</div>`:''}
+      ${r.disliked?`<div class="bbr-text" style="color:#b00020">👎 ${esc(r.disliked)}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('bmoResults').innerHTML=h;
+  bmoRenderPager(_bmoRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function bmoRenderPager(total){
+  const pg=document.getElementById('bmoPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/BMO_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_bmoPage=page; bmoRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_bmoPage-1,{disabled:_bmoPage===0}));
+  let s=Math.max(0,_bmoPage-2), e=Math.min(pages-1,_bmoPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_bmoPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_bmoPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_bmoPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_bmoPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_bmoPage+1,{disabled:_bmoPage>=pages-1}));
+}
+
+function bmoFileName(){ return 'booking-monitoring_'+((document.getElementById('bmoInput').value.trim().split(/\r?\n/)[0]||'results').toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)); }
+function bmoUpdateDownload(){
+  const dl=document.getElementById('bmoDownload'), xl=document.getElementById('bmoDownloadXlsx');
+  if(!_bmoRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_bmoDlUrl) URL.revokeObjectURL(_bmoDlUrl);
+  const rows=_bmoRows.map(r=>{ const o={}; for(const c of BMO_COLUMNS) o[c]=r[c]??''; return o; });
+  _bmoDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_bmoDlUrl; dl.setAttribute('download', bmoFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function bmoDownloadExcel(){
+  if(!_bmoRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_bmoRows.map(r=>{ const o={}; for(const c of BMO_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:BMO_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Monitoring');
+  XLSX.writeFile(wb, bmoFileName()+'.xlsx');
+}
+/* ---------- end Booking Reviews Monitoring ---------- */
+
+/* ---------- Booking Prices Scraper ---------- */
+const BPR_COLUMNS = ["query","hotel_name","room_type","price","occupancy","board","cancellation"];
+const BPR_PAGE_SIZE = 25;
+let bprTimer=null, bprJob=null, _bprRows=[], _bprDlUrl=null, _bprPage=0;
+
+async function bprFilePicked(){
+  const f=document.getElementById('bprFile').files[0];
+  const nameEl=document.getElementById('bprFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('bprInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste links or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function bprSetRunning(on){
+  document.getElementById('bprStartBtn').disabled=on;
+  document.getElementById('bprStopBtn').disabled=!on;
+  document.getElementById('bprInput').disabled=on;
+}
+
+async function bprStart(){
+  const typed=document.getElementById('bprInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one booking.com hotel URL/slug (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  let r;
+  try{ r=await fetch('/api/booking-prices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  bprJob=(await r.json()).job_id;
+  _bprRows=[]; _bprPage=0;
+  document.getElementById('bprResbar').style.display='none';
+  document.getElementById('bprResults').innerHTML='';
+  document.getElementById('bprPager').innerHTML='';
+  document.getElementById('bprCount').textContent='';
+  document.getElementById('bprBar').style.display='block';
+  document.querySelector('#bprBar>i').style.width='30%';
+  bprSetRunning(true);
+  if(bprTimer) clearInterval(bprTimer);
+  bprTimer=setInterval(()=>bprPoll(bprJob),1500);
+  bprPoll(bprJob);
+}
+
+async function bprStop(){ if(bprJob){ document.getElementById('bprStopBtn').disabled=true; await fetch('/api/stop/'+bprJob,{method:'POST'}); } }
+
+async function bprPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('bprStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching prices… '+got+' rooms';
+  } else {
+    clearInterval(bprTimer); bprSetRunning(false);
+    document.getElementById('bprBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rooms';
+      bprShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function bprShowResults(job_id){
+  _bprRows=await (await fetch('/api/booking-prices-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('bprResbar');
+  if(!_bprRows.length){
+    document.getElementById('bprResults').innerHTML='';
+    document.getElementById('bprCount').innerHTML='<span class="empty">No prices — Booking gates the availability/price API for free/datacenter IPs. Set a residential PROXY_URL and try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('bprDownload').style.display='none';
+    document.getElementById('bprDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _bprPage=0;
+  bprRender();
+  document.getElementById('bprCount').textContent='Showing '+_bprRows.length+' rooms ('+BPR_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  bprUpdateDownload();
+}
+
+function bprRender(){
+  const start=_bprPage*BPR_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _bprRows.slice(start, start+BPR_PAGE_SIZE)){
+    const meta=[r.board, r.cancellation, r.occupancy].filter(Boolean).map(esc).join(' · ');
+    const pr=r.price?`<span style="float:right;background:var(--yp);color:#fff;font-weight:700;font-size:14px;padding:3px 10px;border-radius:6px">${esc(r.price)}</span>`:'';
+    h+=`<div style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      ${pr}
+      <div style="font-size:15px;font-weight:600">${esc(r.room_type||'Room')}</div>
+      ${r.hotel_name?`<div style="font-size:12px;color:#70757a;margin-top:2px">🏨 ${esc(r.hotel_name)}</div>`:''}
+      ${meta?`<div style="font-size:13px;color:#3c4043;margin-top:5px">${meta}</div>`:''}
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('bprResults').innerHTML=h;
+  bprRenderPager(_bprRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function bprRenderPager(total){
+  const pg=document.getElementById('bprPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/BPR_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_bprPage=page; bprRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_bprPage-1,{disabled:_bprPage===0}));
+  let s=Math.max(0,_bprPage-2), e=Math.min(pages-1,_bprPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_bprPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_bprPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_bprPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_bprPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_bprPage+1,{disabled:_bprPage>=pages-1}));
+}
+
+function bprFileName(){
+  const q=(document.getElementById('bprInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'booking-prices_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function bprUpdateDownload(){
+  const dl=document.getElementById('bprDownload'), xl=document.getElementById('bprDownloadXlsx');
+  if(!_bprRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_bprDlUrl) URL.revokeObjectURL(_bprDlUrl);
+  const rows=_bprRows.map(r=>{ const o={}; for(const c of BPR_COLUMNS) o[c]=r[c]??''; return o; });
+  _bprDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_bprDlUrl; dl.setAttribute('download', bprFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function bprDownloadExcel(){
+  if(!_bprRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_bprRows.map(r=>{ const o={}; for(const c of BPR_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:BPR_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Prices');
+  XLSX.writeFile(wb, bprFileName()+'.xlsx');
+}
+/* ---------- end Booking Prices ---------- */
+
+/* ---------- OLX Scraper ---------- */
+const OLX_COLUMNS = ["query","title","price","location","date","url","image","details"];
+const OLX_PAGE_SIZE = 30;
+let olxTimer=null, olxJob=null, _olxRows=[], _olxDlUrl=null, _olxPage=0;
+
+async function olxFilePicked(){
+  const f=document.getElementById('olxFile').files[0];
+  const nameEl=document.getElementById('olxFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('olxInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function olxSetRunning(on){
+  document.getElementById('olxStartBtn').disabled=on;
+  document.getElementById('olxStopBtn').disabled=!on;
+  ['olxInput','olxLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function olxStart(){
+  const typed=document.getElementById('olxInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one OLX search URL (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('olxLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0) };
+  let r;
+  try{ r=await fetch('/api/olx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  olxJob=(await r.json()).job_id;
+  _olxRows=[]; _olxPage=0;
+  document.getElementById('olxResbar').style.display='none';
+  document.getElementById('olxResults').innerHTML='';
+  document.getElementById('olxPager').innerHTML='';
+  document.getElementById('olxCount').textContent='';
+  document.getElementById('olxBar').style.display='block';
+  document.querySelector('#olxBar>i').style.width='30%';
+  olxSetRunning(true);
+  if(olxTimer) clearInterval(olxTimer);
+  olxTimer=setInterval(()=>olxPoll(olxJob),1500);
+  olxPoll(olxJob);
+}
+
+async function olxStop(){ if(olxJob){ document.getElementById('olxStopBtn').disabled=true; await fetch('/api/stop/'+olxJob,{method:'POST'}); } }
+
+async function olxPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('olxStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching OLX… '+got+' listings';
+  } else {
+    clearInterval(olxTimer); olxSetRunning(false);
+    document.getElementById('olxBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' listings';
+      olxShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function olxShowResults(job_id){
+  _olxRows=await (await fetch('/api/olx-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('olxResbar');
+  if(!_olxRows.length){
+    document.getElementById('olxResults').innerHTML='';
+    document.getElementById('olxCount').innerHTML='<span class="empty">No listings — check the OLX search URL, or the proxies may have been rate-limited. Try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('olxDownload').style.display='none';
+    document.getElementById('olxDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _olxPage=0;
+  olxRender();
+  document.getElementById('olxCount').textContent='Showing '+_olxRows.length+' listings ('+OLX_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  olxUpdateDownload();
+}
+
+function olxRender(){
+  const start=_olxPage*OLX_PAGE_SIZE;
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">';
+  for(const r of _olxRows.slice(start, start+OLX_PAGE_SIZE)){
+    const thumb=esc(r.image||'');
+    h+=`<a href="${esc(r.url||'#')}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/3;background:#eef1f6;overflow:hidden">${thumb?`<img src="${thumb}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">`:''}</div>
+      <div style="padding:8px 10px">
+        <div style="font-size:13px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.title||'')}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--yp);margin-top:4px">${esc(r.price||'')}</div>
+        ${r.details?`<div style="font-size:12px;color:#3c4043;margin-top:2px">${esc(r.details)}</div>`:''}
+        <div style="font-size:12px;color:#70757a;margin-top:3px">${esc(r.location||'')}${r.date?(' · '+esc(r.date)):''}</div>
+      </div>
+    </a>`;
+  }
+  h+='</div>';
+  document.getElementById('olxResults').innerHTML=h;
+  olxRenderPager(_olxRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function olxRenderPager(total){
+  const pg=document.getElementById('olxPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/OLX_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_olxPage=page; olxRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_olxPage-1,{disabled:_olxPage===0}));
+  let s=Math.max(0,_olxPage-2), e=Math.min(pages-1,_olxPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_olxPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_olxPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_olxPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_olxPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_olxPage+1,{disabled:_olxPage>=pages-1}));
+}
+
+function olxFileName(){
+  const q=(document.getElementById('olxInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'olx_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function olxUpdateDownload(){
+  const dl=document.getElementById('olxDownload'), xl=document.getElementById('olxDownloadXlsx');
+  if(!_olxRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_olxDlUrl) URL.revokeObjectURL(_olxDlUrl);
+  const rows=_olxRows.map(r=>{ const o={}; for(const c of OLX_COLUMNS) o[c]=r[c]??''; return o; });
+  _olxDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_olxDlUrl; dl.setAttribute('download', olxFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function olxDownloadExcel(){
+  if(!_olxRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_olxRows.map(r=>{ const o={}; for(const c of OLX_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:OLX_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'OLX');
+  XLSX.writeFile(wb, olxFileName()+'.xlsx');
+}
+/* ---------- end OLX ---------- */
+
+/* ---------- Apollo Scraper ---------- */
+const APO_COLUMNS = ["query","type","name","title","email","phone","company","domain","industry","employees","location","linkedin_url"];
+const APO_PAGE_SIZE = 25;
+let apoTimer=null, apoJob=null, _apoRows=[], _apoDlUrl=null, _apoPage=0;
+
+async function apoFilePicked(){
+  const f=document.getElementById('apoFile').files[0];
+  const nameEl=document.getElementById('apoFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('apoInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function apoSetRunning(on){
+  document.getElementById('apoStartBtn').disabled=on;
+  document.getElementById('apoStopBtn').disabled=!on;
+  ['apoInput','apoCookies','apoLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function apoStart(){
+  const typed=document.getElementById('apoInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Apollo search URL (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const cookies=document.getElementById('apoCookies').value.trim();
+  if(!cookies){ alert('Paste your Apollo cookies (JSON) — see the instructions above.'); return; }
+  const lim=parseInt(document.getElementById('apoLimit').value,10);
+  const body={ queries, cookies, limit:(lim>0?lim:0) };
+  let r;
+  try{ r=await fetch('/api/apollo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  apoJob=(await r.json()).job_id;
+  _apoRows=[]; _apoPage=0;
+  document.getElementById('apoResbar').style.display='none';
+  document.getElementById('apoResults').innerHTML='';
+  document.getElementById('apoPager').innerHTML='';
+  document.getElementById('apoCount').textContent='';
+  document.getElementById('apoBar').style.display='block';
+  document.querySelector('#apoBar>i').style.width='30%';
+  apoSetRunning(true);
+  if(apoTimer) clearInterval(apoTimer);
+  apoTimer=setInterval(()=>apoPoll(apoJob),1500);
+  apoPoll(apoJob);
+}
+
+async function apoStop(){ if(apoJob){ document.getElementById('apoStopBtn').disabled=true; await fetch('/api/stop/'+apoJob,{method:'POST'}); } }
+
+async function apoPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('apoStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching Apollo… '+got+' rows';
+  } else {
+    clearInterval(apoTimer); apoSetRunning(false);
+    document.getElementById('apoBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      apoShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function apoShowResults(job_id){
+  _apoRows=await (await fetch('/api/apollo-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('apoResbar');
+  if(!_apoRows.length){
+    document.getElementById('apoResults').innerHTML='';
+    document.getElementById('apoCount').innerHTML='<span class="empty">No rows — check the search URL, or your Apollo cookies may be expired/out of credits. Re-export fresh cookies.</span>';
+    resbar.style.display='flex';
+    document.getElementById('apoDownload').style.display='none';
+    document.getElementById('apoDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _apoPage=0;
+  apoRender();
+  document.getElementById('apoCount').textContent='Showing '+_apoRows.length+' rows ('+APO_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  apoUpdateDownload();
+}
+
+function apoRender(){
+  const start=_apoPage*APO_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _apoRows.slice(start, start+APO_PAGE_SIZE)){
+    const sub=[r.title, r.company].filter(Boolean).map(esc).join(' · ');
+    const meta=[r.email, r.phone, r.location].filter(Boolean).map(esc).join(' · ');
+    const comp=[r.industry, r.employees?esc(r.employees)+' employees':'', r.domain].filter(Boolean).map(esc).join(' · ');
+    const nm=r.linkedin_url?`<a href="${esc(r.linkedin_url)}" target="_blank" rel="noopener" style="color:#1a0dab;text-decoration:none">${esc(r.name||'')}</a>`:esc(r.name||'');
+    h+=`<div style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      <div style="font-size:15px;font-weight:600">${nm} <span style="font-size:11px;color:#70757a;font-weight:500">${esc(r.type||'')}</span></div>
+      ${sub?`<div style="font-size:13px;color:#3c4043;margin-top:2px">${sub}</div>`:''}
+      ${meta?`<div style="font-size:13px;color:#1a7f37;margin-top:3px">${meta}</div>`:''}
+      ${comp?`<div style="font-size:12px;color:#70757a;margin-top:3px">${comp}</div>`:''}
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('apoResults').innerHTML=h;
+  apoRenderPager(_apoRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function apoRenderPager(total){
+  const pg=document.getElementById('apoPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/APO_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_apoPage=page; apoRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_apoPage-1,{disabled:_apoPage===0}));
+  let s=Math.max(0,_apoPage-2), e=Math.min(pages-1,_apoPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_apoPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_apoPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_apoPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_apoPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_apoPage+1,{disabled:_apoPage>=pages-1}));
+}
+
+function apoFileName(){
+  const q=(document.getElementById('apoInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'apollo_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function apoUpdateDownload(){
+  const dl=document.getElementById('apoDownload'), xl=document.getElementById('apoDownloadXlsx');
+  if(!_apoRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_apoDlUrl) URL.revokeObjectURL(_apoDlUrl);
+  const rows=_apoRows.map(r=>{ const o={}; for(const c of APO_COLUMNS) o[c]=r[c]??''; return o; });
+  _apoDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_apoDlUrl; dl.setAttribute('download', apoFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function apoDownloadExcel(){
+  if(!_apoRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_apoRows.map(r=>{ const o={}; for(const c of APO_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:APO_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Apollo');
+  XLSX.writeFile(wb, apoFileName()+'.xlsx');
+}
+/* ---------- end Apollo ---------- */
+
+/* ---------- Upwork Jobs Scraper ---------- */
+const UPW_COLUMNS = ["query","title","url","posted","budget","job_type","experience_level","proposals","skills","description"];
+const UPW_PAGE_SIZE = 20;
+let upwTimer=null, upwJob=null, _upwRows=[], _upwDlUrl=null, _upwPage=0;
+
+async function upwFilePicked(){
+  const f=document.getElementById('upwFile').files[0];
+  const nameEl=document.getElementById('upwFileName');
+  if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('upwInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function upwSetRunning(on){
+  document.getElementById('upwStartBtn').disabled=on;
+  document.getElementById('upwStopBtn').disabled=!on;
+  ['upwInput','upwLimit','upwSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function upwStart(){
+  const typed=document.getElementById('upwInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Upwork search URL (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const lim=parseInt(document.getElementById('upwLimit').value,10);
+  const body={ queries, limit:(lim>0?lim:0), sort:document.getElementById('upwSort').value };
+  let r;
+  try{ r=await fetch('/api/upwork',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  upwJob=(await r.json()).job_id;
+  _upwRows=[]; _upwPage=0;
+  document.getElementById('upwResbar').style.display='none';
+  document.getElementById('upwResults').innerHTML='';
+  document.getElementById('upwPager').innerHTML='';
+  document.getElementById('upwCount').textContent='';
+  document.getElementById('upwBar').style.display='block';
+  document.querySelector('#upwBar>i').style.width='30%';
+  upwSetRunning(true);
+  if(upwTimer) clearInterval(upwTimer);
+  upwTimer=setInterval(()=>upwPoll(upwJob),1500);
+  upwPoll(upwJob);
+}
+
+async function upwStop(){ if(upwJob){ document.getElementById('upwStopBtn').disabled=true; await fetch('/api/stop/'+upwJob,{method:'POST'}); } }
+
+async function upwPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('upwStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Searching Upwork… '+got+' jobs';
+  } else {
+    clearInterval(upwTimer); upwSetRunning(false);
+    document.getElementById('upwBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' jobs';
+      upwShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function upwShowResults(job_id){
+  _upwRows=await (await fetch('/api/upwork-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('upwResbar');
+  if(!_upwRows.length){
+    document.getElementById('upwResults').innerHTML='';
+    document.getElementById('upwCount').innerHTML='<span class="empty">No jobs — Upwork uses Cloudflare; free/datacenter IPs hit the challenge. Set a residential PROXY_URL and try again.</span>';
+    resbar.style.display='flex';
+    document.getElementById('upwDownload').style.display='none';
+    document.getElementById('upwDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  _upwPage=0;
+  upwRender();
+  document.getElementById('upwCount').textContent='Showing '+_upwRows.length+' jobs ('+UPW_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  upwUpdateDownload();
+}
+
+function upwRender(){
+  const start=_upwPage*UPW_PAGE_SIZE;
+  let h='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(const r of _upwRows.slice(start, start+UPW_PAGE_SIZE)){
+    const titleHtml=r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:#1a0dab;text-decoration:none">${esc(r.title||'')}</a>`:esc(r.title||'');
+    const meta=[r.budget, r.job_type, r.experience_level, r.proposals].filter(Boolean).map(esc).join(' · ');
+    h+=`<div style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      <div style="font-size:15px;font-weight:600;line-height:1.3">${titleHtml}</div>
+      <div style="font-size:12px;color:#70757a;margin-top:3px">${esc(r.posted||'')}${meta?(' · '+meta):''}</div>
+      ${r.description?`<div style="font-size:13px;color:#3c4043;margin-top:5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${esc(r.description)}</div>`:''}
+      ${r.skills?`<div style="font-size:12px;color:#1a7f37;margin-top:5px">${esc(r.skills)}</div>`:''}
+    </div>`;
+  }
+  h+='</div>';
+  document.getElementById('upwResults').innerHTML=h;
+  upwRenderPager(_upwRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function upwRenderPager(total){
+  const pg=document.getElementById('upwPager'); pg.innerHTML='';
+  const pages=Math.ceil(total/UPW_PAGE_SIZE);
+  if(pages<=1) return;
+  const mk=(label,page,opt={})=>{const b=document.createElement('button');b.textContent=label;
+    if(opt.active)b.className='active'; if(opt.disabled)b.disabled=true;
+    b.onclick=()=>{_upwPage=page; upwRender();}; return b;};
+  pg.appendChild(mk('‹ Prev',_upwPage-1,{disabled:_upwPage===0}));
+  let s=Math.max(0,_upwPage-2), e=Math.min(pages-1,_upwPage+2);
+  if(s>0){pg.appendChild(mk('1',0,{active:_upwPage===0})); if(s>1)pg.appendChild(pinfo('…'));}
+  for(let p=s;p<=e;p++) pg.appendChild(mk(String(p+1),p,{active:p===_upwPage}));
+  if(e<pages-1){if(e<pages-2)pg.appendChild(pinfo('…')); pg.appendChild(mk(String(pages),pages-1,{active:_upwPage===pages-1}));}
+  pg.appendChild(pinfo('Page '+(_upwPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_upwPage+1,{disabled:_upwPage>=pages-1}));
+}
+
+function upwFileName(){
+  const q=(document.getElementById('upwInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'upwork-jobs_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function upwUpdateDownload(){
+  const dl=document.getElementById('upwDownload'), xl=document.getElementById('upwDownloadXlsx');
+  if(!_upwRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_upwDlUrl) URL.revokeObjectURL(_upwDlUrl);
+  const rows=_upwRows.map(r=>{ const o={}; for(const c of UPW_COLUMNS) o[c]=r[c]??''; return o; });
+  _upwDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_upwDlUrl; dl.setAttribute('download', upwFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function upwDownloadExcel(){
+  if(!_upwRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_upwRows.map(r=>{ const o={}; for(const c of UPW_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:UPW_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Upwork');
+  XLSX.writeFile(wb, upwFileName()+'.xlsx');
+}
+/* ---------- end Upwork Jobs ---------- */
 
 
 

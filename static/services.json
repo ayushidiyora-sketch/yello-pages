@@ -666,17 +666,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_reviews"
  },
  {
   "no": "66",
   "name": "Booking Reviews Monitoring",
   "brand": "Booking",
-  "description": "",
+  "description": "Recurring hotel-review scan with email alerts",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_monitoring"
  },
  {
   "no": "67",
@@ -718,7 +720,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_prices"
  },
  {
   "no": "71",
@@ -1736,21 +1739,23 @@
   "no": "169",
   "name": "OLX Scraper",
   "brand": "OLX",
-  "description": "",
+  "description": "Returns product listings from a list of OLX search URLs",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "olx"
  },
  {
   "no": "170",
   "name": "Apollo Scraper",
   "brand": "Apollo",
-  "description": "",
+  "description": "Returns people/companies from Apollo.io search URLs",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "apollo"
  },
  {
   "no": "171",
@@ -1856,11 +1861,12 @@
   "no": "181",
   "name": "Upwork Jobs",
   "brand": "Upwork",
-  "description": "",
+  "description": "Returns job listings from Upwork search URLs",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "upwork"
  },
  {
   "no": "182",

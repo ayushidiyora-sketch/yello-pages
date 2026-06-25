@@ -90,6 +90,14 @@ class GEventsRequest(BaseModel):
     language: str = Field("en", examples=["en"])
 
 
+class BookingReviewsRequest(BaseModel):
+    # one line each: a booking.com/hotel/<cc>/<slug>.html URL (preferred) or a bare hotel slug.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.booking.com/hotel/tr/old-town-point-amp-spa-antalya.html"]])
+    limit: Optional[int] = Field(100, ge=0, le=5000, examples=[100])   # reviews/query; None/0 = all
+    sort: str = Field("most_relevant", examples=["most_relevant"])  # most_relevant|newest|oldest|highest|lowest
+
+
 class LinkedInPostsRequest(BaseModel):
     # one line each: a linkedin.com/company URL, a bare company slug, or a numeric company id.
     queries: list[str] = Field(..., min_length=1,
@@ -306,6 +314,45 @@ class GMapsReviewsRequest(BaseModel):
     reviews_query: str = Field("", examples=[""])     # filter reviews by text
     filtering: str = Field("any", examples=["any"])
     reviews_filtering: str = Field("all", examples=["all"])
+
+
+class UpworkRequest(BaseModel):
+    # one line each: an upwork.com/nx/search/jobs/?… search URL.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.upwork.com/nx/search/jobs/?q=marketing automation"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])   # jobs/query; None/0 = all
+    sort: str = Field("recency", examples=["recency"])  # relevance | recency (Most recent)
+
+
+class ApolloRequest(BaseModel):
+    # one line each: an app.apollo.io/#/people?… or /#/companies?… search URL.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://app.apollo.io/#/people?page=1&personTitles[]=project manager"]])
+    cookies: str = Field("", examples=['[{"name":"session_id","value":"...","domain":".apollo.io"}]'])  # Cookie-Editor JSON
+    limit: Optional[int] = Field(100, ge=0, le=5000, examples=[100])   # rows/query; None/0 = all
+
+
+class OLXRequest(BaseModel):
+    # one line each: an olx.* search URL (e.g. https://www.olx.ro/oferte/q-bmw/).
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.olx.ro/oferte/q-bmw/"]])
+    limit: Optional[int] = Field(100, ge=0, le=5000, examples=[100])   # listings/query; None/0 = all
+
+
+class BookingPricesRequest(BaseModel):
+    # one line each: a booking.com/hotel/<cc>/<slug>.html URL (or a bare hotel slug).
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.booking.com/hotel/tr/old-town-point-amp-spa-antalya.html"]])
+    limit: Optional[int] = Field(None, ge=0, le=1000, examples=[50])   # rooms/hotel; None/0 = all
+
+
+class BookingReviewsMonitorRequest(BaseModel):
+    # one line each: a booking.com/hotel/<cc>/<slug>.html URL (or a bare hotel slug).
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.booking.com/hotel/tr/old-town-point-amp-spa-antalya.html"]])
+    frequency: str = Field("weekly", examples=["weekly"])  # daily|weekly|3weeks|monthly|3months
+    email: str = Field("", examples=["info@sensussoft.com"])  # where to send the report
+    threshold: int = Field(3, ge=1, le=10, examples=[3])  # score (out of 10) <= threshold = negative
+    limit: Optional[int] = Field(40, ge=1, le=1000, examples=[40])  # reviews/hotel per cycle
 
 
 class GMapsMonitorRequest(BaseModel):
