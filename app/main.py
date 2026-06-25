@@ -18,7 +18,10 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  gsjobs_results, gshop_results, gplay_results,
                  gsreviews_results, linkedin_profiles, gflights_results, gmaps_autocomplete,
                  gsearch_autocomplete, booking_reviews_results, booking_prices_results,
-                 olx_results, apollo_results, upwork_results, ensure_indexes)
+                 olx_results, apollo_results, upwork_results,
+                 booking_results, bestbuy_results, yelp_results, yelp_reviews,
+                 yelp_photos, yt_transcripts,
+                 ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
                      GlassdoorJobsRequest, GlassdoorCompaniesRequest, GlassdoorReviewsRequest,
@@ -36,7 +39,9 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      GPlayMonitorRequest, LinkedInProfilesRequest, GFlightsRequest,
                      GMapsAutocompleteRequest, GSearchAutocompleteRequest, BookingReviewsRequest,
                      BookingReviewsMonitorRequest, BookingPricesRequest, OLXRequest, ApolloRequest,
-                     UpworkRequest)
+                     UpworkRequest, BookingSearchRequest,
+                     BestBuyProductsRequest, YelpBusinessRequest, YelpReviewsRequest,
+                     YelpPhotosRequest, YTTranscriptsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -51,7 +56,9 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                gsjobs, gshop, gsreviews, gplay,
                linkedin_profiles as linkedin_profiles_mod, gflights,
                gmaps_autocomplete as gmaps_autocomplete_mod, booking_reviews, booking_prices, olx,
-               apollo, upwork)
+               apollo, upwork, booking, bestbuy, yelp,
+               yelp_reviews as yelp_reviews_mod, yelp_photos as yelp_photos_mod,
+               yt_transcripts as yt_transcripts_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -190,6 +197,37 @@ async def _gsa_rows(job_id):
     rows = [d async for d in gsearch_autocomplete.find(
         {"job_id": job_id}, {"_id": 0, "job_id": 0, "coordinates": 0})]
     return rows, ["query", "suggestion", "position"]
+
+
+async def _bks_rows(job_id):
+    rows = [d async for d in booking_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, booking.BOOKING_COLUMNS
+
+
+async def _bbp_rows(job_id):
+    rows = [d async for d in bestbuy_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, bestbuy.BESTBUY_COLUMNS
+
+
+async def _yelp_rows(job_id):
+    rows = [d async for d in yelp_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yelp.YELP_COLUMNS
+
+
+async def _yrv_rows(job_id):
+    rows = [d async for d in yelp_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yelp_reviews_mod.YELP_REVIEW_COLUMNS
+
+
+async def _yph_rows(job_id):
+    rows = [d async for d in yelp_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yelp_photos_mod.YELP_PHOTO_COLUMNS
+
+
+async def _ytt_rows(job_id):
+    rows = [d async for d in yt_transcripts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yt_transcripts_mod.YT_COLUMNS
 
 
 async def _gplay_rows(job_id):
@@ -1637,6 +1675,148 @@ async def gsearch_autocomplete_start(req: GSearchAutocompleteRequest):
 async def gsearch_autocomplete_results_get(job_id: str, limit: int = 5000):
     rows = [d async for d in gsearch_autocomplete.find(
         {"job_id": job_id}, {"_id": 0, "job_id": 0, "coordinates": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/booking-search")
+async def booking_search_start(req: BookingSearchRequest):
+    """Booking Search Scraper — properties from a booking.com searchresults URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one booking.com searchresults URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "booking_search", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        booking.run_job(job_id, queries, lim), "booking_search", job_id, _bks_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/booking-search/results/{job_id}")
+async def booking_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in booking_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/bestbuy-products")
+async def bestbuy_products_start(req: BestBuyProductsRequest):
+    """BestBuy Products Scraper — product listings from BestBuy URLs (US proxy, free pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one BestBuy URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "bestbuy_products", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        bestbuy.run_job(job_id, queries, lim), "bestbuy_products", job_id, _bbp_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/bestbuy-products/results/{job_id}")
+async def bestbuy_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in bestbuy_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yelp-businesses")
+async def yelp_businesses_start(req: YelpBusinessRequest):
+    """Y.E.L.P Businesses Scraper — businesses from Yelp search (proxy-only; residential for data)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Yelp URL or 'Category | Location' query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yelp_businesses", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yelp.run_job(job_id, queries, lim), "yelp_businesses", job_id, _yelp_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yelp-businesses/results/{job_id}")
+async def yelp_businesses_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yelp_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yelp-reviews")
+async def yelp_reviews_start(req: YelpReviewsRequest):
+    """Y.E.L.P Reviews Scraper — reviews from a Yelp business (proxy-only; residential for data)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Yelp business URL / slug / id is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yelp_reviews", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yelp_reviews_mod.run_job(job_id, queries, lim), "yelp_reviews", job_id, _yrv_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yelp-reviews/results/{job_id}")
+async def yelp_reviews_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yelp_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yelp-photos")
+async def yelp_photos_start(req: YelpPhotosRequest):
+    """Y.E.L.P Photos Scraper — photos from a Yelp business (proxy-only; residential for data)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Yelp business URL / slug / id is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yelp_photos", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yelp_photos_mod.run_job(job_id, queries, lim), "yelp_photos", job_id, _yph_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yelp-photos/results/{job_id}")
+async def yelp_photos_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yelp_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yt-transcripts")
+async def yt_transcripts_start(req: YTTranscriptsRequest):
+    """YouTube Transcripts Scraper — full-text transcripts from YouTube videos (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one YouTube video id or URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yt_transcripts", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yt_transcripts_mod.run_job(job_id, queries), "yt_transcripts", job_id, _ytt_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yt-transcripts/results/{job_id}")
+async def yt_transcripts_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yt_transcripts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

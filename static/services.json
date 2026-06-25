@@ -512,11 +512,12 @@
   "no": "50",
   "name": "BestBuy Products Scraper",
   "brand": "BestBuy",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "bestbuy_products"
  },
  {
   "no": "51",
@@ -656,7 +657,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_search"
  },
  {
   "no": "65",
@@ -1543,7 +1545,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_business"
  },
  {
   "no": "150",
@@ -1553,7 +1556,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_reviews"
  },
  {
   "no": "151",
@@ -1563,7 +1567,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_photos"
  },
  {
   "no": "152",
@@ -1785,7 +1790,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "yt_transcripts"
  },
  {
   "no": "174",

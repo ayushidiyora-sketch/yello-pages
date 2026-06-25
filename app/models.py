@@ -140,6 +140,46 @@ class GShopRequest(BaseModel):
     region: str = Field("us", examples=["us"])
 
 
+class YelpBusinessRequest(BaseModel):
+    # each line: a yelp.com /search URL or a "Category | Location" pair (built from cats x locations)
+    queries: list[str] = Field(..., min_length=1, examples=[["Plumbing | San Francisco, CA"]])
+    limit: Optional[int] = Field(100, ge=0, le=5000, examples=[100])  # total results; None/0 = all
+
+
+class YelpReviewsRequest(BaseModel):
+    # each line: a yelp.com /biz/ URL, a bare business slug, or a business id alias
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.yelp.com/biz/eggcellent-waffles-san-francisco"]])
+    limit: Optional[int] = Field(100, ge=0, le=5000, examples=[100])  # reviews/business; None/0 = all
+
+
+class YTTranscriptsRequest(BaseModel):
+    # each line: a YouTube video id or URL (watch?v=, youtu.be/, /shorts/, /embed/)
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.youtube.com/watch?v=_XvHhFjrbn0", "ph5pHgklaZ0"]])
+
+
+class YelpPhotosRequest(BaseModel):
+    # each line: a yelp.com /biz/ URL, a bare business slug, or a business id alias
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.yelp.com/biz/eggcellent-waffles-san-francisco"]])
+    limit: Optional[int] = Field(100, ge=0, le=5000, examples=[100])  # photos/business; None/0 = all
+
+
+class BestBuyProductsRequest(BaseModel):
+    # one line each: a bestbuy.com category / search / brand / product URL
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.bestbuy.com/site/searchpage.jsp?st=laptop"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # products/query; None/0 = all
+
+
+class BookingSearchRequest(BaseModel):
+    # one line each: a booking.com searchresults URL
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.booking.com/searchresults.html?ss=Rome"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # properties/query; None/0 = all
+
+
 class GMapsAutocompleteRequest(BaseModel):
     # each line: a Google Maps search query (e.g. "restaurant")
     queries: list[str] = Field(..., min_length=1, examples=[["central", "restaurant", "bar"]])
