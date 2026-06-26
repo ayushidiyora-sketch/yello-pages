@@ -41,14 +41,14 @@ def _blank_row():
 # ---------------- proxy fetch (never the real IP) ----------------
 
 def _ok(r) -> bool:
-    """A real walmart.com page (not a Cloudflare / PerimeterX bot block)."""
+    """A real walmart.com page (not a Cloudflare / PerimeterX bot block). The block/challenge page is a
+    small interstitial WITHOUT Walmart's app data; a real product/search page always ships
+    `__NEXT_DATA__` or product JSON-LD. Keying on that data (instead of a generic word blocklist) avoids
+    false-rejecting real pages that merely contain a word like "blocked" somewhere in their 500 KB."""
     if r is None or r.status_code != 200:
         return False
     low = (r.text or "").lower()
-    if any(s in low for s in ("just a moment", "px-captcha", "/cdn-cgi/challenge",
-                              "access denied", "robot or human", "blocked")):
-        return False
-    return "__next_data__" in low or "walmart" in low or '"@type":"product"' in low
+    return "__next_data__" in low or '"@type":"product"' in low or '"__typename"' in low
 
 
 def _try(url: str, px: str):
@@ -90,16 +90,21 @@ def _proxied_get(url: str):
 
 
 def _get_text(url: str) -> str | None:
-    """Fetch one URL through a proxy. Paid PROXY_URL if set, else rotate the free pool.
-    Returns HTML on a real page, None if blocked/failed. NEVER the real IP."""
-    proxy = settings.PROXY_URL.strip()
+    """Fetch one URL through a proxy. Priority: WALMART_PROXY_URL (Walmart-only) → PROXY_URL →
+    free pool. Returns HTML on a real page, None if blocked/failed. NEVER the real IP."""
+    proxy = settings.WALMART_PROXY_URL.strip() or settings.PROXY_URL.strip()
     if proxy:
-        try:
-            r = cffi.get(url, impersonate="chrome", proxies={"http": proxy, "https": proxy},
-                         timeout=settings.REQUEST_TIMEOUT, verify=False, allow_redirects=True)
-        except Exception:
-            return None
-        return r.text if _ok(r) else None
+        # Walmart's PerimeterX challenge is intermittent on a single proxy IP — retry a few times
+        # before giving up so a one-off "verify you're human" page isn't fatal.
+        for _ in range(4):
+            try:
+                r = cffi.get(url, impersonate="chrome", proxies={"http": proxy, "https": proxy},
+                             timeout=settings.REQUEST_TIMEOUT, verify=False, allow_redirects=True)
+            except Exception:
+                continue
+            if _ok(r):
+                return r.text
+        return None
     try:
         return _proxied_get(url).text
     except Exception:
@@ -212,17 +217,22 @@ def _parse_nextdata(html: str, query: str) -> dict | None:
 
 
 def _find_product(obj):
-    """Walk the __NEXT_DATA__ tree for a product node (has name + usItemId/price)."""
-    stack = [obj]
-    while stack:
-        cur = stack.pop()
-        if isinstance(cur, dict):
-            if cur.get("name") and (cur.get("usItemId") or cur.get("priceInfo") or cur.get("id")):
-                return cur
-            stack.extend(cur.values())
-        elif isinstance(cur, list):
-            stack.extend(cur)
-    return None
+    """Walk the __NEXT_DATA__ tree for the product node. Require `usItemId` (Walmart's canonical product
+    id) so we don't match variant/option nodes like {"name":"Size","id":...}; fall back to a node that
+    pairs a name with a priceInfo block."""
+    def walk(pred):
+        stack = [obj]
+        while stack:
+            cur = stack.pop()
+            if isinstance(cur, dict):
+                if pred(cur):
+                    return cur
+                stack.extend(cur.values())
+            elif isinstance(cur, list):
+                stack.extend(cur)
+        return None
+    return (walk(lambda c: c.get("name") and c.get("usItemId"))
+            or walk(lambda c: c.get("name") and isinstance(c.get("priceInfo"), dict)))
 
 
 # ---------------- scrape + run loop ----------------

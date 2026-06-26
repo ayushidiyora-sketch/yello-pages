@@ -27,3 +27,7 @@ uvicorn.out
 uvicorn.err
 _g2job.txt
 _g2test.py
+
+# Rotating paid-proxy pool (credentials — never commit)
+proxies.txt
+proxies*.txt

@@ -11,6 +11,28 @@ class Settings(BaseSettings):
     # Empty = use the rotating free US-proxy pool in yp_us.py.
     PROXY_URL: str = ""
 
+    # Optional rotating paid-proxy pool. A path to a proxies file (one `ip:port:user:pass` or
+    # `http://user:pass@ip:port` per line), or an inline whitespace/comma list. When set, pooled_get
+    # rotates through it and skips rate-limited (429) / blocked IPs — useful for rate-limited services
+    # (e.g. Google Search verticals) that work on datacenter IPs but throttle a single one.
+    PROXY_LIST: str = ""
+
+    # Walmart-ONLY proxy. Used solely by the Walmart Products scraper; no other service reads it.
+    # Empty = Walmart falls back to PROXY_URL (if set) then the free pool. Lets you point Walmart at a
+    # dedicated proxy without affecting any other scraper.
+    WALMART_PROXY_URL: str = ""
+
+    # Trustpilot-ONLY proxy. Used solely by the Trustpilot scraper; no other service reads it. Trustpilot
+    # is now PROXY-ONLY (never the real IP): if neither this nor PROXY_URL is set, it returns a clear
+    # "blocked" error instead of rendering on the real IP. A residential proxy is needed for data
+    # (Cloudflare blocks datacenter IPs).
+    TRUSTPILOT_PROXY_URL: str = ""
+
+    # BestBuy-ONLY US proxy for the headless "all products" render; no other service reads it.
+    # Empty = BestBuy falls back to PROXY_URL then the free US pool. BestBuy needs a US IP and the
+    # headless render is steadier on a fixed paid US proxy.
+    BESTBUY_PROXY_URL: str = ""
+
     # Optional ScraperAPI key (free tier ~1000 req/month, no card). When set, the G2 Reviews
     # scraper fetches through ScraperAPI's residential proxies + JS render, which clears G2's
     # DataDome bot-check (your own IP is never used). Empty = G2 stays on the free proxy pool.

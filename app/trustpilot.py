@@ -3,8 +3,9 @@
 Trustpilot is Cloudflare-protected: curl gets 403, so it needs a real browser. Company data is
 embedded in `__NEXT_DATA__` (`props.pageProps.businessUnits.businesses` for a category page, or
 `businessUnit` for a /review/ profile). PROXY-ONLY — the browser is routed through a proxy and the
-real IP is NEVER used: a paid (residential) PROXY_URL if set, otherwise the free pool (which can't
-pass Cloudflare / can't tunnel HTTPS for the browser → clear "blocked" error on the free tier).
+real IP is NEVER used: the dedicated TRUSTPILOT_PROXY_URL (else the global PROXY_URL). Cloudflare
+blocks datacenter IPs, so a residential proxy is needed for data; with no proxy (or a blocked one) the
+scraper raises a clear "did not load / blocked" error instead of ever touching the real IP.
 """
 import asyncio
 import json
@@ -65,21 +66,22 @@ def _proxy_opts(px: str) -> dict:
 
 
 def _proxies() -> list[str]:
-    """Proxy to route the browser through: a paid PROXY_URL (no real IP) if set; otherwise EMPTY ->
-    render directly on the real IP, since free proxies can't pass Trustpilot's Cloudflare and a
-    direct browser can. (User chose: Trustpilot works free via real IP, like France.)"""
-    paid = settings.PROXY_URL.strip()
-    return [paid] if paid else []
+    """Proxy to route the browser through — PROXY-ONLY, the real IP is NEVER used. The dedicated
+    TRUSTPILOT_PROXY_URL wins, else the global PROXY_URL. If neither is set the list is empty and the
+    render raises a clear 'blocked' error rather than touching the real IP. Cloudflare blocks datacenter
+    IPs, so a residential proxy is needed for data."""
+    px = settings.TRUSTPILOT_PROXY_URL.strip() or settings.PROXY_URL.strip()
+    return [px] if px else []
 
 
 def _render(url: str) -> str:
-    """Render `url`: through a paid PROXY_URL if set (no real IP), else directly on the real IP.
-    Returns the HTML once the Next.js data loaded; raises if it didn't."""
+    """Render `url` through the configured proxy (never the real IP). Returns the HTML once the Next.js
+    data loaded; raises if it didn't (or if no proxy is configured)."""
     return _run(lambda browser: _render_through(browser, url, _proxies()))
 
 
 def _render_through(browser, url: str, proxies: list[str]) -> str:
-    attempts = proxies or [None]   # None -> direct (real IP) when no paid proxy
+    attempts = proxies   # PROXY-ONLY: no real-IP fallback — empty list -> raises below, never direct
     for px in attempts:
         kw = {"locale": "en-US", "user_agent": _UA, "viewport": {"width": 1366, "height": 900}}
         if px:
