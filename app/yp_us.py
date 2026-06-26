@@ -249,16 +249,100 @@ def fetch_detail_sync(url: str) -> str | None:
     return None
 
 
+# ---------------- PROXY_LIST rotation (paid datacenter pool, e.g. proxies.txt) ----------------
+# When PROXY_LIST is set, rotate through it and skip rate-limited (429) / blocked IPs. Helps services
+# that work on datacenter IPs but throttle a single one (e.g. Google Search verticals). Never the real IP.
+import os
+import time
+
+_PLIST: list[str] = []
+_PLIST_LOADED = False
+_PLIST_IDX = 0
+_PLIST_BAD: dict[str, float] = {}      # proxy -> cooldown-until (monotonic seconds)
+_PLIST_LOCK = threading.Lock()
+
+
+def _fmt_proxy(line: str) -> str | None:
+    line = (line or "").strip()
+    if not line or line.startswith("#"):
+        return None
+    if line.startswith("http://") or line.startswith("https://"):
+        return line
+    p = line.split(":")
+    if len(p) == 4:                    # ip:port:user:pass
+        return f"http://{p[2]}:{p[3]}@{p[0]}:{p[1]}"
+    if len(p) == 2:                    # ip:port
+        return f"http://{p[0]}:{p[1]}"
+    return None
+
+
+def _load_plist() -> list[str]:
+    global _PLIST, _PLIST_LOADED
+    if _PLIST_LOADED:
+        return _PLIST
+    raw = settings.PROXY_LIST.strip()
+    lines: list[str] = []
+    if raw:
+        if os.path.exists(raw):
+            try:
+                lines = open(raw, encoding="utf-8").read().splitlines()
+            except Exception:
+                lines = []
+        else:
+            lines = re.split(r"[\s,]+", raw)
+    _PLIST = [p for p in (_fmt_proxy(x) for x in lines) if p]
+    _PLIST_LOADED = True
+    return _PLIST
+
+
+def _plist_candidates(k: int) -> list[str]:
+    """Up to `k` proxies from the rotating list, skipping those in cooldown (round-robin)."""
+    global _PLIST_IDX
+    plist = _load_plist()
+    if not plist:
+        return []
+    out, now, n = [], time.monotonic(), len(plist)
+    with _PLIST_LOCK:
+        for _ in range(n):
+            px = plist[_PLIST_IDX % n]
+            _PLIST_IDX += 1
+            if _PLIST_BAD.get(px, 0) > now:
+                continue
+            out.append(px)
+            if len(out) >= k:
+                break
+    return out
+
+
+def _plist_mark_bad(px: str, secs: int = 120) -> None:
+    with _PLIST_LOCK:
+        _PLIST_BAD[px] = time.monotonic() + secs
+
+
 def pooled_get(url: str, params: dict | None = None, timeout: int | None = None,
                headers: dict | None = None):
-    """Fetch ANY url through a proxy — the paid PROXY_URL if set, else a warm free-pool proxy.
-    Used to keep ALL traffic (enrichment, AU/CA, SEC, DoH-DNS) off the real IP. Best-effort:
-    returns the response object, or None if no proxy delivered one."""
+    """Fetch ANY url through a proxy — paid PROXY_URL if set, else a rotating PROXY_LIST proxy
+    (skipping 429/blocked IPs), else a warm free-pool proxy. Keeps ALL traffic off the real IP.
+    Best-effort: returns the response object, or None if no proxy delivered one."""
     if settings.PROXY_URL.strip():
         try:
             return _impersonated_get(url, params or {}, settings.PROXY_URL.strip(), timeout, headers)
         except Exception:
             return None
+    # rotating paid pool (proxies.txt): try several, skip rate-limited/blocked IPs
+    cands = _plist_candidates(10)
+    if cands:
+        for px in cands:
+            try:
+                r = _impersonated_get(url, params or {}, px, timeout or PROBE_TIMEOUT, headers)
+            except Exception:
+                _plist_mark_bad(px)
+                continue
+            if r.status_code == 429 or r.status_code >= 500:   # rate-limited / dead → cool down, rotate
+                _plist_mark_bad(px)
+                continue
+            return r
+        # all rotated proxies failed → fall through to the free pool
     with _LOCK:
         warm = list(_GOOD)
     if not warm:                       # nothing warm yet — probe a small batch to seed the pool

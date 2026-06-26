@@ -18,6 +18,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from bs4 import BeautifulSoup
 
 from . import yp_us
+from .config import settings
 
 BASE = "https://www.bestbuy.com"
 
@@ -111,19 +112,137 @@ def _parse_listing(html: str, query: str) -> list[dict]:
     return rows
 
 
+# ---------------- headless "all products" (best-effort) ----------------
+
+# Extract every hydrated product card in the live DOM (the ~18 PerimeterX resolves client-side).
+_EXTRACT_JS = r"""() => {
+  const out = [];
+  for (const li of document.querySelectorAll('li.product-list-item')) {
+    const a = li.querySelector("a[href*='/site/'],a[href*='skuId=']");
+    const name = a ? a.textContent.trim() : '';
+    if (!name || name.length < 8) continue;
+    const t = li.innerText || '';
+    const price = (t.match(/\$[\d,]+(?:\.\d{2})?/) || [''])[0];
+    const rat = (t.match(/(\d(?:\.\d)?)\s*out of 5/) || ['',''])[1];
+    const rev = (t.match(/([\d,]+)\s*reviews?/i) || ['',''])[1];
+    let sku = li.getAttribute('data-product-id') || '';
+    if (!sku && a) { const m = a.href.match(/skuId=(\d+)/) || a.href.match(/\/(\d{6,})\.p/); if (m) sku = m[1]; }
+    const img = li.querySelector('img');
+    out.push({sku, name, price, rating: rat, reviews: (rev||'').replace(/,/g,''),
+              image: img ? (img.getAttribute('src') || img.getAttribute('data-src') || '') : '',
+              url: a ? a.href : ''});
+  }
+  return out;
+}"""
+
+
+def _headless_rows_sync(url: str, proxy: str, want: int) -> list[dict]:
+    """Render BestBuy through `proxy` (US, never the real IP) and scrape the hydrated product cards —
+    the ~18 products PerimeterX resolves client-side and never puts in the HTML. Best-effort: PerimeterX
+    may blank the page or `goto` may time out → returns [] (the curl path still provides the ~5 floor).
+    Keeps the richest snapshot seen (most named cards) before any blanking."""
+    if not proxy:
+        return []
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return []
+    server = proxy if proxy.startswith("http") else "http://" + proxy
+    best: list[dict] = []
+    try:
+        with sync_playwright() as p:
+            br = p.chromium.launch(headless=True, proxy={"server": server},
+                                   args=["--no-sandbox", "--disable-blink-features=AutomationControlled"])
+            ctx = br.new_context(locale="en-US", user_agent=_UA, viewport={"width": 1366, "height": 1200})
+            ctx.route(re.compile(r"\.(png|jpg|jpeg|webp|gif|woff2?|mp4|svg|css)(\?|$)"),
+                      lambda r: r.abort())
+            pg = ctx.new_page()
+            pg.goto(url, timeout=70000, wait_until="commit")
+            for i in range(20):
+                pg.wait_for_timeout(1500)
+                try:
+                    rows = [r for r in pg.evaluate(_EXTRACT_JS) if r.get("name")]
+                except Exception:
+                    rows = []
+                if len(rows) > len(best):
+                    best = rows
+                if len(best) >= want or len(best) >= 18:
+                    break
+                try:                                   # light scroll nudges lazy hydration
+                    pg.evaluate(f"window.scrollTo(0,{(i % 6) * 1400})")
+                except Exception:
+                    pass
+            br.close()
+    except Exception:
+        return best
+    return best
+
+
+_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
+
+
+def _headless_proxy() -> str | None:
+    """A US proxy server for the headless render: BestBuy-only → global paid → a warm free-pool proxy."""
+    px = settings.BESTBUY_PROXY_URL.strip() or settings.PROXY_URL.strip()
+    if px:
+        return px
+    try:
+        yp_us.ensure_pool({"search_terms": "x", "geo_location_terms": "y", "page": "1"}, 4)
+        with yp_us._LOCK:
+            return (list(yp_us._GOOD) or [None])[0]
+    except Exception:
+        return None
+
+
+def _headless_rows(url: str, want: int) -> list[dict]:
+    """Best-effort headless scrape with retries (the render is flaky against PerimeterX)."""
+    proxy = _headless_proxy()
+    if not proxy:
+        return []
+    best: list[dict] = []
+    for _ in range(3):
+        rows = _headless_rows_sync(url, proxy, want)
+        if len(rows) > len(best):
+            best = rows
+        if len(best) >= 18 or len(best) >= want:
+            break
+    # normalize to BESTBUY_COLUMNS rows
+    out = []
+    for r in best:
+        sku = str(r.get("sku") or "")
+        out.append({
+            "query": "", "name": (r.get("name") or "")[:250], "sku": sku,
+            "brand": (r.get("name") or "").split(" - ")[0].strip(),
+            "model": "", "price": r.get("price") or "",
+            "rating": r.get("rating") or "", "reviews": r.get("reviews") or "",
+            "image": r.get("image") or "",
+            "url": r.get("url") or (f"{BASE}/site/-/{sku}.p?skuId={sku}" if sku else ""),
+        })
+    return out
+
+
 # ---------------- scrape + run loop ----------------
 
 def search_sync(query: str, limit: int | None = None) -> list[dict]:
-    """BestBuy SSRs only a handful of fully-parseable products per page (the rest are JS-resolved
-    references), so accumulate across pages (`&cp=2,3,…`). Tolerate the odd failed/empty page (free
-    proxies are flaky) instead of stopping on the first one."""
+    """Per page (`&cp=2,3,…`): the curl path SSRs only ~5 fully-parseable products (the reliable floor);
+    when more is wanted, a best-effort headless render adds the ~18 PerimeterX resolves client-side.
+    The two are merged + de-duped by sku. Headless is flaky (it may time out / get blanked) → on failure
+    we still return the curl floor. Proxy-only — never the real IP."""
+    want_more = (limit is None) or (limit > 5)
     rows, seen, miss = [], set(), 0
     for page in range(1, 30):
         if limit and len(rows) >= limit:
             break
-        html = _get(_page_url(query, page))
-        page_rows = _parse_listing(html, query) if html else []
-        new = [r for r in page_rows if r["sku"] not in seen]
+        page_url = _page_url(query, page)
+        html = _get(page_url)
+        page_rows = _parse_listing(html, query) if html else []     # reliable ~5
+        if want_more:                                               # best-effort: the JS-only rest
+            for hr in _headless_rows(page_url, limit or 24):
+                if hr["sku"] and not any(p["sku"] == hr["sku"] for p in page_rows):
+                    hr["query"] = query
+                    page_rows.append(hr)
+        new = [r for r in page_rows if r["sku"] and r["sku"] not in seen]
         if not new:
             miss += 1
             if miss >= 3:                       # 3 empty/failed pages in a row → done
@@ -159,6 +278,10 @@ async def run_job(job_id: str, queries: list[str], limit: int | None) -> None:
         if not total:
             done["note"] = ("BestBuy returned 0 — the US free proxy may have been geo-blocked; try "
                             "again (it rotates proxies) or set a US PROXY_URL. The real IP is never used.")
+        elif limit and 0 < total <= 6:
+            done["note"] = ("BestBuy server-renders only ~5 products/page; the rest are PerimeterX "
+                            "browser-only and the headless render timed out / was blocked this run — "
+                            "retry, or use a residential proxy. The real IP is never used.")
         await jobs.update_one({"job_id": job_id}, {"$set": done})
     except Exception as e:
         await jobs.update_one({"job_id": job_id}, {"$set": {
