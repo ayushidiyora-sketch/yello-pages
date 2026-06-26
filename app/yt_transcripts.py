@@ -43,11 +43,18 @@ def search_sync(query: str, limit: int | None = None) -> list[dict]:
     if not vid:
         raise RuntimeError(f"Could not read a YouTube video id from '{query}' (use an id or a "
                            "watch?v= / youtu.be/ URL).")
+    from . import yp_us
     paid = settings.PROXY_URL.strip()
+    rotating = bool(yp_us._load_plist())
     if paid:
         proxies = [paid]
+    elif rotating:
+        # YouTube blocks individual datacenter IPs (per-IP, not the whole range), so rotate through the
+        # proxies.txt pool — try many and skip blocked ones until one returns the transcript. Only a
+        # fraction of datacenter IPs are un-blocked at any time, so cast a wide net (blocked IPs respond
+        # fast, so extra attempts are cheap).
+        proxies = yp_us._plist_candidates(40)
     else:
-        from . import yp_us
         yp_us.ensure_pool({"search_terms": "x", "geo_location_terms": "New York, NY", "page": "1"}, 8)
         with yp_us._LOCK:
             proxies = list(yp_us._GOOD)[:8]
@@ -59,6 +66,9 @@ def search_sync(query: str, limit: int | None = None) -> list[dict]:
                 return [{"query": query, "video_id": vid, **d}]
         except Exception as e:
             last = str(e)
+            if rotating and any(m in last for m in ("IpBlocked", "RequestBlocked", "ProxyError",
+                                                    "blocked", "Blocked")):
+                yp_us._plist_mark_bad(px)      # cool down this IP so rotation skips it next time
             continue
     if last:
         raise RuntimeError(last)
