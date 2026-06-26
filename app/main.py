@@ -7,24 +7,61 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, Response
 
 from .db import (jobs, businesses, products, reviews, ebay_products, gresults, bbbresults,
-                 g2reviews, bbbreviews, gjobs, gdreviews, walmart_products, walmart_reviews,
+                 g2reviews, bbbreviews, gjobs, gcompanies, gdreviews, walmart_products, walmart_reviews,
                  youtube_channels, airbnb_reviews, expedia_results, trustpilot_results,
                  hotels_results, hotels_reviews, trustpilot_search_results, homedepot_results,
-                 trustpilot_reviews, monitors, expedia_reviews, ensure_indexes)
+                 trustpilot_reviews, monitors, expedia_reviews, airbnb_search_results,
+                 gmaps_results, gmaps_domain_results, gmaps_reviews, gnews_results,
+                 gmaps_contrib_reviews, gmaps_photos, gimages_results, gmaps_traffic,
+                 gmaps_directory, gvideos_results, gevents_results, gcareers_results,
+                 gtrends_results, linkedin_companies_results, linkedin_posts_results,
+                 gsjobs_results, gshop_results, gplay_results,
+                 gsreviews_results, linkedin_profiles, gflights_results, gmaps_autocomplete,
+                 gsearch_autocomplete, booking_reviews_results, booking_prices_results,
+                 olx_results, apollo_results, upwork_results, youtube_videos_results,
+                 glassdoor_company_jobs_results,
+                 booking_results, bestbuy_results, yelp_results, yelp_reviews,
+                 yelp_photos, yt_transcripts, yt_search,
+                 ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
-                     GlassdoorJobsRequest, GlassdoorReviewsRequest, WalmartProductsRequest,
+                     GlassdoorJobsRequest, GlassdoorCompaniesRequest, GlassdoorReviewsRequest,
+                     WalmartProductsRequest,
                      WalmartReviewsRequest, YouTubeChannelsRequest, AirbnbReviewsRequest,
                      ExpediaRequest, TrustpilotRequest, HotelsRequest, HotelsReviewsRequest,
                      TrustpilotSearchRequest, HomeDepotRequest, TrustpilotReviewsRequest,
-                     TrustpilotMonitorRequest, ExpediaReviewsRequest)
+                     TrustpilotMonitorRequest, ExpediaReviewsRequest, AirbnbSearchRequest,
+                     GoogleMapsRequest, GoogleMapsDomainsRequest, GMapsReviewsRequest,
+                     GMapsMonitorRequest, GNewsRequest, GMapsContribRequest, GMapsPhotosRequest,
+                     GImagesRequest, GMapsTrafficRequest, GMapsDirectoryRequest, GVideosRequest,
+                     GEventsRequest, GCareersRequest, GTrendsRequest, LinkedInCompaniesRequest,
+                     LinkedInPostsRequest,
+                     GSJobsRequest, GShopRequest, GShopReviewsRequest, GPlayRequest,
+                     GPlayMonitorRequest, LinkedInProfilesRequest, GFlightsRequest,
+                     GMapsAutocompleteRequest, GSearchAutocompleteRequest, BookingReviewsRequest,
+                     BookingReviewsMonitorRequest, BookingPricesRequest, OLXRequest, ApolloRequest,
+                     UpworkRequest, YouTubeVideosRequest, GlassdoorCompanyJobsRequest,
+                     BookingSearchRequest,
+                     BestBuyProductsRequest, YelpBusinessRequest, YelpReviewsRequest,
+                     YelpPhotosRequest, YTTranscriptsRequest, YTSearchRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
-               glassdoor_jobs, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
+               glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
                youtube_channels as yt_channels, airbnb_reviews as airbnb_rv,
                expedia, trustpilot, hotels, hotels_reviews as hotels_reviews_mod,
                trustpilot_search, homedepot, trustpilot_reviews as trustpilot_reviews_mod,
-               monitor, storage, expedia_reviews as expedia_reviews_mod)
+               monitor, storage, expedia_reviews as expedia_reviews_mod, airbnb, gmaps,
+               gmaps_reviews as gmaps_reviews_mod, gnews, gmaps_contrib,
+               gmaps_photos as gmaps_photos_mod, gimages, gmaps_traffic as gmaps_traffic_mod,
+               gmaps_directory as gmaps_directory_mod, gvideos, gevents, gcareers, gtrends,
+               linkedin_companies, linkedin_posts,
+               gsjobs, gshop, gsreviews, gplay,
+               linkedin_profiles as linkedin_profiles_mod, gflights,
+               gmaps_autocomplete as gmaps_autocomplete_mod, booking_reviews, booking_prices, olx,
+               apollo, upwork, youtube_videos as yt_videos,
+               glassdoor_company_jobs as gd_company_jobs, booking, bestbuy, yelp,
+               yelp_reviews as yelp_reviews_mod, yelp_photos as yelp_photos_mod,
+               yt_transcripts as yt_transcripts_mod, yt_search as yt_search_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -64,6 +101,181 @@ async def _gsearch_rows(job_id):
     return rows, None
 
 
+async def _gnews_rows(job_id):
+    rows = [d async for d in gnews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gnews.GNEWS_COLUMNS
+
+
+async def _gimages_rows(job_id):
+    rows = [d async for d in gimages_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gimages.GIMG_COLUMNS
+
+
+async def _gvideos_rows(job_id):
+    rows = [d async for d in gvideos_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gvideos.GVID_COLUMNS
+
+
+async def _gevents_rows(job_id):
+    rows = [d async for d in gevents_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gevents.GEVENTS_COLUMNS
+
+
+async def _gcareers_rows(job_id):
+    rows = [d async for d in gcareers_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gcareers.GCAREERS_COLUMNS
+
+
+async def _gtrends_rows(job_id):
+    rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gtrends.GTRENDS_COLUMNS
+
+
+async def _linkedin_companies_rows(job_id):
+    rows = [d async for d in linkedin_companies_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, linkedin_companies.LINKEDIN_COMPANY_COLUMNS
+
+
+async def _linkedin_posts_rows(job_id):
+    rows = [d async for d in linkedin_posts_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, linkedin_posts.LINKEDIN_POSTS_COLUMNS
+
+
+async def _booking_reviews_rows(job_id):
+    rows = [d async for d in booking_reviews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, booking_reviews.BOOKING_REVIEW_COLUMNS
+
+
+async def _booking_prices_rows(job_id):
+    rows = [d async for d in booking_prices_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, booking_prices.BOOKING_PRICE_COLUMNS
+
+
+async def _olx_rows(job_id):
+    rows = [d async for d in olx_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, olx.OLX_COLUMNS
+
+
+async def _yt_videos_rows(job_id):
+    rows = [yt_videos.to_export(d) async for d in youtube_videos_results.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, yt_videos.YOUTUBE_VIDEO_COLUMNS
+
+
+async def _gd_company_jobs_rows(job_id):
+    rows = [gd_company_jobs.to_export(d) async for d in
+            glassdoor_company_jobs_results.find({"job_id": job_id}, {"_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, gd_company_jobs.GLASSDOOR_COMPANY_JOB_COLUMNS
+
+
+async def _apollo_rows(job_id):
+    rows = [d async for d in apollo_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, apollo.APOLLO_COLUMNS
+
+
+async def _upwork_rows(job_id):
+    rows = [d async for d in upwork_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, upwork.UPWORK_COLUMNS
+
+
+async def _gsjobs_rows(job_id):
+    rows = [d async for d in gsjobs_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gsjobs.GSJ_COLUMNS
+
+
+async def _gshop_rows(job_id):
+    rows = [d async for d in gshop_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gshop.GSH_COLUMNS
+
+
+async def _gsr_rows(job_id):
+    rows = [d async for d in gsreviews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gsreviews.GSR_COLUMNS
+
+
+async def _lip_rows(job_id):
+    rows = [d async for d in linkedin_profiles.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, linkedin_profiles_mod.LIP_COLUMNS
+
+
+async def _gfl_rows(job_id):
+    rows = [d async for d in gflights_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gflights.GFL_COLUMNS
+
+
+async def _gma_rows(job_id):
+    rows = [d async for d in gmaps_autocomplete.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_autocomplete_mod.GMA_COLUMNS
+
+
+async def _gsa_rows(job_id):
+    rows = [d async for d in gsearch_autocomplete.find(
+        {"job_id": job_id}, {"_id": 0, "job_id": 0, "coordinates": 0})]
+    return rows, ["query", "suggestion", "position"]
+
+
+async def _bks_rows(job_id):
+    rows = [d async for d in booking_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, booking.BOOKING_COLUMNS
+
+
+async def _bbp_rows(job_id):
+    rows = [d async for d in bestbuy_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, bestbuy.BESTBUY_COLUMNS
+
+
+async def _yelp_rows(job_id):
+    rows = [d async for d in yelp_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yelp.YELP_COLUMNS
+
+
+async def _yrv_rows(job_id):
+    rows = [d async for d in yelp_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yelp_reviews_mod.YELP_REVIEW_COLUMNS
+
+
+async def _yph_rows(job_id):
+    rows = [d async for d in yelp_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yelp_photos_mod.YELP_PHOTO_COLUMNS
+
+
+async def _ytt_rows(job_id):
+    rows = [d async for d in yt_transcripts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yt_transcripts_mod.YT_COLUMNS
+
+
+async def _yts_rows(job_id):
+    rows = [d async for d in yt_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yt_search_mod.YTS_COLUMNS
+
+
+async def _gplay_rows(job_id):
+    rows = [d async for d in gplay_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gplay.GPL_COLUMNS
+
+
+async def _gmaps_traffic_rows(job_id):
+    rows = [d async for d in gmaps_traffic.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_traffic_mod.GMT_COLUMNS
+
+
+async def _gmaps_directory_rows(job_id):
+    rows = [d async for d in gmaps_directory.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_directory_mod.GMD_COLUMNS
+
+
+async def _gmaps_contrib_rows(job_id):
+    rows = [d async for d in gmaps_contrib_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_contrib.GMCR_COLUMNS
+
+
+async def _gmaps_photos_rows(job_id):
+    rows = [d async for d in gmaps_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gmaps_photos_mod.GMP_COLUMNS
+
+
 async def _bbb_rows(job_id):
     rows = [d async for d in bbbresults.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, None
@@ -84,6 +296,12 @@ async def _gjobs_rows(job_id):
     rows = [glassdoor_jobs.to_export(d) async for d in gjobs.find({"job_id": job_id}, {"_id": 0})]
     rows.sort(key=lambda r: r.get("position") or 0)
     return rows, glassdoor_jobs.GLASSDOOR_JOB_COLUMNS
+
+
+async def _gco_rows(job_id):
+    rows = [d async for d in gcompanies.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    rows.sort(key=lambda r: r.get("position") or 0)
+    return rows, glassdoor_companies.GLASSDOOR_COMPANY_COLUMNS
 
 
 async def _gdreviews_rows(job_id):
@@ -512,6 +730,31 @@ async def glassdoor_jobs_results(job_id: str, limit: int = 4000):
     return rows[:limit]
 
 
+@app.post("/api/glassdoor-companies")
+async def glassdoor_companies_start(req: GlassdoorCompaniesRequest):
+    """Glassdoor Company Search — company search results from Glassdoor (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one company name or Glassdoor URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "glassdoor_companies", "queries": queries, "limit": lim,
+        "domain": req.domain, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        glassdoor_companies.run_job(job_id, queries, lim, req.domain),
+        "glassdoor_companies", job_id, _gco_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/glassdoor-companies/results/{job_id}")
+async def glassdoor_companies_results(job_id: str, limit: int = 4000):
+    rows, _ = await _gco_rows(job_id)
+    return rows[:limit]
+
+
 @app.post("/api/glassdoor-reviews")
 async def glassdoor_reviews_start(req: GlassdoorReviewsRequest):
     """Glassdoor Reviews Scraper — company reviews from a glassdoor.com reviews URL."""
@@ -629,6 +872,79 @@ async def airbnb_reviews_start(req: AirbnbReviewsRequest):
 @app.get("/api/airbnb-reviews/results/{job_id}")
 async def airbnb_reviews_results(job_id: str, limit: int = 4000):
     rows, _ = await _airbnb_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/airbnb-search")
+async def airbnb_search_start(req: AirbnbSearchRequest):
+    """Airbnb Search Scraper — listings from an airbnb.com search URL or location (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Airbnb search URL or location is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "airbnb_search", "queries": queries, "limit": req.limit,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(airbnb.run_job(job_id, queries, req.limit))
+    return {"job_id": job_id}
+
+
+@app.get("/api/airbnb-search/results/{job_id}")
+async def airbnb_search_results_get(job_id: str, limit: int = 2000):
+    rows = [d async for d in airbnb_search_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps")
+async def gmaps_start(req: GoogleMapsRequest):
+    """Google Maps Data Scraper — places from Google's official Places API (New). API-only.
+    Builds "<category> in <location>" queries from the categories × locations cross-product."""
+    cats = [c.strip() for c in req.categories if c and c.strip()]
+    locs = [l.strip() for l in req.locations if l and l.strip()]
+    if not cats:
+        raise HTTPException(400, "at least one category/brand is required")
+    queries = [f"{c} in {l}" for c in cats for l in locs] if locs else cats
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps", "queries": queries, "categories": cats,
+        "locations": locs, "limit": req.limit, "region": req.region, "language": req.language,
+        "filters": req.filters, "skip": req.skip, "dedupe": req.dedupe,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(gmaps.run_job(job_id, queries, req.limit, req.region, req.language,
+                                      req.filters, req.skip, req.dedupe))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps/results/{job_id}")
+async def gmaps_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gmaps_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-domains")
+async def gmaps_domains_start(req: GoogleMapsDomainsRequest):
+    """Google Maps Search by Domains — find the Google Maps place that owns each domain/URL."""
+    domains = [d.strip() for d in req.domains if d and d.strip()]
+    if not domains:
+        raise HTTPException(400, "at least one domain or URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_domains", "domains": domains, "limit": req.limit,
+        "region": req.region, "language": req.language,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(gmaps.run_job_domains(job_id, domains, req.limit, req.region, req.language))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-domains/results/{job_id}")
+async def gmaps_domains_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gmaps_domain_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 
@@ -766,6 +1082,29 @@ async def trustpilot_monitoring_get(monitor_id: str):
     return doc
 
 
+@app.post("/api/gmaps-monitoring")
+async def gmaps_monitoring_start(req: GMapsMonitorRequest):
+    """Google Maps Reviews Monitoring — create a recurring monitor + run the first scan now.
+    Reuses the Google Maps Reviews scraper (official Places API, max 5 reviews/place)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one place_id, Maps URL, or 'category, city' query is required")
+    if req.frequency not in monitor.FREQ_DAYS:
+        raise HTTPException(400, f"frequency must be one of {list(monitor.FREQ_DAYS)}")
+    res = await monitor.start_monitor(queries, req.frequency, req.email, req.threshold,
+                                      req.language, req.limit, kind="gmaps", sort=req.sort)
+    res["frequency"] = monitor.FREQ_LABEL[req.frequency]
+    return res
+
+
+@app.get("/api/gmaps-monitoring/{monitor_id}")
+async def gmaps_monitoring_get(monitor_id: str):
+    doc = await monitors.find_one({"monitor_id": monitor_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "monitor not found")
+    return doc
+
+
 @app.post("/api/hotels")
 async def hotels_start(req: HotelsRequest):
     """Hotels Search Scraper — hotels from a hotels.com Hotel-Search URL (proxy-only)."""
@@ -829,6 +1168,923 @@ async def expedia_reviews_start(req: ExpediaReviewsRequest):
 @app.get("/api/expedia-reviews/results/{job_id}")
 async def expedia_reviews_results_get(job_id: str, limit: int = 3000):
     rows = [d async for d in expedia_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-reviews")
+async def gmaps_reviews_start(req: GMapsReviewsRequest):
+    """Google Maps Reviews Scraper — reviews from Google Maps places (internal RPC, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one place query / URL / id is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_reviews", "queries": queries, "sort": req.sort,
+        "limit": req.limit, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    lim = None if (req.limit or 0) == 0 else req.limit
+    asyncio.create_task(gmaps_reviews_mod.run_job(job_id, queries, req.sort, lim, req.language))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-reviews/results/{job_id}")
+async def gmaps_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.get("/api/gmaps-categories")
+async def gmaps_categories():
+    """Google Maps category list (from app/categories.xlsx) for the Categories/brands dropdown."""
+    return gmaps_reviews_mod.categories()
+
+
+@app.post("/api/gnews")
+async def gnews_start(req: GNewsRequest):
+    """Google Search News Scraper — news articles for a query via Google News RSS (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    lim = None if (req.limit or 0) == 0 else req.limit
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gnews", "queries": queries, "limit": lim,
+        "country": req.country, "date_range": req.date_range, "language": req.language,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gnews.run_job(job_id, queries, lim, req.date_range or "", req.country, req.language),
+        "google_news", job_id, _gnews_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gnews-results/{job_id}")
+async def gnews_results_get(job_id: str, limit: int = 2000):
+    rows = [d async for d in gnews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gimages")
+async def gimages_start(req: GImagesRequest):
+    """Google Search Images Scraper — image results via DuckDuckGo's image JSON API (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gimages", "queries": queries, "limit": lim,
+        "country": req.country, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gimages.run_job(job_id, queries, lim, req.country, req.language),
+        "google_images", job_id, _gimages_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gimages-results/{job_id}")
+async def gimages_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gimages_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gvideos")
+async def gvideos_start(req: GVideosRequest):
+    """Google Search Videos Scraper — video results via Bing video search (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gvideos", "queries": queries, "limit": lim,
+        "country": req.country, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gvideos.run_job(job_id, queries, lim, req.country, req.language),
+        "google_videos", job_id, _gvideos_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gvideos-results/{job_id}")
+async def gvideos_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gvideos_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gevents")
+async def gevents_start(req: GEventsRequest):
+    """Google Search Events Scraper — event listings via Google's events pack (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    pages = req.limit or 1
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gevents", "queries": queries, "limit": pages,
+        "country": req.country, "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gevents.run_job(job_id, queries, pages, req.country, req.language),
+        "google_events", job_id, _gevents_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gevents-results/{job_id}")
+async def gevents_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gevents_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gcareers")
+async def gcareers_start(req: GCareersRequest):
+    """Google Search Careers Scraper — jobs from a careers.google.com search (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gcareers", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gcareers.run_job(job_id, queries, lim),
+        "google_careers", job_id, _gcareers_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gcareers-results/{job_id}")
+async def gcareers_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gcareers_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gtrends")
+async def gtrends_start(req: GTrendsRequest):
+    """Google Trends Scraper — interest-by-region via Google Trends' free internal API (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gtrends", "queries": queries, "geo": req.geo,
+        "timeframe": req.timeframe, "resolution": req.resolution,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gtrends.run_job(job_id, queries, req.geo, req.timeframe, req.resolution),
+        "google_trends", job_id, _gtrends_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gtrends-results/{job_id}")
+async def gtrends_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/linkedin-companies")
+async def linkedin_companies_start(req: LinkedInCompaniesRequest):
+    """LinkedIn Companies Scraper — company details from linkedin.com/company pages (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "linkedin_companies", "queries": queries,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        linkedin_companies.run_job(job_id, queries),
+        "linkedin_companies", job_id, _linkedin_companies_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/linkedin-companies-results/{job_id}")
+async def linkedin_companies_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in linkedin_companies_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/linkedin-posts")
+async def linkedin_posts_start(req: LinkedInPostsRequest):
+    """LinkedIn Posts Scraper — recent posts from a company profile (auth + proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "linkedin_posts", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        linkedin_posts.run_job(job_id, queries, lim),
+        "linkedin_posts", job_id, _linkedin_posts_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/linkedin-posts-results/{job_id}")
+async def linkedin_posts_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in linkedin_posts_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/booking-reviews")
+async def booking_reviews_start(req: BookingReviewsRequest):
+    """Booking Reviews Scraper — guest reviews for a booking.com hotel (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "booking_reviews", "queries": queries, "limit": lim,
+        "sort": req.sort, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        booking_reviews.run_job(job_id, queries, lim, req.sort),
+        "booking_reviews", job_id, _booking_reviews_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/booking-reviews-results/{job_id}")
+async def booking_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in booking_reviews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/booking-prices")
+async def booking_prices_start(req: BookingPricesRequest):
+    """Booking Prices Scraper — room types + nightly prices for a booking.com hotel (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "booking_prices", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        booking_prices.run_job(job_id, queries, lim),
+        "booking_prices", job_id, _booking_prices_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/booking-prices-results/{job_id}")
+async def booking_prices_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in booking_prices_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/olx")
+async def olx_start(req: OLXRequest):
+    """OLX Scraper — product/classified listings from an olx.* search URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one search URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "olx", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        olx.run_job(job_id, queries, lim),
+        "olx", job_id, _olx_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/olx-results/{job_id}")
+async def olx_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in olx_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/youtube-videos")
+async def youtube_videos_start(req: YouTubeVideosRequest):
+    """YouTube Video Scraper — a channel's videos or shorts from a channel URL / @handle."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one channel URL or handle is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    vtype = "short" if (req.video_type or "").lower().startswith("short") else "video"
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "youtube_videos", "queries": queries, "limit": lim,
+        "video_type": vtype, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yt_videos.run_job(job_id, queries, lim, vtype),
+        "youtube_videos", job_id, _yt_videos_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/youtube-videos-results/{job_id}")
+async def youtube_videos_results_get(job_id: str, limit: int = 5000):
+    rows, _ = await _yt_videos_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/glassdoor-company-jobs")
+async def glassdoor_company_jobs_start(req: GlassdoorCompanyJobsRequest):
+    """Glassdoor Company Jobs — all open jobs for a company from its Glassdoor URL."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Glassdoor company URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    srt = "newest" if (req.sort or "").lower().startswith("new") else "relevant"
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "glassdoor_company_jobs", "queries": queries, "limit": lim,
+        "sort": srt, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gd_company_jobs.run_job(job_id, queries, lim, srt),
+        "glassdoor_company_jobs", job_id, _gd_company_jobs_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/glassdoor-company-jobs-results/{job_id}")
+async def glassdoor_company_jobs_results_get(job_id: str, limit: int = 5000):
+    rows, _ = await _gd_company_jobs_rows(job_id)
+    return rows[:limit]
+
+
+@app.post("/api/apollo")
+async def apollo_start(req: ApolloRequest):
+    """Apollo Scraper — people/companies from app.apollo.io search URLs (auth via your cookies)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Apollo search URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "apollo", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        apollo.run_job(job_id, queries, req.cookies, lim),
+        "apollo", job_id, _apollo_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/apollo-results/{job_id}")
+async def apollo_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in apollo_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/upwork")
+async def upwork_start(req: UpworkRequest):
+    """Upwork Jobs Scraper — job listings from an upwork.com search URL (headless, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one search URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "upwork", "queries": queries, "limit": lim, "sort": req.sort,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        upwork.run_job(job_id, queries, lim, req.sort),
+        "upwork", job_id, _upwork_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/upwork-results/{job_id}")
+async def upwork_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in upwork_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gsjobs")
+async def gsjobs_start(req: GSJobsRequest):
+    """Google Search Jobs Scraper — job listings via Google Jobs (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gsjobs", "queries": queries, "pages": req.pages,
+        "language": req.language, "region": req.region, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gsjobs.run_job(job_id, queries, req.pages, req.language, req.region),
+        "google_jobs", job_id, _gsjobs_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gsjobs-results/{job_id}")
+async def gsjobs_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gsjobs_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gshop")
+async def gshop_start(req: GShopRequest):
+    """Google Search Shopping Scraper — product results via Google Shopping (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gshop", "queries": queries, "limit": lim,
+        "language": req.language, "region": req.region, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gshop.run_job(job_id, queries, lim, req.language, req.region),
+        "google_shopping", job_id, _gshop_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gshop-results/{job_id}")
+async def gshop_results_get(job_id: str, limit: int = 3000):
+    rows = [d async for d in gshop_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gsreviews")
+async def gsreviews_start(req: GShopReviewsRequest):
+    """Google Shopping Reviews Scraper — reviews for a list of Google Shopping products (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one product link or product id is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gsreviews", "queries": queries, "limit": lim,
+        "language": req.language, "region": req.region, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gsreviews.run_job(job_id, queries, lim, req.language, req.region),
+        "google_shopping_reviews", job_id, _gsr_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gsreviews-results/{job_id}")
+async def gsreviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gsreviews_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/linkedin-profiles")
+async def linkedin_profiles_start(req: LinkedInProfilesRequest):
+    """LinkedIn Profiles Scraper — public-profile data for a list of profile URLs/ids (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one profile URL or id is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "linkedin_profiles", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        linkedin_profiles_mod.run_job(job_id, queries),
+        "linkedin_profiles", job_id, _lip_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/linkedin-profiles-results/{job_id}")
+async def linkedin_profiles_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in linkedin_profiles.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gflights")
+async def gflights_start(req: GFlightsRequest):
+    """Google Search Flights Scraper — flight results from Google Flights (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one origin,destination pair is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gflights", "queries": queries, "limit": lim,
+        "departure_date": req.departure_date, "return_date": req.return_date,
+        "language": req.language, "region": req.region, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gflights.run_job(job_id, queries, req.departure_date, req.return_date, lim,
+                         req.language, req.region),
+        "google_flights", job_id, _gfl_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gflights-results/{job_id}")
+async def gflights_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gflights_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-autocomplete")
+async def gmaps_autocomplete_start(req: GMapsAutocompleteRequest):
+    """Google Maps Autocomplete — suggestion lists for Maps search queries (works on the free pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_autocomplete", "queries": queries,
+        "coordinates": req.coordinates, "language": req.language, "region": req.region,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_autocomplete_mod.run_job(job_id, queries, req.coordinates, req.language, req.region),
+        "gmaps_autocomplete", job_id, _gma_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-autocomplete-results/{job_id}")
+async def gmaps_autocomplete_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_autocomplete.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gsearch-autocomplete")
+async def gsearch_autocomplete_start(req: GSearchAutocompleteRequest):
+    """Google Search Autocomplete — suggestion lists for search queries (works on the free pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one query is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gsearch_autocomplete", "queries": queries,
+        "language": req.language, "region": req.region, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_autocomplete_mod.run_job_search(job_id, queries, req.language, req.region),
+        "gsearch_autocomplete", job_id, _gsa_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gsearch-autocomplete-results/{job_id}")
+async def gsearch_autocomplete_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gsearch_autocomplete.find(
+        {"job_id": job_id}, {"_id": 0, "job_id": 0, "coordinates": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/booking-search")
+async def booking_search_start(req: BookingSearchRequest):
+    """Booking Search Scraper — properties from a booking.com searchresults URL (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one booking.com searchresults URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "booking_search", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        booking.run_job(job_id, queries, lim), "booking_search", job_id, _bks_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/booking-search/results/{job_id}")
+async def booking_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in booking_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/bestbuy-products")
+async def bestbuy_products_start(req: BestBuyProductsRequest):
+    """BestBuy Products Scraper — product listings from BestBuy URLs (US proxy, free pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one BestBuy URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "bestbuy_products", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        bestbuy.run_job(job_id, queries, lim), "bestbuy_products", job_id, _bbp_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/bestbuy-products/results/{job_id}")
+async def bestbuy_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in bestbuy_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yelp-businesses")
+async def yelp_businesses_start(req: YelpBusinessRequest):
+    """Y.E.L.P Businesses Scraper — businesses from Yelp search (proxy-only; residential for data)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Yelp URL or 'Category | Location' query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yelp_businesses", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yelp.run_job(job_id, queries, lim), "yelp_businesses", job_id, _yelp_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yelp-businesses/results/{job_id}")
+async def yelp_businesses_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yelp_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yelp-reviews")
+async def yelp_reviews_start(req: YelpReviewsRequest):
+    """Y.E.L.P Reviews Scraper — reviews from a Yelp business (proxy-only; residential for data)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Yelp business URL / slug / id is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yelp_reviews", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yelp_reviews_mod.run_job(job_id, queries, lim), "yelp_reviews", job_id, _yrv_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yelp-reviews/results/{job_id}")
+async def yelp_reviews_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yelp_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yelp-photos")
+async def yelp_photos_start(req: YelpPhotosRequest):
+    """Y.E.L.P Photos Scraper — photos from a Yelp business (proxy-only; residential for data)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Yelp business URL / slug / id is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yelp_photos", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yelp_photos_mod.run_job(job_id, queries, lim), "yelp_photos", job_id, _yph_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yelp-photos/results/{job_id}")
+async def yelp_photos_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yelp_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yt-transcripts")
+async def yt_transcripts_start(req: YTTranscriptsRequest):
+    """YouTube Transcripts Scraper — full-text transcripts from YouTube videos (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one YouTube video id or URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yt_transcripts", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yt_transcripts_mod.run_job(job_id, queries), "yt_transcripts", job_id, _ytt_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yt-transcripts/results/{job_id}")
+async def yt_transcripts_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yt_transcripts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yt-search")
+async def yt_search_start(req: YTSearchRequest):
+    """YouTube Search Scraper — video search results from YouTube (proxy-only, works on free pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one search query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yt_search", "queries": queries, "limit": lim, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yt_search_mod.run_job(job_id, queries, lim), "yt_search", job_id, _yts_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yt-search/results/{job_id}")
+async def yt_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yt_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gplay")
+async def gplay_start(req: GPlayRequest):
+    """Google Play Reviews Scraper — app reviews via Play's internal batchexecute API (proxy)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one app id or Play Store URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gplay", "queries": queries, "limit": lim, "sort": req.sort,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gplay.run_job(job_id, queries, lim, req.sort, req.language),
+        "google_play_reviews", job_id, _gplay_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gplay-results/{job_id}")
+async def gplay_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gplay_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gplay-monitoring")
+async def gplay_monitoring_start(req: GPlayMonitorRequest):
+    """Google Play Reviews Monitoring — recurring app-review scan + email report. Reuses the Play
+    Reviews scraper (internal batchexecute API, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one app id or Play Store URL is required")
+    if req.frequency not in monitor.FREQ_DAYS:
+        raise HTTPException(400, f"frequency must be one of {list(monitor.FREQ_DAYS)}")
+    res = await monitor.start_monitor(queries, req.frequency, req.email, req.threshold,
+                                      req.language, req.limit, kind="gplay", sort=req.sort)
+    res["frequency"] = monitor.FREQ_LABEL[req.frequency]
+    return res
+
+
+@app.get("/api/gplay-monitoring/{monitor_id}")
+async def gplay_monitoring_get(monitor_id: str):
+    doc = await monitors.find_one({"monitor_id": monitor_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "monitor not found")
+    return doc
+
+
+@app.post("/api/booking-reviews-monitoring")
+async def booking_reviews_monitoring_start(req: BookingReviewsMonitorRequest):
+    """Booking Reviews Monitoring — recurring hotel-review scan + email report. Reuses the Booking
+    Reviews scraper (headless browser, proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one booking.com hotel URL/slug is required")
+    if req.frequency not in monitor.FREQ_DAYS:
+        raise HTTPException(400, f"frequency must be one of {list(monitor.FREQ_DAYS)}")
+    res = await monitor.start_monitor(queries, req.frequency, req.email, req.threshold,
+                                      limit=req.limit, kind="booking_reviews", sort="newest")
+    res["frequency"] = monitor.FREQ_LABEL[req.frequency]
+    return res
+
+
+@app.get("/api/booking-reviews-monitoring/{monitor_id}")
+async def booking_reviews_monitoring_get(monitor_id: str):
+    doc = await monitors.find_one({"monitor_id": monitor_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "monitor not found")
+    return doc
+
+
+@app.post("/api/gmaps-traffic")
+async def gmaps_traffic_start(req: GMapsTrafficRequest):
+    """Google Maps Traffic Scraper — directions (travel time + distance) between two points (proxy-only)."""
+    pairs = [{"start": (p.start or "").strip(), "stop": (p.stop or "").strip()}
+             for p in req.pairs if (p.start or "").strip() and (p.stop or "").strip()]
+    if not pairs:
+        raise HTTPException(400, "at least one Start + Stop location pair is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_traffic", "pairs": pairs, "travel_mode": req.travel_mode,
+        "time_from": req.time_from, "time_to": req.time_to, "interval_min": req.interval_min,
+        "status": "running", "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_traffic_mod.run_job(job_id, pairs, req.time_from, req.time_to, req.interval_min,
+                                  req.travel_mode),
+        "google_maps_traffic", job_id, _gmaps_traffic_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-traffic-results/{job_id}")
+async def gmaps_traffic_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_traffic.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-directory")
+async def gmaps_directory_start(req: GMapsDirectoryRequest):
+    """Google Maps Directory Places — business listings from a search/place (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one 'category, city' query, Maps URL, or place_id is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_directory", "queries": queries, "limit": lim,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_directory_mod.run_job(job_id, queries, lim, req.language),
+        "google_maps_directory", job_id, _gmaps_directory_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-directory-results/{job_id}")
+async def gmaps_directory_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_directory.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-contrib")
+async def gmaps_contrib_start(req: GMapsContribRequest):
+    """Google Maps Contributor Reviews Scraper — all reviews a contributor left (proxy-only)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one contributor ID or /contrib/<id> URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_contrib", "queries": queries, "limit": lim,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_contrib.run_job(job_id, queries, lim, req.language),
+        "google_maps_contrib", job_id, _gmaps_contrib_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-contrib-results/{job_id}")
+async def gmaps_contrib_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_contrib_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gmaps-photos")
+async def gmaps_photos_start(req: GMapsPhotosRequest):
+    """Google Maps Photos Scraper — all photos from a place (proxy-only, free DOM scrape)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one place_id, Maps URL, or 'category, city' query is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "gmaps_photos", "queries": queries, "limit": lim,
+        "language": req.language, "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        gmaps_photos_mod.run_job(job_id, queries, lim, req.language),
+        "google_maps_photos", job_id, _gmaps_photos_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/gmaps-photos-results/{job_id}")
+async def gmaps_photos_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in gmaps_photos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

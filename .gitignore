@@ -12,7 +12,7 @@ venv/
 # Scraped output (data, not code)
 exports/
 data/
-*.xlsx
+
 
 # Logs
 *.log
@@ -21,3 +21,13 @@ data/
 .DS_Store
 Thumbs.db
 *.swp
+
+# Local server logs / scratch
+uvicorn.out
+uvicorn.err
+_g2job.txt
+_g2test.py
+
+# Rotating paid-proxy pool (credentials — never commit)
+proxies.txt
+proxies*.txt

@@ -110,7 +110,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_companies"
  },
  {
   "no": "12",
@@ -120,7 +121,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_profiles"
  },
  {
   "no": "13",
@@ -130,7 +132,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_posts"
  },
  {
   "no": "14",
@@ -254,7 +257,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gflights"
  },
  {
   "no": "26",
@@ -264,7 +268,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_autocomplete"
  },
  {
   "no": "27",
@@ -274,7 +279,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gsearch_autocomplete"
  },
  {
   "no": "28",
@@ -314,7 +320,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_companies"
  },
  {
   "no": "32",
@@ -406,7 +413,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "airbnb_search"
  },
  {
   "no": "41",
@@ -504,11 +512,12 @@
   "no": "50",
   "name": "BestBuy Products Scraper",
   "brand": "BestBuy",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "bestbuy_products"
  },
  {
   "no": "51",
@@ -648,7 +657,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_search"
  },
  {
   "no": "65",
@@ -658,17 +668,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_reviews"
  },
  {
   "no": "66",
   "name": "Booking Reviews Monitoring",
   "brand": "Booking",
-  "description": "",
+  "description": "Recurring hotel-review scan with email alerts",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_monitoring"
  },
  {
   "no": "67",
@@ -710,7 +722,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_prices"
  },
  {
   "no": "71",
@@ -814,7 +827,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps"
  },
  {
   "no": "81",
@@ -824,17 +838,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_reviews"
  },
  {
   "no": "82",
   "name": "Google Maps Reviews Monitoring",
   "brand": "Google",
-  "description": "",
+  "description": "Automated data collection with regular email reports",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_monitoring"
  },
  {
   "no": "83",
@@ -856,7 +872,8 @@
    "Businesses & POI",
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_domains"
  },
  {
   "no": "85",
@@ -866,7 +883,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_contrib"
  },
  {
   "no": "86",
@@ -876,7 +894,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_photos"
  },
  {
   "no": "87",
@@ -886,17 +905,19 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_traffic"
  },
  {
   "no": "88",
   "name": "Google Maps Directory Places",
   "brand": "Google",
-  "description": "",
+  "description": "Returns search results",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_directory"
  },
  {
   "no": "89",
@@ -906,7 +927,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gnews"
  },
  {
   "no": "90",
@@ -916,7 +938,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gimages"
  },
  {
   "no": "91",
@@ -926,7 +949,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gvideos"
  },
  {
   "no": "92",
@@ -936,7 +960,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gevents"
  },
  {
   "no": "93",
@@ -946,7 +971,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gsjobs"
  },
  {
   "no": "94",
@@ -956,17 +982,19 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gcareers"
  },
  {
   "no": "95",
   "name": "Google Search Shopping Scraper",
   "brand": "Google",
-  "description": "يرجع نتائج البحث",
+  "description": "Returns search results",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "gshop"
  },
  {
   "no": "96",
@@ -976,7 +1004,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gtrends"
  },
  {
   "no": "97",
@@ -986,17 +1015,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gplay"
  },
  {
   "no": "98",
   "name": "Google Play Reviews Monitoring",
   "brand": "Google",
-  "description": "",
+  "description": "Automated data collection with regular email reports",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gplay_monitoring"
  },
  {
   "no": "99",
@@ -1006,7 +1037,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gshop_reviews"
  },
  {
   "no": "100",
@@ -1463,17 +1495,19 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "yt_search"
  },
  {
   "no": "145",
   "name": "YouTube Video Scraper",
   "brand": "Youtube",
-  "description": "",
+  "description": "Returns a channel's videos or shorts from a list of channel URLs or @handles",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "youtube_video"
  },
  {
   "no": "146",
@@ -1513,7 +1547,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_business"
  },
  {
   "no": "150",
@@ -1523,7 +1558,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_reviews"
  },
  {
   "no": "151",
@@ -1533,7 +1569,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_photos"
  },
  {
   "no": "152",
@@ -1709,21 +1746,23 @@
   "no": "169",
   "name": "OLX Scraper",
   "brand": "OLX",
-  "description": "",
+  "description": "Returns product listings from a list of OLX search URLs",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "olx"
  },
  {
   "no": "170",
   "name": "Apollo Scraper",
   "brand": "Apollo",
-  "description": "",
+  "description": "Returns people/companies from Apollo.io search URLs",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "apollo"
  },
  {
   "no": "171",
@@ -1753,7 +1792,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "yt_transcripts"
  },
  {
   "no": "174",
@@ -1819,21 +1859,23 @@
   "no": "180",
   "name": "Glassdoor Company Jobs",
   "brand": "Glassdoor",
-  "description": "",
+  "description": "Returns all open jobs for a company from a list of Glassdoor company URLs",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_company_jobs"
  },
  {
   "no": "181",
   "name": "Upwork Jobs",
   "brand": "Upwork",
-  "description": "",
+  "description": "Returns job listings from Upwork search URLs",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "upwork"
  },
  {
   "no": "182",
