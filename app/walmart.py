@@ -90,20 +90,27 @@ def _proxied_get(url: str):
 
 
 def _get_text(url: str) -> str | None:
-    """Fetch one URL through a proxy. Priority: WALMART_PROXY_URL (Walmart-only) → PROXY_URL →
-    free pool. Returns HTML on a real page, None if blocked/failed. NEVER the real IP."""
-    proxy = settings.WALMART_PROXY_URL.strip() or settings.PROXY_URL.strip()
-    if proxy:
-        # Walmart's PerimeterX challenge is intermittent on a single proxy IP — retry a few times
-        # before giving up so a one-off "verify you're human" page isn't fatal.
-        for _ in range(4):
+    """Fetch one URL through a proxy. Tries the pinned WALMART_PROXY_URL/PROXY_URL first, then ROTATES
+    through the proxies.txt pool (PROXY_LIST) — Walmart's PerimeterX blocks individual IPs intermittently,
+    so rotating to another IP recovers instead of returning 0. Free pool if neither is configured.
+    Returns HTML on a real page, None if every candidate was blocked. NEVER the real IP."""
+    from . import yp_us
+    pin = settings.WALMART_PROXY_URL.strip() or settings.PROXY_URL.strip()
+    rotating = yp_us._plist_candidates(10)            # proxies.txt rotation (skips cooled-down IPs)
+    candidates = ([pin] if pin else []) + rotating
+    if candidates:
+        for px in candidates:
             try:
-                r = cffi.get(url, impersonate="chrome", proxies={"http": proxy, "https": proxy},
+                r = cffi.get(url, impersonate="chrome", proxies={"http": px, "https": px},
                              timeout=settings.REQUEST_TIMEOUT, verify=False, allow_redirects=True)
             except Exception:
+                if px in rotating:
+                    yp_us._plist_mark_bad(px)
                 continue
             if _ok(r):
                 return r.text
+            if px in rotating:                        # blocked/challenged → cool this IP down, rotate on
+                yp_us._plist_mark_bad(px)
         return None
     try:
         return _proxied_get(url).text

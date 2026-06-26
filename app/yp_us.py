@@ -277,19 +277,23 @@ def _fmt_proxy(line: str) -> str | None:
 
 
 def _load_plist() -> list[str]:
+    """Load the rotating proxy pool. No .env needed: defaults to the `proxies.txt` file in the project
+    root (via PROXY_LIST, else PROXY_LIST_FILE, else the literal 'proxies.txt'). PROXY_LIST may also be
+    an inline whitespace/comma list. Just drop proxies.txt next to the app and rotation works."""
     global _PLIST, _PLIST_LOADED
     if _PLIST_LOADED:
         return _PLIST
-    raw = settings.PROXY_LIST.strip()
+    raw = (settings.PROXY_LIST.strip()
+           or settings.PROXY_LIST_FILE.strip()
+           or "proxies.txt")
     lines: list[str] = []
-    if raw:
-        if os.path.exists(raw):
-            try:
-                lines = open(raw, encoding="utf-8").read().splitlines()
-            except Exception:
-                lines = []
-        else:
-            lines = re.split(r"[\s,]+", raw)
+    if os.path.exists(raw):                         # a file path (proxies.txt) — the default
+        try:
+            lines = open(raw, encoding="utf-8").read().splitlines()
+        except Exception:
+            lines = []
+    elif raw:                                       # an inline list in PROXY_LIST
+        lines = re.split(r"[\s,]+", raw)
     _PLIST = [p for p in (_fmt_proxy(x) for x in lines) if p]
     _PLIST_LOADED = True
     return _PLIST
