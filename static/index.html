@@ -6131,7 +6131,7 @@ function gtRender(){
   const start=_gtPage*GT_PAGE_SIZE;
   const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line)';
   const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line)';
-  let h='<table style="width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden">'
+  let h='<table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden">'
     +`<thead><tr><th style="${th}">Location</th><th style="${th}">Term</th><th style="${th};width:240px">Interest (0–100)</th></tr></thead><tbody>`;
   for(const r of _gtRows.slice(start, start+GT_PAGE_SIZE)){
     const v=Number(r.value)||0;

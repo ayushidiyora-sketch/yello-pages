@@ -16,6 +16,8 @@ Timeframe = the lookback window. Resolution = COUNTRY | REGION | CITY | DMA gran
 """
 import asyncio
 import json
+import random
+import threading
 from datetime import datetime
 
 from curl_cffi import requests as cffi
@@ -23,6 +25,9 @@ from curl_cffi import requests as cffi
 from . import yp_us
 from .config import settings
 from .scraper import STOP_REQUESTS
+
+_PIN_LOCK = threading.Lock()
+_PINNED: str | None = None        # last proxy from PROXY_LIST_FILE that Trends accepted
 
 EXPLORE = "https://trends.google.com/trends/api/explore"
 COMPAREDGEO = "https://trends.google.com/trends/api/widgetdata/comparedgeo"
@@ -50,11 +55,51 @@ def _strip_json(text: str):
         return None
 
 
+def _proxy_line_to_url(line: str) -> str | None:
+    """One PROXY_LIST_FILE line -> a proxy URL. Accepts IP:PORT:USER:PASS, IP:PORT, or a full URL."""
+    line = line.strip()
+    if not line or line.startswith("#"):
+        return None
+    if "://" in line:
+        return line
+    parts = line.split(":")
+    if len(parts) == 4:
+        ip, port, user, pwd = parts
+        return f"http://{user}:{pwd}@{ip}:{port}"
+    if len(parts) == 2:
+        return f"http://{parts[0]}:{parts[1]}"
+    return None
+
+
+def _load_proxy_file() -> list[str]:
+    """Read PROXY_LIST_FILE into a shuffled list of proxy URLs (last-good pinned to the front).
+    Shuffling spreads load across the pool so we don't always hammer (and 429) the same first IPs."""
+    path = settings.PROXY_LIST_FILE.strip()
+    if not path:
+        return []
+    try:
+        with open(path, encoding="utf-8") as f:
+            urls = [u for u in (_proxy_line_to_url(ln) for ln in f) if u]
+    except OSError:
+        return []
+    random.shuffle(urls)
+    with _PIN_LOCK:
+        pinned = _PINNED
+    if pinned and pinned in urls:
+        urls.remove(pinned)
+        urls.insert(0, pinned)
+    return urls
+
+
 def _proxies() -> list[str]:
-    """Proxy candidates to try, in order. Paid PROXY_URL alone if set, else warm + free-pool list."""
+    """Proxy candidates to try, in order. Precedence: paid PROXY_URL alone -> rotating
+    PROXY_LIST_FILE (datacenter IPs, 429'd ones skipped by the caller) -> warm + free-pool list."""
     px = settings.PROXY_URL.strip()
     if px:
         return [px]
+    listed = _load_proxy_file()
+    if listed:
+        return listed
     try:
         yp_us.ensure_pool({"search_terms": "x", "geo_location_terms": "y", "page": "1"}, 4)
         with yp_us._LOCK:
@@ -80,21 +125,33 @@ def _geo_breakdown(session, proxies, keywords, geo, time, resolution):
     base = dict(geo_w.get("request") or {})
     token = geo_w.get("token")
     default_res = base.get("resolution")
-    # try the chosen resolution; if it yields nothing, fall back to the widget's default resolution
-    for res in [resolution, default_res]:
-        if not res:
-            continue
+    # Resolution must match the geo scope, or Google rejects the data call:
+    #   • Worldwide (no geo) -> only COUNTRY breakdown exists (CITY/REGION/DMA need a country).
+    #   • A specific country -> REGION/CITY/DMA are valid, but COUNTRY is not.
+    # When the chosen resolution is incompatible, drop it and use the widget's default (which Google
+    # sets correctly for the geo) so we still return data instead of erroring.
+    if not geo:
+        chosen = "COUNTRY" if resolution == "COUNTRY" else None
+    elif resolution == "COUNTRY":
+        chosen = None
+    else:
+        chosen = resolution
+    order = []
+    for res in (chosen, default_res):                # try the chosen resolution, then the default
+        if res and res not in order:
+            order.append(res)
+    for res in order:
         wr = dict(base)
         wr["resolution"] = res
         r2 = session.get(COMPAREDGEO, params={"hl": "en-US", "tz": "0", "req": json.dumps(wr),
                                               "token": token}, proxies=proxies, timeout=10, verify=False)
+        if r2.status_code == 429:
+            return None                # rate-limited → let the caller try the next proxy
         if r2.status_code != 200:
-            return None                # 429/blocked → let the caller try the next proxy
+            continue                   # invalid combo for this geo (e.g. 400) → try the default res
         gm = ((_strip_json(r2.text) or {}).get("default") or {}).get("geoMapData") or []
         if gm:
             return gm
-        if res == default_res:
-            break
     return []                          # reached Trends fine, but no geo data for this combo
 
 
@@ -123,6 +180,9 @@ def search_sync(query: str, geo: str = "", timeframe: str = "Past 12 months",
             gm = _geo_breakdown(session, proxies, keywords, geo, time, res)
             if gm is None:
                 continue               # this proxy was blocked/429 — try the next
+            global _PINNED
+            with _PIN_LOCK:            # remember this accepted proxy for the next call
+                _PINNED = px
             rows: list[dict] = []
             for g in gm:
                 vals = g.get("value") or []

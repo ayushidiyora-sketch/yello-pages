@@ -359,7 +359,9 @@ app = FastAPI(title="YellowPages US Scraper", lifespan=lifespan)
 @app.get("/", response_class=HTMLResponse)
 async def index():
     with open("static/index.html", encoding="utf-8") as f:
-        return f.read()
+        # no-store so the browser always loads the latest HTML/JS (avoids stale cached UI after
+        # code changes — e.g. results tables not rendering until a manual hard-refresh).
+        return HTMLResponse(content=f.read(), headers={"Cache-Control": "no-store"})
 
 
 @app.get("/bbb-seal.svg")
@@ -2154,4 +2156,4 @@ async def export(job_id: str):
 @app.get("/{full_path:path}", response_class=HTMLResponse)
 async def spa(full_path: str):
     with open("static/index.html", encoding="utf-8") as f:
-        return f.read()
+        return HTMLResponse(content=f.read(), headers={"Cache-Control": "no-store"})

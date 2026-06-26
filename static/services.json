@@ -1000,7 +1000,7 @@
   "no": "96",
   "name": "Google Trends Scraper",
   "brand": "Google",
-  "description": "Returns data from a list of businesses",
+  "description": "Returns Google Trends interest-by-region for your search terms (by country, timeframe, and COUNTRY/REGION/CITY/DMA resolution).",
   "tags": [
    "Social & Search"
   ],

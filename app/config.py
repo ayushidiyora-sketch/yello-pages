@@ -11,6 +11,13 @@ class Settings(BaseSettings):
     # Empty = use the rotating free US-proxy pool in yp_us.py.
     PROXY_URL: str = ""
 
+    # Optional file of rotating proxies (one per line: IP:PORT:USER:PASS or a full http:// URL).
+    # When PROXY_URL is empty and this file exists, the Google Trends scraper rotates through these
+    # IPs (skipping any currently rate-limited / 429'd one and pinning a working one) instead of the
+    # free pool. Useful for rate-limit-only sites (Trends) where datacenter IPs work if not 429'd.
+    # The real IP is never used. Empty/missing file = fall back to the free pool.
+    PROXY_LIST_FILE: str = "proxies.txt"
+
     # Optional ScraperAPI key (free tier ~1000 req/month, no card). When set, the G2 Reviews
     # scraper fetches through ScraperAPI's residential proxies + JS render, which clears G2's
     # DataDome bot-check (your own IP is never used). Empty = G2 stays on the free proxy pool.

@@ -27,3 +27,6 @@ uvicorn.out
 uvicorn.err
 _g2job.txt
 _g2test.py
+
+# Proxy credential list (never commit)
+proxies.txt
