@@ -7,48 +7,53 @@
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "emails_contacts"
  },
  {
   "no": "2",
   "name": "Leads & Contacts Enrichment",
   "brand": "Multi-source",
-  "description": "Finds emails, social links, phones, and other contacts from websites",
+  "description": "Finds contacts for each company — emails, phone numbers, full names, job titles, and social links",
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "leads_enrichment"
  },
  {
   "no": "3",
   "name": "Email Address Verifier",
   "brand": "Multi-source",
-  "description": "Validates emails, checks deliverability, filters out blacklists, spam traps, and complainers, while significantly reducing your bounce rate",
+  "description": "Validates emails: format, disposable-domain and domain-level (MX) deliverability checks to reduce your bounce rate",
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "email_verifier"
  },
  {
   "no": "4",
   "name": "Company Insights",
   "brand": "Multi-source",
-  "description": "Finds company details such as revenue, size, founding year, public status, etc",
+  "description": "Finds company firmographics from the website — public status, employee count, tech-stack signals, and site meta",
   "tags": [
    "Businesses & POI",
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "company_insights"
  },
  {
   "no": "5",
   "name": "Phone Numbers Enricher",
   "brand": "Multi-source",
-  "description": "Returns phones carrier data (name/type), validates phones, ensures messages deliverability",
+  "description": "Validates phone numbers and returns line type, carrier, country and location (offline libphonenumber)",
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "phone_enricher"
  },
  {
   "no": "6",
