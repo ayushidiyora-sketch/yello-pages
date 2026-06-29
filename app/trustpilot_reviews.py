@@ -34,9 +34,11 @@ def _review_url(q: str, page: int, language: str = "all") -> str:
 def _render(url: str) -> str:
     """Render through a proxy — ALWAYS, never the real IP. Tries the free pool (paid first if set)."""
     def fn(browser):
-        proxies = _free_proxies()
+        # Same proxy source as the main Trustpilot scraper: TRUSTPILOT_PROXY_URL pin + proxies.txt
+        # rotation (never the real IP). Cloudflare clears on datacenter IPs given enough time.
+        proxies = tp._proxies()
         if not proxies:
-            raise RuntimeError("No proxy available — the free pool is empty and no PROXY_URL is set. "
+            raise RuntimeError("No proxy available — set TRUSTPILOT_PROXY_URL/PROXY_URL or add proxies.txt. "
                                "Trustpilot reviews use ONLY proxy IPs (real IP never used). Retry.")
         for px in proxies:
             ctx = browser.new_context(locale="en-US", user_agent=tp._UA,
@@ -45,17 +47,19 @@ def _render(url: str) -> str:
             try:
                 pg = ctx.new_page()
                 pg.goto(url, timeout=35000, wait_until="domcontentloaded")
-                pg.wait_for_timeout(3000)
-                html = pg.content()
-                if "__NEXT_DATA__" in html and '"reviews"' in html:
-                    return html
+                # Cloudflare's JS challenge takes ~6-12s to clear (even on datacenter) — poll up to ~24s
+                # instead of checking once, then move to the next proxy.
+                for _ in range(8):
+                    pg.wait_for_timeout(3000)
+                    html = pg.content()
+                    if "__NEXT_DATA__" in html and '"reviews"' in html:
+                        return html
             except Exception:
                 pass
             finally:
                 ctx.close()
-        raise RuntimeError("Trustpilot reviews used only proxy IPs (no real IP) — every free proxy "
-                           "was blocked by Cloudflare or failed to connect. Retry (the free pool "
-                           "rotates) or set a paid residential PROXY_URL.")
+        raise RuntimeError("Trustpilot reviews used only proxy IPs (no real IP) — every proxy was blocked "
+                           "by Cloudflare or failed to connect. Retry, or set a residential PROXY_URL.")
     return tp._run(fn)
 
 

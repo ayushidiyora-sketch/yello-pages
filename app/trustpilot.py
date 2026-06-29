@@ -66,12 +66,14 @@ def _proxy_opts(px: str) -> dict:
 
 
 def _proxies() -> list[str]:
-    """Proxy to route the browser through — PROXY-ONLY, the real IP is NEVER used. The dedicated
-    TRUSTPILOT_PROXY_URL wins, else the global PROXY_URL. If neither is set the list is empty and the
-    render raises a clear 'blocked' error rather than touching the real IP. Cloudflare blocks datacenter
-    IPs, so a residential proxy is needed for data."""
-    px = settings.TRUSTPILOT_PROXY_URL.strip() or settings.PROXY_URL.strip()
-    return [px] if px else []
+    """Proxies to route the browser through — PROXY-ONLY, the real IP is NEVER used. The dedicated
+    TRUSTPILOT_PROXY_URL (else global PROXY_URL) is tried first, then a few rotating proxies.txt IPs as
+    fallback so a slow/blocked IP rotates. Trustpilot's Cloudflare clears on datacenter IPs given enough
+    time (the render polls ~24s), so datacenter works. Empty list -> render raises 'blocked', never direct."""
+    from . import yp_us
+    pin = settings.TRUSTPILOT_PROXY_URL.strip() or settings.PROXY_URL.strip()
+    rotating = [p for p in yp_us._plist_candidates(4) if p != pin]
+    return ([pin] if pin else []) + rotating
 
 
 def _render(url: str) -> str:
@@ -90,10 +92,13 @@ def _render_through(browser, url: str, proxies: list[str]) -> str:
         try:
             pg = ctx.new_page()
             pg.goto(url, timeout=35000, wait_until="domcontentloaded")
-            pg.wait_for_timeout(2500)
-            html = pg.content()
-            if "__NEXT_DATA__" in html and "businessUnit" in html:
-                return html
+            # Cloudflare's JS challenge takes ~6-12s to clear (even on datacenter IPs), so poll instead of
+            # checking once — give it up to ~24s before moving to the next proxy.
+            for _ in range(8):
+                pg.wait_for_timeout(3000)
+                html = pg.content()
+                if "__NEXT_DATA__" in html and "businessUnit" in html:
+                    return html
         except Exception:
             pass
         finally:
