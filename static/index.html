@@ -2410,6 +2410,173 @@
   <div id="ytsResults"></div>
   </div><!-- /ytSearchView -->
 
+  <div id="emailsContactsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Domains or URLs <span class="req">*</span></label>
+        <textarea id="ecInput" placeholder="stripe.com&#10;https://shopify.com/contact&#10;airbnb.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ecFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ecFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ecFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ecFileName"></span>
+        </div>
+        <span class="hint">Finds emails, social links, phones &amp; website meta on each site, through the proxy pool — works on the free pool; the real IP is never used. One row per domain.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ecStartBtn" onclick="ecStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ecStopBtn" onclick="ecStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="ecStatus"></div>
+  <div class="bar" id="ecBar"><i></i></div>
+
+  <div class="resbar" id="ecResbar" style="display:none">
+    <div class="count" id="ecCount"></div>
+    <div class="resbar-controls">
+      <a id="ecDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ecDownloadXlsx" style="display:none" onclick="ecDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ecResults"></div>
+  </div><!-- /emailsContactsView -->
+
+  <div id="leadsEnrichmentView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Domains or URLs <span class="req">*</span></label>
+        <textarea id="leInput" placeholder="company.com&#10;https://company2.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="leFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="leFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('leFile').click()">⬆ Upload file</button>
+          <span class="hint" id="leFileName"></span>
+        </div>
+        <span class="hint">Finds contacts for each company — emails, phone numbers, full names, job titles &amp; social links, through the proxy pool (real IP never used). One row per contact.</span>
+      </div>
+      <div class="field">
+        <label>Contacts per one company</label>
+        <input id="leLimit" type="number" min="1" placeholder="all" value="3">
+        <span class="hint">Leave empty for all (0 = all).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="leStartBtn" onclick="leStart()">⬇ Find Leads &amp; Contacts</button>
+      <button class="btn-stop" id="leStopBtn" onclick="leStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="leStatus"></div>
+  <div class="bar" id="leBar"><i></i></div>
+  <div class="resbar" id="leResbar" style="display:none">
+    <div class="count" id="leCount"></div>
+    <div class="resbar-controls">
+      <a id="leDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="leDownloadXlsx" style="display:none" onclick="leDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="leResults"></div>
+  </div><!-- /leadsEnrichmentView -->
+
+  <div id="emailVerifierView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Email addresses <span class="req">*</span></label>
+        <textarea id="evInput" placeholder="hello@outscraper.com&#10;support@outscraper.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="evFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="evFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('evFile').click()">⬆ Upload file</button>
+          <span class="hint" id="evFileName"></span>
+        </div>
+        <span class="hint">Verifies each email: format, disposable domain, MX (via proxy DNS), then a live SMTP mailbox check → <b>receiving / SMTP validated / Catch All / undeliverable / Cannot validate</b>. SMTP is a direct connection (mail servers reject proxies); if port 25 is blocked it falls back to the domain-level verdict. No mail is sent. One row per email.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="evStartBtn" onclick="evStart()">⬇ Validate Emails</button>
+      <button class="btn-stop" id="evStopBtn" onclick="evStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="evStatus"></div>
+  <div class="bar" id="evBar"><i></i></div>
+  <div class="resbar" id="evResbar" style="display:none">
+    <div class="count" id="evCount"></div>
+    <div class="resbar-controls">
+      <a id="evDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="evDownloadXlsx" style="display:none" onclick="evDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="evResults"></div>
+  </div><!-- /emailVerifierView -->
+
+  <div id="companyInsightsView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Domains or URLs <span class="req">*</span></label>
+        <textarea id="ciInput" placeholder="company.com&#10;https://company2.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ciFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ciFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ciFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ciFileName"></span>
+        </div>
+        <span class="hint">Firmographics from each company's website — public status, employee count, tech-stack signals &amp; site meta, through the proxy pool (real IP never used). Revenue/founding-year need a paid data source and aren't included. One row per company.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ciStartBtn" onclick="ciStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ciStopBtn" onclick="ciStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="ciStatus"></div>
+  <div class="bar" id="ciBar"><i></i></div>
+  <div class="resbar" id="ciResbar" style="display:none">
+    <div class="count" id="ciCount"></div>
+    <div class="resbar-controls">
+      <a id="ciDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ciDownloadXlsx" style="display:none" onclick="ciDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ciResults"></div>
+  </div><!-- /companyInsightsView -->
+
+  <div id="phoneEnricherView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Phone numbers (international) <span class="req">*</span></label>
+        <textarea id="peInput" placeholder="+1 281 236 8208&#10;+44 20 7946 0958"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="peFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="peFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('peFile').click()">⬆ Upload file</button>
+          <span class="hint" id="peFileName"></span>
+        </div>
+        <span class="hint">Validates each number and returns line type, carrier, country &amp; location plus E.164/international/national formats — offline via Google's libphonenumber (no network, no proxy). Carrier is best-effort (mainly mobile). One row per number.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="peStartBtn" onclick="peStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="peStopBtn" onclick="peStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="peStatus"></div>
+  <div class="bar" id="peBar"><i></i></div>
+  <div class="resbar" id="peResbar" style="display:none">
+    <div class="count" id="peCount"></div>
+    <div class="resbar-controls">
+      <a id="peDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="peDownloadXlsx" style="display:none" onclick="peDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="peResults"></div>
+  </div><!-- /phoneEnricherView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -4436,7 +4603,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -4619,6 +4786,11 @@ function selectService(s, keep, fromHistory){
   document.getElementById('yelpPhotosView').style.display = vt==='yelp_photos' ? '' : 'none';
   document.getElementById('ytTranscriptsView').style.display = vt==='yt_transcripts' ? '' : 'none';
   document.getElementById('ytSearchView').style.display = vt==='yt_search' ? '' : 'none';
+  document.getElementById('emailsContactsView').style.display = vt==='emails_contacts' ? '' : 'none';
+  document.getElementById('leadsEnrichmentView').style.display = vt==='leads_enrichment' ? '' : 'none';
+  document.getElementById('emailVerifierView').style.display = vt==='email_verifier' ? '' : 'none';
+  document.getElementById('companyInsightsView').style.display = vt==='company_insights' ? '' : 'none';
+  document.getElementById('phoneEnricherView').style.display = vt==='phone_enricher' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -4701,6 +4873,11 @@ function viewType(s){
   if(s.ui === 'yelp_photos') return 'yelp_photos';
   if(s.ui === 'yt_transcripts') return 'yt_transcripts';
   if(s.ui === 'yt_search') return 'yt_search';
+  if(s.ui === 'emails_contacts') return 'emails_contacts';
+  if(s.ui === 'leads_enrichment') return 'leads_enrichment';
+  if(s.ui === 'email_verifier') return 'email_verifier';
+  if(s.ui === 'company_insights') return 'company_insights';
+  if(s.ui === 'phone_enricher') return 'phone_enricher';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -11273,6 +11450,217 @@ function ytsDownloadExcel(){
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'YouTube');
   XLSX.writeFile(wb, ytsFileName()+'.xlsx');
 }
+
+// ===== Emails & Contacts Scraper =====
+const EC_COLUMNS = ["query","domain","emails","phones","facebook","instagram","linkedin","twitter","youtube","tiktok","website_title","website_description","contact_name"];
+const EC_SOCIALS = ["facebook","instagram","linkedin","twitter","youtube","tiktok"];
+let ecTimer=null, ecJob=null, _ecRows=[], _ecDlUrl=null;
+
+async function ecFilePicked(){
+  const f=document.getElementById('ecFile').files[0];
+  const nameEl=document.getElementById('ecFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{
+    const ta=document.getElementById('ecInput');
+    const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean);
+    ta.value=[...new Set(merged)].join('\n');
+    nameEl.textContent='Loaded '+lines.length+' domain'+(lines.length===1?'':'s')+' from '+f.name;
+  };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste domains or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function ecSetRunning(on){
+  document.getElementById('ecStartBtn').disabled=on;
+  document.getElementById('ecStopBtn').disabled=!on;
+  document.getElementById('ecInput').disabled=on;
+}
+
+async function ecStart(){
+  const typed=document.getElementById('ecInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter a domain or URL (one per line), or upload a file.'); return; }
+  let r;
+  try{ r=await fetch('/api/emails-contacts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries})}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  ecJob=(await r.json()).job_id;
+  _ecRows=[];
+  document.getElementById('ecResbar').style.display='none';
+  document.getElementById('ecResults').innerHTML='';
+  document.getElementById('ecCount').textContent='';
+  document.getElementById('ecBar').style.display='block';
+  document.querySelector('#ecBar>i').style.width='30%';
+  ecSetRunning(true);
+  if(ecTimer) clearInterval(ecTimer);
+  ecTimer=setInterval(()=>ecPoll(ecJob),1500);
+  ecPoll(ecJob);
+}
+
+async function ecStop(){ if(ecJob){ document.getElementById('ecStopBtn').disabled=true; await fetch('/api/stop/'+ecJob,{method:'POST'}); } }
+
+async function ecPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('ecStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Scraping… '+got+' site'+(got===1?'':'s');
+  } else {
+    clearInterval(ecTimer); ecSetRunning(false);
+    document.getElementById('ecBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' site'+(got===1?'':'s');
+      ecShowResults(job_id, s.note||'');
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function ecShowResults(job_id, note){
+  _ecRows=await (await fetch('/api/emails-contacts/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('ecResbar');
+  if(!_ecRows.length){
+    document.getElementById('ecResults').innerHTML='';
+    document.getElementById('ecCount').innerHTML='<span class="empty">'+esc(note||'No contacts found — the proxy may have been blocked; try again.')+'</span>';
+    resbar.style.display='flex';
+    document.getElementById('ecDownload').style.display='none';
+    document.getElementById('ecDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex';
+  ecRender();
+  document.getElementById('ecCount').textContent='Showing '+_ecRows.length+' site'+(_ecRows.length===1?'':'s')+' · download JSON/Excel for the full set.';
+  ecUpdateDownload();
+}
+
+function ecRender(){
+  let h='';
+  _ecRows.forEach((r)=>{
+    const socials=EC_SOCIALS.filter(s=>r[s]).map(s=>`<a href="${esc(r[s])}" target="_blank" style="color:#1a73e8;text-decoration:none;text-transform:capitalize">${s}</a>`).join(' · ');
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <div style="font-size:15px;font-weight:700;color:#202124"><a href="${esc(r.domain)}" target="_blank" style="color:#1a73e8;text-decoration:none">${esc(r.website_title||r.domain||r.query)}</a></div>
+      ${r.website_description?`<div style="font-size:13px;color:#5f6368;margin-top:3px">${esc(r.website_description)}</div>`:''}
+      <div style="font-size:13px;color:#202124;margin-top:8px;display:flex;flex-direction:column;gap:3px">
+        ${r.emails?`<div>✉️ ${esc(r.emails)}</div>`:''}
+        ${r.phones?`<div>📞 ${esc(r.phones)}</div>`:''}
+        ${r.contact_name?`<div>👤 ${esc(r.contact_name)}</div>`:''}
+        ${socials?`<div>🔗 ${socials}</div>`:''}
+        ${(!r.emails&&!r.phones&&!socials)?'<div style="color:#9aa0a6">No contacts extracted from this site.</div>':''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('ecResults').innerHTML=h;
+}
+
+function ecFileName(){ const q=(document.getElementById('ecInput').value.trim().split(/\r?\n/)[0]||'contacts'); return 'emails-contacts_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+function ecUpdateDownload(){
+  const dl=document.getElementById('ecDownload'), xl=document.getElementById('ecDownloadXlsx');
+  if(!_ecRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_ecDlUrl) URL.revokeObjectURL(_ecDlUrl);
+  const rows=_ecRows.map(r=>{ const o={}; for(const c of EC_COLUMNS) o[c]=r[c]??''; return o; });
+  _ecDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_ecDlUrl; dl.setAttribute('download', ecFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function ecDownloadExcel(){
+  if(!_ecRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_ecRows.map(r=>{ const o={}; for(const c of EC_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:EC_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Contacts');
+  XLSX.writeFile(wb, ecFileName()+'.xlsx');
+}
+
+// ===== Enrichment services (Leads & Contacts Enrichment, Email Verifier, Company Insights) =====
+// Shared table renderer: booleans -> ✓/✗, blanks -> —, http values -> links.
+function _enrichTable(rows, cols){
+  let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;font-size:13px;background:#fff">';
+  h+='<thead><tr>'+cols.map(c=>`<th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e0e0e0;color:#5f6368;white-space:nowrap;text-transform:capitalize">${esc(c.replace(/_/g,' '))}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{
+    h+='<tr>'+cols.map(c=>{
+      const v=r[c]; let cell;
+      if(v===true) cell='<span style="color:#188038;font-weight:700">✓</span>';
+      else if(v===false) cell='<span style="color:#c5221f">✗</span>';
+      else if(v===null||v===undefined||v==='') cell='<span style="color:#bdc1c6">—</span>';
+      else if(typeof v==='string' && v.startsWith('http')) cell=`<a href="${esc(v)}" target="_blank" style="color:#1a73e8;text-decoration:none">${esc(v.replace(/^https?:\/\/(www\.)?/,'').slice(0,45))}</a>`;
+      else cell=esc(String(v));
+      return `<td style="padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top">${cell}</td>`;
+    }).join('')+'</tr>';
+  });
+  return h+'</tbody></table></div>';
+}
+
+// Factory: wires one enrichment service's handlers onto window[P+'Start'] etc. (P = id prefix).
+function _enrichSvc(P, cfg){
+  const S={timer:null, job:null, rows:[], dlUrl:null};
+  const $=id=>document.getElementById(P+id);
+  const noun=(n)=>(n===1?cfg.noun:cfg.nounP);
+  async function filePicked(){
+    const f=$('File').files[0]; const nameEl=$('FileName');
+    if(!f){ nameEl.textContent=''; return; }
+    const ext=(f.name.split('.').pop()||'').toLowerCase();
+    const append=(lines)=>{ const ta=$('Input'); const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean); ta.value=[...new Set(merged)].join('\n'); nameEl.textContent='Loaded '+lines.length+' '+noun(lines.length)+' from '+f.name; };
+    try{
+      if(ext==='xlsx'){ if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; } const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}); append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean)); }
+      else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste values or use CSV/TXT/XLSX.'; }
+      else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+    }catch(e){ nameEl.textContent='Could not read '+f.name; }
+  }
+  function setRunning(on){ $('StartBtn').disabled=on; $('StopBtn').disabled=!on; $('Input').disabled=on; const lim=$('Limit'); if(lim) lim.disabled=on; }
+  async function start(){
+    const typed=$('Input').value.trim();
+    const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+    if(!queries.length){ alert('Enter at least one '+cfg.noun+' (one per line), or upload a file.'); return; }
+    const body={queries}; const limEl=$('Limit'); if(limEl){ const lim=parseInt(limEl.value,10); body.limit=(lim>0?lim:0); }
+    let r; try{ r=await fetch(cfg.api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+    catch(e){ alert('Could not reach the server.'); return; }
+    if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+    S.job=(await r.json()).job_id; S.rows=[];
+    $('Resbar').style.display='none'; $('Results').innerHTML=''; $('Count').textContent='';
+    $('Bar').style.display='block'; $('Bar').querySelector('i').style.width='30%';
+    setRunning(true); if(S.timer) clearInterval(S.timer); S.timer=setInterval(()=>poll(S.job),1500); poll(S.job);
+  }
+  async function stop(){ if(S.job){ $('StopBtn').disabled=true; await fetch('/api/stop/'+S.job,{method:'POST'}); } }
+  async function poll(job_id){
+    const s=await (await fetch('/api/status/'+job_id)).json();
+    const el=$('Status'); const got=s.total_scraped||0;
+    if(s.status==='running'){ el.className='status running'; el.innerHTML='<span class="spin"></span> '+cfg.verb+'… '+got+' '+noun(got); }
+    else { clearInterval(S.timer); setRunning(false); $('Bar').style.display='none';
+      if(s.status==='done'||s.status==='stopped'){ el.className='status '+s.status; el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' '+noun(got); showResults(job_id, s.note||''); }
+      else if(s.status==='error'){ el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown'); }
+    }
+  }
+  async function showResults(job_id, note){
+    S.rows=await (await fetch(cfg.api+'/results/'+job_id+'?limit=5000')).json();
+    const resbar=$('Resbar');
+    if(!S.rows.length){ $('Results').innerHTML=''; $('Count').innerHTML='<span class="empty">'+esc(note||('No '+cfg.nounP+' — the proxy may have been blocked; try again.'))+'</span>'; resbar.style.display='flex'; $('Download').style.display='none'; $('DownloadXlsx').style.display='none'; return; }
+    resbar.style.display='flex'; $('Results').innerHTML=_enrichTable(S.rows, cfg.columns);
+    $('Count').textContent='Showing '+S.rows.length+' row'+(S.rows.length===1?'':'s')+' · download JSON/Excel for the full set.'; updateDownload();
+  }
+  function fileName(){ const q=($('Input').value.trim().split(/\r?\n/)[0]||cfg.sheet); return cfg.sheet+'_'+q.toLowerCase().replace(/^https?:\/\//,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40); }
+  function updateDownload(){ const dl=$('Download'), xl=$('DownloadXlsx'); if(!S.rows.length){ dl.style.display='none'; xl.style.display='none'; return; } if(S.dlUrl) URL.revokeObjectURL(S.dlUrl); const rows=S.rows.map(r=>{const o={}; for(const c of cfg.columns) o[c]=r[c]??''; return o;}); S.dlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'})); dl.href=S.dlUrl; dl.setAttribute('download', fileName()+'.json'); dl.style.display='inline-block'; xl.style.display='inline-block'; }
+  function downloadExcel(){ if(!S.rows.length) return; if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; } const rows=S.rows.map(r=>{const o={}; for(const c of cfg.columns) o[c]=r[c]??''; return o;}); const ws=XLSX.utils.json_to_sheet(rows,{header:cfg.columns}); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,cfg.sheetTab); XLSX.writeFile(wb, fileName()+'.xlsx'); }
+  window[P+'FilePicked']=filePicked; window[P+'Start']=start; window[P+'Stop']=stop; window[P+'DownloadExcel']=downloadExcel;
+}
+
+const LE_COLUMNS=["query","domain","email","full_name","first_name","last_name","title","phone","linkedin","facebook","instagram","twitter","youtube"];
+const EV_COLUMNS=["email","status","status_details","deliverable","catch_all","disposable","role_account","mx_host"];
+const CI_COLUMNS=["query","domain","company_name","is_public","employees","website_title","website_description","website_generator","has_fb_pixel","has_google_tag"];
+_enrichSvc('le',{api:'/api/leads-enrichment', columns:LE_COLUMNS, noun:'contact', nounP:'contacts', verb:'Enriching', sheet:'leads-enrichment', sheetTab:'Leads'});
+_enrichSvc('ev',{api:'/api/email-verifier', columns:EV_COLUMNS, noun:'email', nounP:'emails', verb:'Verifying', sheet:'email-verifier', sheetTab:'Emails'});
+_enrichSvc('ci',{api:'/api/company-insights', columns:CI_COLUMNS, noun:'company', nounP:'companies', verb:'Analyzing', sheet:'company-insights', sheetTab:'Companies'});
+const PE_COLUMNS=["phone","valid","type","carrier","location","country","country_code","e164","international","national"];
+_enrichSvc('pe',{api:'/api/phone-enricher', columns:PE_COLUMNS, noun:'number', nounP:'numbers', verb:'Enriching', sheet:'phone-enricher', sheetTab:'Phones'});
 /* ---------- end YouTube Search ---------- */
 
 /* ---------- Google Play Reviews Monitoring ---------- */

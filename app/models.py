@@ -193,6 +193,36 @@ class YTSearchRequest(BaseModel):
     limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # videos/query; None/0 = all
 
 
+class EmailsContactsRequest(BaseModel):
+    # each line: a domain or URL (e.g. "stripe.com" or "https://stripe.com/contact")
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "shopify.com"]])
+    limit: Optional[int] = Field(0, ge=0, le=2000, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class LeadsEnrichmentRequest(BaseModel):
+    # each line: a company domain or URL — returns one row per contact found
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "shopify.com"]])
+    limit: Optional[int] = Field(0, ge=0, le=50, examples=[0])  # max contacts per company; 0 = all
+
+
+class EmailVerifierRequest(BaseModel):
+    # each line: an email address to verify
+    queries: list[str] = Field(..., min_length=1, examples=[["jane@stripe.com", "hello@x.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused; kept for UI parity
+
+
+class CompanyInsightsRequest(BaseModel):
+    # each line: a company domain or URL — returns firmographics
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "ibm.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class PhoneEnricherRequest(BaseModel):
+    # each line: an international phone number (e.g. "+1 281 236 8208")
+    queries: list[str] = Field(..., min_length=1, examples=[["+1 281 236 8208", "+44 20 7946 0958"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/number); kept for UI parity
+
+
 class YelpBusinessRequest(BaseModel):
     # each line: a yelp.com /search URL or a "Category | Location" pair (built from cats x locations)
     queries: list[str] = Field(..., min_length=1, examples=[["Plumbing | San Francisco, CA"]])

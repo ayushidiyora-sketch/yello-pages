@@ -90,6 +90,15 @@ class Settings(BaseSettings):
     # (best-effort, low fill). Adds up to 2 extra fetches per site; set false to skip.
     ENRICH_TEAM: bool = True
 
+    # Email Address Verifier — live SMTP mailbox check (RCPT TO probe + catch-all detection), the
+    # Outscraper-style "RECEIVING / Catch All / SMTP validated" verdict. The SMTP socket is a DIRECT
+    # connection (mail servers refuse HTTP proxies), so this step uses the real IP, unlike the
+    # proxied DNS/website fetches. Outbound port 25 is blocked on many networks -> falls back to a
+    # domain-level (MX) verdict ("Cannot validate (SMTP blocked)"). Set false to skip SMTP entirely.
+    EMAIL_SMTP_CHECK: bool = True
+    EMAIL_SMTP_TIMEOUT: int = 8          # seconds per SMTP connect/RCPT step
+    EMAIL_SMTP_FROM: str = "verify@example.com"   # MAIL FROM used in the probe (not delivered)
+
     # Resend (https://resend.com) — simplest email path for the monitoring reports: just an API key,
     # no SMTP host/port. When RESEND_API_KEY is set it takes priority over SMTP. RESEND_FROM must be
     # a sender on a domain you've verified in Resend; the shared sandbox "onboarding@resend.dev" works
