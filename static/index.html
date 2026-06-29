@@ -1069,6 +1069,284 @@
   <div id="gtPager"></div>
   </div><!-- /gtrendsView -->
 
+  <div id="aiscraperView" style="display:none">
+  <style>
+    .ai-field-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+    .ai-field-row input.ai-fname{flex:1 1 auto;min-width:140px;width:auto;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+    .ai-field-row select.ai-ftype{flex:0 0 140px;width:140px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+    .ai-field-row .ai-req,.ai-field-row .ai-del{border:1px solid var(--line);background:var(--card);border-radius:8px;width:34px;height:34px;cursor:pointer;color:#70757a}
+    .ai-field-row .ai-req.on{background:var(--yp,#2563eb);color:#fff;border-color:var(--yp,#2563eb)}
+    .ai-tab{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:2px 10px;font-size:12px;cursor:pointer;color:#70757a}
+    .ai-tab.on{background:#111;color:#fff;border-color:#111}
+  </style>
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Queries <span class="req">*</span></label>
+        <textarea id="aiInput" placeholder="https://outscraper.com&#10;https://example.com/pricing"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="aiFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="aiFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('aiFile').click()">⬆ Upload file</button>
+          <span class="hint" id="aiFileName"></span>
+        </div>
+        <span class="hint">One URL per line. Each page is fetched through the proxy pool (paid <code>PROXY_URL</code> / <code>PROXY_LIST</code>, else free pool — never the real IP), then Claude extracts the data you describe. Needs <code>ANTHROPIC_API_KEY</code> in .env.</span>
+      </div>
+      <div class="field full">
+        <label>Prompt <span class="hint" style="font-weight:400">— or use the Schema below</span></label>
+        <textarea id="aiPrompt" placeholder="Describe what data you want to extract..." style="min-height:70px"></textarea>
+      </div>
+      <div class="field full">
+        <label>Schema <span class="hint" style="font-weight:400">— or use the Prompt above</span>
+          <span style="float:right">
+            <button type="button" id="aiTabSchema" class="ai-tab on" onclick="aiToggleSchemaView('schema')">Schema</button>
+            <button type="button" id="aiTabJSON" class="ai-tab" onclick="aiToggleSchemaView('json')">JSON</button>
+          </span>
+        </label>
+        <div id="aiSchemaBuilder">
+          <div id="aiFields"></div>
+          <button type="button" class="btn-upload" style="width:100%;margin-top:6px" onclick="aiAddField()">＋ Add field</button>
+        </div>
+        <textarea id="aiSchemaJSON" oninput="aiJSONEdited()" style="display:none;min-height:120px;font-family:monospace"></textarea>
+      </div>
+      <div class="field">
+        <label>Limit rows per URL</label>
+        <input id="aiLimit" type="number" min="0" placeholder="all (0)" value="">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="aiStartBtn" onclick="aiStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="aiStopBtn" onclick="aiStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="aiStatus"></div>
+  <div class="bar" id="aiBar"><i></i></div>
+
+  <div class="resbar" id="aiResbar" style="display:none">
+    <div class="count" id="aiCount"></div>
+    <div class="resbar-controls">
+      <a id="aiDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="aiDownloadXlsx" style="display:none" onclick="aiDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="aiResults"></div>
+  <div id="aiPager"></div>
+  </div><!-- /aiscraperView -->
+
+  <div id="kununuView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Company names or URLs <span class="req">*</span></label>
+        <textarea id="knInput" placeholder="mercedes benz&#10;https://www.kununu.com/de/mercedes-benz-group"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="knFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="knFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('knFile').click()">⬆ Upload file</button>
+          <span class="hint" id="knFileName"></span>
+        </div>
+        <span class="hint">One company per line: a kununu.com company URL or a company name. Reviews are read from each company's <code>/kommentare</code> page through the proxy pool (never the real IP). kununu is bot-protected (DataDome) — a residential <code>PROXY_URL</code> is needed for data.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="knLimit" type="number" min="0" placeholder="all (0)" value="100">
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="knSort">
+          <option>Date</option>
+          <option selected>Newest</option>
+          <option>Oldest</option>
+          <option>Beste</option>
+          <option>Schlechteste</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="knStartBtn" onclick="knStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="knStopBtn" onclick="knStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="knStatus"></div>
+  <div class="bar" id="knBar"><i></i></div>
+
+  <div class="resbar" id="knResbar" style="display:none">
+    <div class="count" id="knCount"></div>
+    <div class="resbar-controls">
+      <a id="knDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="knDownloadXlsx" style="display:none" onclick="knDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="knResults"></div>
+  <div id="knPager"></div>
+  </div><!-- /kununuView -->
+
+  <div id="phView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Usernames or pages URLs <span class="req">*</span></label>
+        <textarea id="phInput" placeholder="https://www.producthunt.com/@hacktivated&#10;@hacktivated&#10;hacktivated"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="phFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="phFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('phFile').click()">⬆ Upload file</button>
+          <span class="hint" id="phFileName"></span>
+        </div>
+        <span class="hint">One per line: a producthunt.com/@username URL, an @username, or a bare username. Fetched through the proxy pool (never the real IP). One row per profile.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="phLimit" type="number" min="0" placeholder="all (0)" value="100">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="phStartBtn" onclick="phStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="phStopBtn" onclick="phStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="phStatus"></div>
+  <div class="bar" id="phBar"><i></i></div>
+
+  <div class="resbar" id="phResbar" style="display:none">
+    <div class="count" id="phCount"></div>
+    <div class="resbar-controls">
+      <a id="phDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="phDownloadXlsx" style="display:none" onclick="phDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="phResults"></div>
+  <div id="phPager"></div>
+  </div><!-- /phView -->
+
+  <div id="tbView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Restaurant IDs or URLs <span class="req">*</span></label>
+        <textarea id="tbInput" placeholder="https://www.thuisbezorgd.nl/en/menu/mr-sushi-dedemsvaart&#10;mr-sushi-dedemsvaart"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="tbFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="tbFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('tbFile').click()">⬆ Upload file</button>
+          <span class="hint" id="tbFileName"></span>
+        </div>
+        <span class="hint">One per line: a thuisbezorgd.nl restaurant menu URL or a restaurant slug/ID. Fetched through the proxy pool (never the real IP). Thuisbezorgd is Cloudflare-protected — a residential <code>PROXY_URL</code> is needed for data.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="tbLimit" type="number" min="0" placeholder="all (0)" value="100">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="tbStartBtn" onclick="tbStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="tbStopBtn" onclick="tbStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="tbStatus"></div>
+  <div class="bar" id="tbBar"><i></i></div>
+
+  <div class="resbar" id="tbResbar" style="display:none">
+    <div class="count" id="tbCount"></div>
+    <div class="resbar-controls">
+      <a id="tbDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="tbDownloadXlsx" style="display:none" onclick="tbDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="tbResults"></div>
+  <div id="tbPager"></div>
+  </div><!-- /tbView -->
+
+  <div id="feefoView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Company URLs <span class="req">*</span></label>
+        <textarea id="ffInput" placeholder="https://www.feefo.com/en-GB/reviews/m-c-fire-protection&#10;m-c-fire-protection"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ffFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ffFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ffFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ffFileName"></span>
+        </div>
+        <span class="hint">One per line: a feefo.com/&lt;locale&gt;/reviews/&lt;merchant&gt; URL or a bare merchant identifier. Uses Feefo's public reviews API through the proxy pool (never the real IP) — works without a residential proxy.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="ffLimit" type="number" min="0" placeholder="all (0)" value="100">
+      </div>
+      <div class="field">
+        <label>Sorting</label>
+        <select id="ffSort">
+          <option selected>Newest</option>
+          <option>Oldest</option>
+          <option>Most Helpful</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ffStartBtn" onclick="ffStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ffStopBtn" onclick="ffStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="ffStatus"></div>
+  <div class="bar" id="ffBar"><i></i></div>
+
+  <div class="resbar" id="ffResbar" style="display:none">
+    <div class="count" id="ffCount"></div>
+    <div class="resbar-controls">
+      <a id="ffDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ffDownloadXlsx" style="display:none" onclick="ffDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ffResults"></div>
+  <div id="ffPager"></div>
+  </div><!-- /feefoView -->
+
+  <div id="angiView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search or listing URLs <span class="req">*</span></label>
+        <textarea id="agInput" placeholder="https://www.angi.com/nearme/plumbing/?postalCode=75151&#10;https://www.angi.com/companylist/us/il/plumbing.htm"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="agFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="agFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('agFile').click()">⬆ Upload file</button>
+          <span class="hint" id="agFileName"></span>
+        </div>
+        <span class="hint">One per line: an angi.com company-list (…/companylist/…) or near-me search (…/nearme/&lt;category&gt;/?postalCode=…) URL. Fetched through the proxy pool (never the real IP). One row per company.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="agLimit" type="number" min="0" placeholder="all (0)" value="100">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="agStartBtn" onclick="agStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="agStopBtn" onclick="agStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <div class="status" id="agStatus"></div>
+  <div class="bar" id="agBar"><i></i></div>
+
+  <div class="resbar" id="agResbar" style="display:none">
+    <div class="count" id="agCount"></div>
+    <div class="resbar-controls">
+      <a id="agDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="agDownloadXlsx" style="display:none" onclick="agDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="agResults"></div>
+  <div id="agPager"></div>
+  </div><!-- /angiView -->
+
   <div id="linkedinCompaniesView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -4158,7 +4436,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -4298,6 +4576,18 @@ function selectService(s, keep, fromHistory){
   document.getElementById('gcareersView').style.display = vt==='gcareers' ? '' : 'none';
   document.getElementById('gtrendsView').style.display = vt==='gtrends' ? '' : 'none';
   if(vt==='gtrends') gtInit();
+  document.getElementById('aiscraperView').style.display = vt==='aiscraper' ? '' : 'none';
+  if(vt==='aiscraper') aiInit();
+  document.getElementById('kununuView').style.display = vt==='kununu' ? '' : 'none';
+  if(vt==='kununu') knInit();
+  document.getElementById('phView').style.display = vt==='producthunt' ? '' : 'none';
+  if(vt==='producthunt') phInit();
+  document.getElementById('tbView').style.display = vt==='thuisbezorgd' ? '' : 'none';
+  if(vt==='thuisbezorgd') tbInit();
+  document.getElementById('feefoView').style.display = vt==='feefo' ? '' : 'none';
+  if(vt==='feefo') ffInit();
+  document.getElementById('angiView').style.display = vt==='angi' ? '' : 'none';
+  if(vt==='angi') agInit();
   document.getElementById('linkedinCompaniesView').style.display = vt==='linkedin_companies' ? '' : 'none';
   document.getElementById('linkedinPostsView').style.display = vt==='linkedin_posts' ? '' : 'none';
   document.getElementById('bookingReviewsView').style.display = vt==='booking_reviews' ? '' : 'none';
@@ -4380,6 +4670,12 @@ function viewType(s){
   if(s.ui === 'gevents') return 'gevents';
   if(s.ui === 'gcareers') return 'gcareers';
   if(s.ui === 'gtrends') return 'gtrends';
+  if(s.ui === 'aiscraper') return 'aiscraper';
+  if(s.ui === 'kununu_reviews') return 'kununu';
+  if(s.ui === 'producthunt_profiles') return 'producthunt';
+  if(s.ui === 'thuisbezorgd_reviews') return 'thuisbezorgd';
+  if(s.ui === 'feefo_reviews') return 'feefo';
+  if(s.ui === 'angi') return 'angi';
   if(s.ui === 'linkedin_companies') return 'linkedin_companies';
   if(s.ui === 'linkedin_posts') return 'linkedin_posts';
   if(s.ui === 'booking_reviews') return 'booking_reviews';
@@ -6188,6 +6484,939 @@ function gtDownloadExcel(){
   XLSX.writeFile(wb, gtFileName()+'.xlsx');
 }
 /* ---------- end Google Trends ---------- */
+
+/* ---------- AI Scraper ---------- */
+let aiTimer=null, aiJob=null, _aiRows=[], _aiCols=[], _aiPage=0, _aiDlUrl=null, _aiJSONMode=false;
+const AI_PAGE_SIZE=50;
+const AI_TYPE_MAP={String:'string',Number:'number',Boolean:'boolean',Array:'array',Object:'object'};
+
+function aiInit(){
+  const wrap=document.getElementById('aiFields');
+  if(wrap && !wrap.children.length) aiAddField('company_name','String');
+}
+
+function aiAddField(name='', type='String'){
+  const wrap=document.getElementById('aiFields');
+  const row=document.createElement('div'); row.className='ai-field-row';
+  const opts=['String','Number','Boolean','Array','Object'].map(t=>`<option ${t===type?'selected':''}>${t}</option>`).join('');
+  row.innerHTML=`<input class="ai-fname" placeholder="field_name" value="${esc(name)}" oninput="aiSyncJSON()">`
+    +`<select class="ai-ftype" onchange="aiSyncJSON()">${opts}</select>`
+    +`<button type="button" class="ai-req" title="Required" onclick="this.classList.toggle('on');aiSyncJSON()">∗</button>`
+    +`<button type="button" class="ai-del" title="Remove" onclick="this.closest('.ai-field-row').remove();aiSyncJSON()">🗑</button>`;
+  wrap.appendChild(row); aiSyncJSON();
+}
+
+function aiBuildSchema(){
+  const props={}, required=[];
+  document.querySelectorAll('#aiFields .ai-field-row').forEach(row=>{
+    const name=row.querySelector('.ai-fname').value.trim();
+    if(!name) return;
+    const t=row.querySelector('.ai-ftype').value;
+    props[name]={type:AI_TYPE_MAP[t]||'string'};
+    if(t==='Array') props[name].items={type:'string'};
+    if(row.querySelector('.ai-req').classList.contains('on')) required.push(name);
+  });
+  return {type:'object', required, properties:props};
+}
+function aiSyncJSON(){ if(!_aiJSONMode) document.getElementById('aiSchemaJSON').value=JSON.stringify(aiBuildSchema(),null,2); }
+function aiJSONEdited(){ /* user typing JSON directly — leave as-is */ }
+
+function aiToggleSchemaView(mode){
+  _aiJSONMode=(mode==='json');
+  document.getElementById('aiSchemaBuilder').style.display=_aiJSONMode?'none':'';
+  document.getElementById('aiSchemaJSON').style.display=_aiJSONMode?'':'none';
+  document.getElementById('aiTabSchema').classList.toggle('on',!_aiJSONMode);
+  document.getElementById('aiTabJSON').classList.toggle('on',_aiJSONMode);
+  if(_aiJSONMode) document.getElementById('aiSchemaJSON').value=JSON.stringify(aiBuildSchema(),null,2);
+}
+
+function aiCurrentSchema(){
+  if(_aiJSONMode){
+    const txt=document.getElementById('aiSchemaJSON').value.trim();
+    if(!txt) return undefined;
+    try{ const s=JSON.parse(txt); return (s&&s.properties&&Object.keys(s.properties).length)?s:undefined; }
+    catch(e){ return 'ERR'; }
+  }
+  const s=aiBuildSchema();
+  return Object.keys(s.properties).length?s:undefined;
+}
+
+async function aiFilePicked(){
+  const f=document.getElementById('aiFile').files[0];
+  const nameEl=document.getElementById('aiFileName'); if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('aiInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function aiSetRunning(on){
+  document.getElementById('aiStartBtn').disabled=on;
+  document.getElementById('aiStopBtn').disabled=!on;
+  ['aiInput','aiPrompt','aiSchemaJSON','aiLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function aiStart(){
+  const typed=document.getElementById('aiInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one URL (one per line), or upload a CSV/XLSX/TXT file.'); return; }
+  const schema=aiCurrentSchema();
+  if(schema==='ERR'){ alert('Schema JSON is invalid — fix it or switch back to the Schema builder.'); return; }
+  const prompt=document.getElementById('aiPrompt').value.trim();
+  if(!prompt && !schema){ alert('Add a Prompt describing what to extract, or define at least one Schema field.'); return; }
+  const limitRaw=document.getElementById('aiLimit').value.trim();
+  const body={ queries, prompt, schema: schema||null, limit: limitRaw?parseInt(limitRaw,10):0 };
+  let r;
+  try{ r=await fetch('/api/ai-scraper',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  aiJob=(await r.json()).job_id;
+  _aiRows=[]; _aiCols=[]; _aiPage=0;
+  document.getElementById('aiResbar').style.display='none';
+  document.getElementById('aiResults').innerHTML='';
+  document.getElementById('aiPager').innerHTML='';
+  document.getElementById('aiCount').textContent='';
+  document.getElementById('aiBar').style.display='block';
+  document.querySelector('#aiBar>i').style.width='30%';
+  aiSetRunning(true);
+  if(aiTimer) clearInterval(aiTimer);
+  aiTimer=setInterval(()=>aiPoll(aiJob),1500);
+  aiPoll(aiJob);
+}
+
+async function aiStop(){ if(aiJob){ document.getElementById('aiStopBtn').disabled=true; await fetch('/api/stop/'+aiJob,{method:'POST'}); } }
+
+async function aiPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('aiStatus');
+  const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Extracting with AI… '+got+' rows';
+  } else {
+    clearInterval(aiTimer); aiSetRunning(false);
+    document.getElementById('aiBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      aiShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+function aiColumns(rows){
+  const cols=[], seen=new Set();
+  if(rows.some(r=>'query' in r)){ cols.push('query'); seen.add('query'); }
+  seen.add('position');
+  for(const r of rows) for(const k in r){ if(!seen.has(k)){ seen.add(k); cols.push(k); } }
+  return cols;
+}
+
+async function aiShowResults(job_id){
+  _aiRows=await (await fetch('/api/ai-scraper-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('aiResbar');
+  if(!_aiRows.length){
+    document.getElementById('aiResults').innerHTML='';
+    document.getElementById('aiCount').innerHTML='<span class="empty">No data — check that ANTHROPIC_API_KEY is set in .env and the URLs are reachable.</span>';
+    resbar.style.display='flex';
+    document.getElementById('aiDownload').style.display='none';
+    document.getElementById('aiDownloadXlsx').style.display='none';
+    return;
+  }
+  _aiCols=aiColumns(_aiRows);
+  resbar.style.display='flex'; _aiPage=0;
+  aiRender();
+  document.getElementById('aiCount').textContent='Showing '+_aiRows.length+' rows ('+AI_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  aiUpdateDownload();
+}
+
+function aiRender(){
+  const start=_aiPage*AI_PAGE_SIZE;
+  const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line);white-space:nowrap';
+  const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;max-width:360px;overflow:hidden;text-overflow:ellipsis';
+  let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px">'
+    +'<thead><tr>'+_aiCols.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of _aiRows.slice(start, start+AI_PAGE_SIZE)){
+    h+='<tr>'+_aiCols.map(c=>{
+      let v=r[c]; v=(v===null||v===undefined)?'':String(v);
+      const cell=/^https?:\/\//.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a>`:esc(v);
+      return `<td style="${td}" title="${esc(v)}">${cell}</td>`;
+    }).join('')+'</tr>';
+  }
+  h+='</tbody></table></div>';
+  document.getElementById('aiResults').innerHTML=h;
+  aiRenderPager(_aiRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function aiRenderPager(total){
+  const pages=Math.ceil(total/AI_PAGE_SIZE), pg=document.getElementById('aiPager'); pg.innerHTML='';
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{ const b=document.createElement('button'); b.className='btn-ghost'; b.textContent=label;
+    if(o.disabled) b.disabled=true; b.onclick=()=>{_aiPage=page; aiRender();}; return b; };
+  const pinfo=(t)=>{ const s=document.createElement('span'); s.className='hint'; s.style.margin='0 8px'; s.textContent=t; return s; };
+  pg.appendChild(mk('‹ Prev',_aiPage-1,{disabled:_aiPage<=0}));
+  pg.appendChild(pinfo('Page '+(_aiPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_aiPage+1,{disabled:_aiPage>=pages-1}));
+}
+
+function aiFileName(){
+  const q=(document.getElementById('aiInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'ai-scraper_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function aiUpdateDownload(){
+  const dl=document.getElementById('aiDownload'), xl=document.getElementById('aiDownloadXlsx');
+  if(!_aiRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_aiDlUrl) URL.revokeObjectURL(_aiDlUrl);
+  const rows=_aiRows.map(r=>{ const o={}; for(const c of _aiCols) o[c]=r[c]??''; return o; });
+  _aiDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_aiDlUrl; dl.setAttribute('download', aiFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function aiDownloadExcel(){
+  if(!_aiRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_aiRows.map(r=>{ const o={}; for(const c of _aiCols) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:_aiCols});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'AI Scraper');
+  XLSX.writeFile(wb, aiFileName()+'.xlsx');
+}
+/* ---------- end AI Scraper ---------- */
+
+/* ---------- Kununu Reviews Scraper ---------- */
+const KN_COLUMNS=["query","company","position","rating","title","pros","cons","text","date","recommended","review_url"];
+const KN_PAGE_SIZE=50;
+let knTimer=null, knJob=null, _knRows=[], _knPage=0, _knDlUrl=null;
+
+function knInit(){}
+
+async function knFilePicked(){
+  const f=document.getElementById('knFile').files[0];
+  const nameEl=document.getElementById('knFileName'); if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('knInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste companies or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function knSetRunning(on){
+  document.getElementById('knStartBtn').disabled=on;
+  document.getElementById('knStopBtn').disabled=!on;
+  ['knInput','knLimit','knSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function knStart(){
+  const typed=document.getElementById('knInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one company name or URL (one per line), or upload a file.'); return; }
+  const limitRaw=document.getElementById('knLimit').value.trim();
+  const body={ queries, sort:document.getElementById('knSort').value, limit: limitRaw?parseInt(limitRaw,10):0 };
+  let r;
+  try{ r=await fetch('/api/kununu-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  knJob=(await r.json()).job_id;
+  _knRows=[]; _knPage=0;
+  document.getElementById('knResbar').style.display='none';
+  document.getElementById('knResults').innerHTML='';
+  document.getElementById('knPager').innerHTML='';
+  document.getElementById('knCount').textContent='';
+  document.getElementById('knBar').style.display='block';
+  document.querySelector('#knBar>i').style.width='30%';
+  knSetRunning(true);
+  if(knTimer) clearInterval(knTimer);
+  knTimer=setInterval(()=>knPoll(knJob),1500);
+  knPoll(knJob);
+}
+
+async function knStop(){ if(knJob){ document.getElementById('knStopBtn').disabled=true; await fetch('/api/stop/'+knJob,{method:'POST'}); } }
+
+async function knPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('knStatus'); const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching kununu reviews… '+got+' rows';
+  } else {
+    clearInterval(knTimer); knSetRunning(false);
+    document.getElementById('knBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      knShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function knShowResults(job_id){
+  _knRows=await (await fetch('/api/kununu-reviews-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('knResbar');
+  if(!_knRows.length){
+    document.getElementById('knResults').innerHTML='';
+    document.getElementById('knCount').innerHTML='<span class="empty">No data — kununu is DataDome-protected; a residential PROXY_URL is required (free/datacenter IPs get the "Human Verification" block).</span>';
+    resbar.style.display='flex';
+    document.getElementById('knDownload').style.display='none';
+    document.getElementById('knDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex'; _knPage=0;
+  knRender();
+  document.getElementById('knCount').textContent='Showing '+_knRows.length+' rows ('+KN_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  knUpdateDownload();
+}
+
+function knRender(){
+  const start=_knPage*KN_PAGE_SIZE;
+  const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line);white-space:nowrap';
+  const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;max-width:320px;overflow:hidden;text-overflow:ellipsis';
+  let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px">'
+    +'<thead><tr>'+KN_COLUMNS.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of _knRows.slice(start, start+KN_PAGE_SIZE)){
+    h+='<tr>'+KN_COLUMNS.map(c=>{
+      let v=r[c]; v=(v===null||v===undefined)?'':String(v);
+      const cell=/^https?:\/\//.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">link</a>`:esc(v);
+      return `<td style="${td}" title="${esc(v)}">${cell}</td>`;
+    }).join('')+'</tr>';
+  }
+  h+='</tbody></table></div>';
+  document.getElementById('knResults').innerHTML=h;
+  knRenderPager(_knRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function knRenderPager(total){
+  const pages=Math.ceil(total/KN_PAGE_SIZE), pg=document.getElementById('knPager'); pg.innerHTML='';
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{ const b=document.createElement('button'); b.className='btn-ghost'; b.textContent=label;
+    if(o.disabled) b.disabled=true; b.onclick=()=>{_knPage=page; knRender();}; return b; };
+  const pinfo=(t)=>{ const s=document.createElement('span'); s.className='hint'; s.style.margin='0 8px'; s.textContent=t; return s; };
+  pg.appendChild(mk('‹ Prev',_knPage-1,{disabled:_knPage<=0}));
+  pg.appendChild(pinfo('Page '+(_knPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_knPage+1,{disabled:_knPage>=pages-1}));
+}
+
+function knFileName(){
+  const q=(document.getElementById('knInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'kununu-reviews_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function knUpdateDownload(){
+  const dl=document.getElementById('knDownload'), xl=document.getElementById('knDownloadXlsx');
+  if(!_knRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_knDlUrl) URL.revokeObjectURL(_knDlUrl);
+  const rows=_knRows.map(r=>{ const o={}; for(const c of KN_COLUMNS) o[c]=r[c]??''; return o; });
+  _knDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_knDlUrl; dl.setAttribute('download', knFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function knDownloadExcel(){
+  if(!_knRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_knRows.map(r=>{ const o={}; for(const c of KN_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:KN_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Kununu Reviews');
+  XLSX.writeFile(wb, knFileName()+'.xlsx');
+}
+/* ---------- end Kununu Reviews ---------- */
+
+/* ---------- Product Hunt Profiles Scraper ---------- */
+const PH_COLUMNS=["query","username","name","headline","profile_url","followers","following","products_count","posts_submitted","collections_count","reviews_count","is_maker","twitter","user_id"];
+const PH_PAGE_SIZE=50;
+let phTimer=null, phJob=null, _phRows=[], _phPage=0, _phDlUrl=null;
+
+function phInit(){}
+
+async function phFilePicked(){
+  const f=document.getElementById('phFile').files[0];
+  const nameEl=document.getElementById('phFileName'); if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('phInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste usernames or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function phSetRunning(on){
+  document.getElementById('phStartBtn').disabled=on;
+  document.getElementById('phStopBtn').disabled=!on;
+  ['phInput','phLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function phStart(){
+  const typed=document.getElementById('phInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one username or profile URL (one per line), or upload a file.'); return; }
+  const limitRaw=document.getElementById('phLimit').value.trim();
+  const body={ queries, limit: limitRaw?parseInt(limitRaw,10):0 };
+  let r;
+  try{ r=await fetch('/api/producthunt-profiles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  phJob=(await r.json()).job_id;
+  _phRows=[]; _phPage=0;
+  document.getElementById('phResbar').style.display='none';
+  document.getElementById('phResults').innerHTML='';
+  document.getElementById('phPager').innerHTML='';
+  document.getElementById('phCount').textContent='';
+  document.getElementById('phBar').style.display='block';
+  document.querySelector('#phBar>i').style.width='30%';
+  phSetRunning(true);
+  if(phTimer) clearInterval(phTimer);
+  phTimer=setInterval(()=>phPoll(phJob),1500);
+  phPoll(phJob);
+}
+
+async function phStop(){ if(phJob){ document.getElementById('phStopBtn').disabled=true; await fetch('/api/stop/'+phJob,{method:'POST'}); } }
+
+async function phPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('phStatus'); const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching Product Hunt profiles… '+got+' rows';
+  } else {
+    clearInterval(phTimer); phSetRunning(false);
+    document.getElementById('phBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      phShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function phShowResults(job_id){
+  _phRows=await (await fetch('/api/producthunt-profiles-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('phResbar');
+  if(!_phRows.length){
+    document.getElementById('phResults').innerHTML='';
+    document.getElementById('phCount').innerHTML='<span class="empty">No data — check the usernames/URLs are valid Product Hunt profiles.</span>';
+    resbar.style.display='flex';
+    document.getElementById('phDownload').style.display='none';
+    document.getElementById('phDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex'; _phPage=0;
+  phRender();
+  document.getElementById('phCount').textContent='Showing '+_phRows.length+' rows ('+PH_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  phUpdateDownload();
+}
+
+function phRender(){
+  const start=_phPage*PH_PAGE_SIZE;
+  const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line);white-space:nowrap';
+  const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;max-width:320px;overflow:hidden;text-overflow:ellipsis';
+  let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px">'
+    +'<thead><tr>'+PH_COLUMNS.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of _phRows.slice(start, start+PH_PAGE_SIZE)){
+    h+='<tr>'+PH_COLUMNS.map(c=>{
+      let v=r[c]; v=(v===null||v===undefined)?'':String(v);
+      const cell=/^https?:\/\//.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">link</a>`:esc(v);
+      return `<td style="${td}" title="${esc(v)}">${cell}</td>`;
+    }).join('')+'</tr>';
+  }
+  h+='</tbody></table></div>';
+  document.getElementById('phResults').innerHTML=h;
+  phRenderPager(_phRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function phRenderPager(total){
+  const pages=Math.ceil(total/PH_PAGE_SIZE), pg=document.getElementById('phPager'); pg.innerHTML='';
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{ const b=document.createElement('button'); b.className='btn-ghost'; b.textContent=label;
+    if(o.disabled) b.disabled=true; b.onclick=()=>{_phPage=page; phRender();}; return b; };
+  const pinfo=(t)=>{ const s=document.createElement('span'); s.className='hint'; s.style.margin='0 8px'; s.textContent=t; return s; };
+  pg.appendChild(mk('‹ Prev',_phPage-1,{disabled:_phPage<=0}));
+  pg.appendChild(pinfo('Page '+(_phPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_phPage+1,{disabled:_phPage>=pages-1}));
+}
+
+function phFileName(){
+  const q=(document.getElementById('phInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'producthunt-profiles_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function phUpdateDownload(){
+  const dl=document.getElementById('phDownload'), xl=document.getElementById('phDownloadXlsx');
+  if(!_phRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_phDlUrl) URL.revokeObjectURL(_phDlUrl);
+  const rows=_phRows.map(r=>{ const o={}; for(const c of PH_COLUMNS) o[c]=r[c]??''; return o; });
+  _phDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_phDlUrl; dl.setAttribute('download', phFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function phDownloadExcel(){
+  if(!_phRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_phRows.map(r=>{ const o={}; for(const c of PH_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:PH_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Product Hunt');
+  XLSX.writeFile(wb, phFileName()+'.xlsx');
+}
+/* ---------- end Product Hunt Profiles ---------- */
+
+/* ---------- Thuisbezorgd Reviews Scraper ---------- */
+const TB_COLUMNS=["query","restaurant","reviewer","rating","title","text","date","delivery","food","service"];
+const TB_PAGE_SIZE=50;
+let tbTimer=null, tbJob=null, _tbRows=[], _tbPage=0, _tbDlUrl=null;
+
+function tbInit(){}
+
+async function tbFilePicked(){
+  const f=document.getElementById('tbFile').files[0];
+  const nameEl=document.getElementById('tbFileName'); if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('tbInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste restaurants or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function tbSetRunning(on){
+  document.getElementById('tbStartBtn').disabled=on;
+  document.getElementById('tbStopBtn').disabled=!on;
+  ['tbInput','tbLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function tbStart(){
+  const typed=document.getElementById('tbInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one restaurant ID or URL (one per line), or upload a file.'); return; }
+  const limitRaw=document.getElementById('tbLimit').value.trim();
+  const body={ queries, limit: limitRaw?parseInt(limitRaw,10):0 };
+  let r;
+  try{ r=await fetch('/api/thuisbezorgd-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  tbJob=(await r.json()).job_id;
+  _tbRows=[]; _tbPage=0;
+  document.getElementById('tbResbar').style.display='none';
+  document.getElementById('tbResults').innerHTML='';
+  document.getElementById('tbPager').innerHTML='';
+  document.getElementById('tbCount').textContent='';
+  document.getElementById('tbBar').style.display='block';
+  document.querySelector('#tbBar>i').style.width='30%';
+  tbSetRunning(true);
+  if(tbTimer) clearInterval(tbTimer);
+  tbTimer=setInterval(()=>tbPoll(tbJob),1500);
+  tbPoll(tbJob);
+}
+
+async function tbStop(){ if(tbJob){ document.getElementById('tbStopBtn').disabled=true; await fetch('/api/stop/'+tbJob,{method:'POST'}); } }
+
+async function tbPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('tbStatus'); const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching Thuisbezorgd reviews… '+got+' rows';
+  } else {
+    clearInterval(tbTimer); tbSetRunning(false);
+    document.getElementById('tbBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      tbShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function tbShowResults(job_id){
+  _tbRows=await (await fetch('/api/thuisbezorgd-reviews-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('tbResbar');
+  if(!_tbRows.length){
+    document.getElementById('tbResults').innerHTML='';
+    document.getElementById('tbCount').innerHTML='<span class="empty">No data — Thuisbezorgd is Cloudflare-protected; a residential PROXY_URL is required (free/datacenter IPs get the "Just a moment" block).</span>';
+    resbar.style.display='flex';
+    document.getElementById('tbDownload').style.display='none';
+    document.getElementById('tbDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex'; _tbPage=0;
+  tbRender();
+  document.getElementById('tbCount').textContent='Showing '+_tbRows.length+' rows ('+TB_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  tbUpdateDownload();
+}
+
+function tbRender(){
+  const start=_tbPage*TB_PAGE_SIZE;
+  const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line);white-space:nowrap';
+  const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;max-width:340px;overflow:hidden;text-overflow:ellipsis';
+  let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px">'
+    +'<thead><tr>'+TB_COLUMNS.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of _tbRows.slice(start, start+TB_PAGE_SIZE)){
+    h+='<tr>'+TB_COLUMNS.map(c=>{
+      let v=r[c]; v=(v===null||v===undefined)?'':String(v);
+      const cell=/^https?:\/\//.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">link</a>`:esc(v);
+      return `<td style="${td}" title="${esc(v)}">${cell}</td>`;
+    }).join('')+'</tr>';
+  }
+  h+='</tbody></table></div>';
+  document.getElementById('tbResults').innerHTML=h;
+  tbRenderPager(_tbRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function tbRenderPager(total){
+  const pages=Math.ceil(total/TB_PAGE_SIZE), pg=document.getElementById('tbPager'); pg.innerHTML='';
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{ const b=document.createElement('button'); b.className='btn-ghost'; b.textContent=label;
+    if(o.disabled) b.disabled=true; b.onclick=()=>{_tbPage=page; tbRender();}; return b; };
+  const pinfo=(t)=>{ const s=document.createElement('span'); s.className='hint'; s.style.margin='0 8px'; s.textContent=t; return s; };
+  pg.appendChild(mk('‹ Prev',_tbPage-1,{disabled:_tbPage<=0}));
+  pg.appendChild(pinfo('Page '+(_tbPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_tbPage+1,{disabled:_tbPage>=pages-1}));
+}
+
+function tbFileName(){
+  const q=(document.getElementById('tbInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'thuisbezorgd-reviews_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function tbUpdateDownload(){
+  const dl=document.getElementById('tbDownload'), xl=document.getElementById('tbDownloadXlsx');
+  if(!_tbRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_tbDlUrl) URL.revokeObjectURL(_tbDlUrl);
+  const rows=_tbRows.map(r=>{ const o={}; for(const c of TB_COLUMNS) o[c]=r[c]??''; return o; });
+  _tbDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_tbDlUrl; dl.setAttribute('download', tbFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function tbDownloadExcel(){
+  if(!_tbRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_tbRows.map(r=>{ const o={}; for(const c of TB_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:TB_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Thuisbezorgd');
+  XLSX.writeFile(wb, tbFileName()+'.xlsx');
+}
+/* ---------- end Thuisbezorgd Reviews ---------- */
+
+/* ---------- Feefo Reviews Scraper ---------- */
+const FF_COLUMNS=["query","merchant","customer","location","rating","title","review","date","helpful_votes","review_url"];
+const FF_PAGE_SIZE=50;
+let ffTimer=null, ffJob=null, _ffRows=[], _ffPage=0, _ffDlUrl=null;
+
+function ffInit(){}
+
+async function ffFilePicked(){
+  const f=document.getElementById('ffFile').files[0];
+  const nameEl=document.getElementById('ffFileName'); if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('ffInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function ffSetRunning(on){
+  document.getElementById('ffStartBtn').disabled=on;
+  document.getElementById('ffStopBtn').disabled=!on;
+  ['ffInput','ffLimit','ffSort'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function ffStart(){
+  const typed=document.getElementById('ffInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one company URL or merchant identifier (one per line), or upload a file.'); return; }
+  const limitRaw=document.getElementById('ffLimit').value.trim();
+  const body={ queries, sort:document.getElementById('ffSort').value, limit: limitRaw?parseInt(limitRaw,10):0 };
+  let r;
+  try{ r=await fetch('/api/feefo-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  ffJob=(await r.json()).job_id;
+  _ffRows=[]; _ffPage=0;
+  document.getElementById('ffResbar').style.display='none';
+  document.getElementById('ffResults').innerHTML='';
+  document.getElementById('ffPager').innerHTML='';
+  document.getElementById('ffCount').textContent='';
+  document.getElementById('ffBar').style.display='block';
+  document.querySelector('#ffBar>i').style.width='30%';
+  ffSetRunning(true);
+  if(ffTimer) clearInterval(ffTimer);
+  ffTimer=setInterval(()=>ffPoll(ffJob),1500);
+  ffPoll(ffJob);
+}
+
+async function ffStop(){ if(ffJob){ document.getElementById('ffStopBtn').disabled=true; await fetch('/api/stop/'+ffJob,{method:'POST'}); } }
+
+async function ffPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('ffStatus'); const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching Feefo reviews… '+got+' rows';
+  } else {
+    clearInterval(ffTimer); ffSetRunning(false);
+    document.getElementById('ffBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      ffShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function ffShowResults(job_id){
+  _ffRows=await (await fetch('/api/feefo-reviews-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('ffResbar');
+  if(!_ffRows.length){
+    document.getElementById('ffResults').innerHTML='';
+    document.getElementById('ffCount').innerHTML='<span class="empty">No data — check the merchant identifier (the slug after /reviews/ in the Feefo URL).</span>';
+    resbar.style.display='flex';
+    document.getElementById('ffDownload').style.display='none';
+    document.getElementById('ffDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex'; _ffPage=0;
+  ffRender();
+  document.getElementById('ffCount').textContent='Showing '+_ffRows.length+' rows ('+FF_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  ffUpdateDownload();
+}
+
+function ffRender(){
+  const start=_ffPage*FF_PAGE_SIZE;
+  const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line);white-space:nowrap';
+  const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;max-width:340px;overflow:hidden;text-overflow:ellipsis';
+  let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px">'
+    +'<thead><tr>'+FF_COLUMNS.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of _ffRows.slice(start, start+FF_PAGE_SIZE)){
+    h+='<tr>'+FF_COLUMNS.map(c=>{
+      let v=r[c]; v=(v===null||v===undefined)?'':String(v);
+      const cell=/^https?:\/\//.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">link</a>`:esc(v);
+      return `<td style="${td}" title="${esc(v)}">${cell}</td>`;
+    }).join('')+'</tr>';
+  }
+  h+='</tbody></table></div>';
+  document.getElementById('ffResults').innerHTML=h;
+  ffRenderPager(_ffRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function ffRenderPager(total){
+  const pages=Math.ceil(total/FF_PAGE_SIZE), pg=document.getElementById('ffPager'); pg.innerHTML='';
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{ const b=document.createElement('button'); b.className='btn-ghost'; b.textContent=label;
+    if(o.disabled) b.disabled=true; b.onclick=()=>{_ffPage=page; ffRender();}; return b; };
+  const pinfo=(t)=>{ const s=document.createElement('span'); s.className='hint'; s.style.margin='0 8px'; s.textContent=t; return s; };
+  pg.appendChild(mk('‹ Prev',_ffPage-1,{disabled:_ffPage<=0}));
+  pg.appendChild(pinfo('Page '+(_ffPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_ffPage+1,{disabled:_ffPage>=pages-1}));
+}
+
+function ffFileName(){
+  const q=(document.getElementById('ffInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'feefo-reviews_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function ffUpdateDownload(){
+  const dl=document.getElementById('ffDownload'), xl=document.getElementById('ffDownloadXlsx');
+  if(!_ffRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_ffDlUrl) URL.revokeObjectURL(_ffDlUrl);
+  const rows=_ffRows.map(r=>{ const o={}; for(const c of FF_COLUMNS) o[c]=r[c]??''; return o; });
+  _ffDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_ffDlUrl; dl.setAttribute('download', ffFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function ffDownloadExcel(){
+  if(!_ffRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_ffRows.map(r=>{ const o={}; for(const c of FF_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:FF_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Feefo Reviews');
+  XLSX.writeFile(wb, ffFileName()+'.xlsx');
+}
+/* ---------- end Feefo Reviews ---------- */
+
+/* ---------- Angi Scraper ---------- */
+const AG_COLUMNS=["query","name","category","street","city","region","postal","country","profile_url"];
+const AG_PAGE_SIZE=50;
+let agTimer=null, agJob=null, _agRows=[], _agPage=0, _agDlUrl=null;
+
+function agInit(){}
+
+async function agFilePicked(){
+  const f=document.getElementById('agFile').files[0];
+  const nameEl=document.getElementById('agFileName'); if(!f) return;
+  nameEl.textContent=f.name;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const ta=document.getElementById('agInput');
+  const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
+  try{
+    if(ext==='xlsx'){
+      if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; }
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean));
+    } else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+
+function agSetRunning(on){
+  document.getElementById('agStartBtn').disabled=on;
+  document.getElementById('agStopBtn').disabled=!on;
+  ['agInput','agLimit'].forEach(id=>document.getElementById(id).disabled=on);
+}
+
+async function agStart(){
+  const typed=document.getElementById('agInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one Angi listing or search URL (one per line), or upload a file.'); return; }
+  const limitRaw=document.getElementById('agLimit').value.trim();
+  const body={ queries, limit: limitRaw?parseInt(limitRaw,10):0 };
+  let r;
+  try{ r=await fetch('/api/angi',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  agJob=(await r.json()).job_id;
+  _agRows=[]; _agPage=0;
+  document.getElementById('agResbar').style.display='none';
+  document.getElementById('agResults').innerHTML='';
+  document.getElementById('agPager').innerHTML='';
+  document.getElementById('agCount').textContent='';
+  document.getElementById('agBar').style.display='block';
+  document.querySelector('#agBar>i').style.width='30%';
+  agSetRunning(true);
+  if(agTimer) clearInterval(agTimer);
+  agTimer=setInterval(()=>agPoll(agJob),1500);
+  agPoll(agJob);
+}
+
+async function agStop(){ if(agJob){ document.getElementById('agStopBtn').disabled=true; await fetch('/api/stop/'+agJob,{method:'POST'}); } }
+
+async function agPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json();
+  const el=document.getElementById('agStatus'); const got=s.total_scraped||0;
+  if(s.status==='running'){
+    el.className='status running';
+    el.innerHTML='<span class="spin"></span> Fetching Angi companies… '+got+' rows';
+  } else {
+    clearInterval(agTimer); agSetRunning(false);
+    document.getElementById('agBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){
+      el.className='status '+s.status;
+      el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
+      agShowResults(job_id);
+    } else if(s.status==='error'){
+      el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
+    }
+  }
+}
+
+async function agShowResults(job_id){
+  _agRows=await (await fetch('/api/angi-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('agResbar');
+  if(!_agRows.length){
+    document.getElementById('agResults').innerHTML='';
+    document.getElementById('agCount').innerHTML='<span class="empty">No data — use an angi.com listing/search URL (…/companylist/… or …/nearme/&lt;category&gt;/?postalCode=…).</span>';
+    resbar.style.display='flex';
+    document.getElementById('agDownload').style.display='none';
+    document.getElementById('agDownloadXlsx').style.display='none';
+    return;
+  }
+  resbar.style.display='flex'; _agPage=0;
+  agRender();
+  document.getElementById('agCount').textContent='Showing '+_agRows.length+' rows ('+AG_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  agUpdateDownload();
+}
+
+function agRender(){
+  const start=_agPage*AG_PAGE_SIZE;
+  const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line);white-space:nowrap';
+  const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;max-width:320px;overflow:hidden;text-overflow:ellipsis';
+  let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px">'
+    +'<thead><tr>'+AG_COLUMNS.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of _agRows.slice(start, start+AG_PAGE_SIZE)){
+    h+='<tr>'+AG_COLUMNS.map(c=>{
+      let v=r[c]; v=(v===null||v===undefined)?'':String(v);
+      const cell=/^https?:\/\//.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">link</a>`:esc(v);
+      return `<td style="${td}" title="${esc(v)}">${cell}</td>`;
+    }).join('')+'</tr>';
+  }
+  h+='</tbody></table></div>';
+  document.getElementById('agResults').innerHTML=h;
+  agRenderPager(_agRows.length);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function agRenderPager(total){
+  const pages=Math.ceil(total/AG_PAGE_SIZE), pg=document.getElementById('agPager'); pg.innerHTML='';
+  if(pages<=1) return;
+  const mk=(label,page,o={})=>{ const b=document.createElement('button'); b.className='btn-ghost'; b.textContent=label;
+    if(o.disabled) b.disabled=true; b.onclick=()=>{_agPage=page; agRender();}; return b; };
+  const pinfo=(t)=>{ const s=document.createElement('span'); s.className='hint'; s.style.margin='0 8px'; s.textContent=t; return s; };
+  pg.appendChild(mk('‹ Prev',_agPage-1,{disabled:_agPage<=0}));
+  pg.appendChild(pinfo('Page '+(_agPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_agPage+1,{disabled:_agPage>=pages-1}));
+}
+
+function agFileName(){
+  const q=(document.getElementById('agInput').value.trim().split(/\r?\n/)[0]||'results');
+  return 'angi_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function agUpdateDownload(){
+  const dl=document.getElementById('agDownload'), xl=document.getElementById('agDownloadXlsx');
+  if(!_agRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_agDlUrl) URL.revokeObjectURL(_agDlUrl);
+  const rows=_agRows.map(r=>{ const o={}; for(const c of AG_COLUMNS) o[c]=r[c]??''; return o; });
+  _agDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_agDlUrl; dl.setAttribute('download', agFileName()+'.json'); dl.style.display='inline-block';
+  xl.style.display='inline-block';
+}
+function agDownloadExcel(){
+  if(!_agRows.length) return;
+  if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
+  const rows=_agRows.map(r=>{ const o={}; for(const c of AG_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:AG_COLUMNS});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Angi');
+  XLSX.writeFile(wb, agFileName()+'.xlsx');
+}
+/* ---------- end Angi ---------- */
 
 /* ---------- LinkedIn Companies Scraper ---------- */
 const LC_COLUMNS = ["query","name","industry","description","website","headquarters","company_size","employees","company_type","founded","specialties","followers","slogan","logo","linkedin_url"];

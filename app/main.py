@@ -14,7 +14,9 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  gmaps_results, gmaps_domain_results, gmaps_reviews, gnews_results,
                  gmaps_contrib_reviews, gmaps_photos, gimages_results, gmaps_traffic,
                  gmaps_directory, gvideos_results, gevents_results, gcareers_results,
-                 gtrends_results, linkedin_companies_results, linkedin_posts_results,
+                 gtrends_results, linkedin_companies_results, linkedin_posts_results, ai_results,
+                 kununu_reviews, producthunt_profiles, thuisbezorgd_reviews, feefo_reviews,
+                 angi_results,
                  gsjobs_results, gshop_results, gplay_results,
                  gsreviews_results, linkedin_profiles, gflights_results, gmaps_autocomplete,
                  gsearch_autocomplete, booking_reviews_results, booking_prices_results,
@@ -35,7 +37,9 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      GMapsMonitorRequest, GNewsRequest, GMapsContribRequest, GMapsPhotosRequest,
                      GImagesRequest, GMapsTrafficRequest, GMapsDirectoryRequest, GVideosRequest,
                      GEventsRequest, GCareersRequest, GTrendsRequest, LinkedInCompaniesRequest,
-                     LinkedInPostsRequest,
+                     LinkedInPostsRequest, AIScraperRequest, KununuReviewsRequest,
+                     ProductHuntProfilesRequest, ThuisbezorgdReviewsRequest, FeefoReviewsRequest,
+                     AngiRequest,
                      GSJobsRequest, GShopRequest, GShopReviewsRequest, GPlayRequest,
                      GPlayMonitorRequest, LinkedInProfilesRequest, GFlightsRequest,
                      GMapsAutocompleteRequest, GSearchAutocompleteRequest, BookingReviewsRequest,
@@ -54,7 +58,10 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                gmaps_reviews as gmaps_reviews_mod, gnews, gmaps_contrib,
                gmaps_photos as gmaps_photos_mod, gimages, gmaps_traffic as gmaps_traffic_mod,
                gmaps_directory as gmaps_directory_mod, gvideos, gevents, gcareers, gtrends,
-               linkedin_companies, linkedin_posts,
+               linkedin_companies, linkedin_posts, ai_scraper, kununu_reviews as kununu_reviews_mod,
+               producthunt_profiles as producthunt_profiles_mod,
+               thuisbezorgd_reviews as thuisbezorgd_reviews_mod,
+               feefo_reviews as feefo_reviews_mod, angi as angi_mod,
                gsjobs, gshop, gsreviews, gplay,
                linkedin_profiles as linkedin_profiles_mod, gflights,
                gmaps_autocomplete as gmaps_autocomplete_mod, booking_reviews, booking_prices, olx,
@@ -129,6 +136,47 @@ async def _gcareers_rows(job_id):
 async def _gtrends_rows(job_id):
     rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, gtrends.GTRENDS_COLUMNS
+
+
+async def _ai_rows(job_id):
+    """AI Scraper rows have a dynamic schema — derive the column order from the data itself."""
+    rows = [d async for d in ai_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    header, seen = [], set()
+    for col in ("query", "position"):              # keep these first if present
+        seen.add(col)
+    for r in rows:
+        for k in r:
+            if k not in seen:
+                seen.add(k)
+                header.append(k)
+    header = [c for c in ("query",) if any(c in r for r in rows)] + header \
+        + [c for c in ("position",) if any(c in r for r in rows)]
+    return rows, header
+
+
+async def _kununu_rows(job_id):
+    rows = [d async for d in kununu_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, kununu_reviews_mod.KUNUNU_REVIEW_COLUMNS
+
+
+async def _producthunt_rows(job_id):
+    rows = [d async for d in producthunt_profiles.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, producthunt_profiles_mod.PH_COLUMNS
+
+
+async def _thuisbezorgd_rows(job_id):
+    rows = [d async for d in thuisbezorgd_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, thuisbezorgd_reviews_mod.TB_REVIEW_COLUMNS
+
+
+async def _feefo_rows(job_id):
+    rows = [d async for d in feefo_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, feefo_reviews_mod.FEEFO_COLUMNS
+
+
+async def _angi_rows(job_id):
+    rows = [d async for d in angi_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, angi_mod.ANGI_COLUMNS
 
 
 async def _linkedin_companies_rows(job_id):
@@ -1350,6 +1398,155 @@ async def gtrends_start(req: GTrendsRequest):
 @app.get("/api/gtrends-results/{job_id}")
 async def gtrends_results_get(job_id: str, limit: int = 5000):
     rows = [d async for d in gtrends_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/ai-scraper")
+async def ai_scraper_start(req: AIScraperRequest):
+    """AI Scraper — extract structured data from any web page using Claude (needs ANTHROPIC_API_KEY)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one URL is required")
+    limit = req.limit if (req.limit and req.limit > 0) else None
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "ai_scraper", "queries": queries,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        ai_scraper.run_job(job_id, queries, req.prompt or "", req.schema_def, limit),
+        "ai_scraper", job_id, _ai_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/ai-scraper-results/{job_id}")
+async def ai_scraper_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in ai_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/kununu-reviews")
+async def kununu_reviews_start(req: KununuReviewsRequest):
+    """Kununu Reviews Scraper — employer reviews from kununu.com (proxy-only; needs residential proxy)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one company name or URL is required")
+    limit = req.limit if (req.limit and req.limit > 0) else None
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "kununu_reviews", "queries": queries, "sort": req.sort,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        kununu_reviews_mod.run_job(job_id, queries, limit, req.sort or ""),
+        "kununu_reviews", job_id, _kununu_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/kununu-reviews-results/{job_id}")
+async def kununu_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in kununu_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/producthunt-profiles")
+async def producthunt_profiles_start(req: ProductHuntProfilesRequest):
+    """Product Hunt Profiles Scraper — public user profiles from producthunt.com (proxy pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one username or profile URL is required")
+    limit = req.limit if (req.limit and req.limit > 0) else None
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "producthunt_profiles", "queries": queries,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        producthunt_profiles_mod.run_job(job_id, queries, limit),
+        "producthunt_profiles", job_id, _producthunt_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/producthunt-profiles-results/{job_id}")
+async def producthunt_profiles_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in producthunt_profiles.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/thuisbezorgd-reviews")
+async def thuisbezorgd_reviews_start(req: ThuisbezorgdReviewsRequest):
+    """Thuisbezorgd Reviews Scraper — restaurant reviews from thuisbezorgd.nl (proxy-only; residential)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one restaurant ID or URL is required")
+    limit = req.limit if (req.limit and req.limit > 0) else None
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "thuisbezorgd_reviews", "queries": queries,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        thuisbezorgd_reviews_mod.run_job(job_id, queries, limit),
+        "thuisbezorgd_reviews", job_id, _thuisbezorgd_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/thuisbezorgd-reviews-results/{job_id}")
+async def thuisbezorgd_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in thuisbezorgd_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/feefo-reviews")
+async def feefo_reviews_start(req: FeefoReviewsRequest):
+    """Feefo Reviews Scraper — merchant reviews via Feefo's public API (proxy pool; no residential needed)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one company URL or merchant identifier is required")
+    limit = req.limit if (req.limit and req.limit > 0) else None
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "feefo_reviews", "queries": queries, "sort": req.sort,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        feefo_reviews_mod.run_job(job_id, queries, limit, req.sort or ""),
+        "feefo_reviews", job_id, _feefo_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/feefo-reviews-results/{job_id}")
+async def feefo_reviews_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in feefo_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/angi")
+async def angi_start(req: AngiRequest):
+    """Angi Scraper — home-service companies from angi.com listing / search pages (proxy pool)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one Angi listing or search URL is required")
+    limit = req.limit if (req.limit and req.limit > 0) else None
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "angi", "queries": queries,
+        "status": "running", "total_scraped": 0,
+        "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        angi_mod.run_job(job_id, queries, limit), "angi", job_id, _angi_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/angi-results/{job_id}")
+async def angi_results_get(job_id: str, limit: int = 5000):
+    rows = [d async for d in angi_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

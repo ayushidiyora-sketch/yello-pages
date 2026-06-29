@@ -119,6 +119,53 @@ class GTrendsRequest(BaseModel):
     resolution: str = Field("COUNTRY", examples=["REGION"])   # COUNTRY|REGION|CITY|DMA
 
 
+class AIScraperRequest(BaseModel):
+    # one URL per line; Claude extracts structured data from each page.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://outscraper.com"]])
+    prompt: str = Field("", examples=["Extract company name, pricing, and contact email"])
+    schema_def: dict | None = Field(None, alias="schema",
+                                    examples=[{"type": "object", "properties": {"company_name": {"type": "string"}}}])
+    limit: int | None = Field(None, examples=[0])
+
+    model_config = {"populate_by_name": True}
+
+
+class AngiRequest(BaseModel):
+    # one per line: an angi.com company-list or near-me search URL.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.angi.com/nearme/plumbing/?postalCode=75151"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class FeefoReviewsRequest(BaseModel):
+    # one per line: a feefo.com/<locale>/reviews/<merchant> URL or a bare merchant identifier.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.feefo.com/en-GB/reviews/m-c-fire-protection"]])
+    limit: int | None = Field(None, examples=[100])
+    sort: str = Field("Newest", examples=["Newest"])   # Newest|Oldest|Most Helpful
+
+
+class ThuisbezorgdReviewsRequest(BaseModel):
+    # one per line: a thuisbezorgd.nl restaurant menu URL or a bare restaurant slug/ID.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.thuisbezorgd.nl/en/menu/mr-sushi-dedemsvaart"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class ProductHuntProfilesRequest(BaseModel):
+    # one per line: a producthunt.com/@username URL, an @username, or a bare username.
+    queries: list[str] = Field(..., min_length=1, examples=[["@rrhoover"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class KununuReviewsRequest(BaseModel):
+    # one company per line: a kununu.com company URL or a company name.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://www.kununu.com/de/mercedes-benz-group"]])
+    limit: int | None = Field(None, examples=[100])
+    sort: str = Field("Newest", examples=["Newest"])   # Date|Newest|Oldest|Beste|Schlechteste
+
+
 class GCareersRequest(BaseModel):
     # one line each: a careers.google.com/jobs/results/ search URL (or a bare keyword).
     queries: list[str] = Field(..., min_length=1,

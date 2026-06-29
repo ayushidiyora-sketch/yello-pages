@@ -1891,60 +1891,66 @@
   "no": "183",
   "name": "Angi Scraper",
   "brand": "Angi",
-  "description": "",
+  "description": "Returns home-service companies from angi.com listing and near-me search pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "angi"
  },
  {
   "no": "184",
   "name": "Feefo Reviews Scraper",
   "brand": "Feefo",
-  "description": "",
+  "description": "Returns merchant service reviews from feefo.com (via Feefo's public reviews API).",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "feefo_reviews"
  },
  {
   "no": "185",
   "name": "Thuisbezorgd Reviews Scraper",
   "brand": "Thuisbezorgd",
-  "description": "",
+  "description": "Returns restaurant reviews from thuisbezorgd.nl menu pages (Netherlands).",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "thuisbezorgd_reviews"
  },
  {
   "no": "186",
   "name": "Product Hunt Profiles Scraper",
   "brand": "Product Hunt",
-  "description": "",
+  "description": "Returns public user profiles from producthunt.com (name, headline, followers, products).",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "producthunt_profiles"
  },
  {
   "no": "187",
   "name": "Kununu Reviews Scraper",
   "brand": "Kununu",
-  "description": "",
+  "description": "Returns employer reviews from kununu.com company pages (DACH region).",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "kununu_reviews"
  },
  {
   "no": "188",
   "name": "AI Scraper",
   "brand": "AI",
-  "description": "",
+  "description": "Extracts the structured data you describe from any web page using AI (Claude).",
   "tags": [
    "Other"
   ],
-  "live": false
+  "live": true,
+  "ui": "aiscraper"
  }
 ]

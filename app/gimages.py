@@ -22,6 +22,12 @@ GIMG_COLUMNS = ["query", "title", "image", "thumbnail", "source", "link", "width
 
 _IUSC = re.compile(r'class="iusc"[^>]*\sm="([^"]+)"')
 
+# Bing returns the genuinely relevant images first, then (once it runs out) pads deeper pages with
+# loosely-related / unrelated results. We detect that "relevance cliff" per page and stop there.
+_STOPWORDS = {"the", "of", "a", "an", "and", "or", "in", "on", "for", "to", "with", "at", "by", "is"}
+_RELEVANCE_MIN = 0.30          # stop once a page has < 30% query-matching images
+_MIN_BEFORE_STOP = 35          # never stop before at least one full page is collected
+
 
 def _host(u: str) -> str:
     try:
@@ -30,10 +36,49 @@ def _host(u: str) -> str:
         return ""
 
 
+def _query_tokens(query: str) -> list[str]:
+    """Meaningful lowercase words from the query (drop short words + stopwords)."""
+    return [t for t in re.findall(r"\w+", (query or "").lower())
+            if len(t) > 2 and t not in _STOPWORDS]
+
+
+def _matches(row: dict, tokens: list[str]) -> bool:
+    """True if the image's title / source / link mentions ALL query tokens. ALL (not any) is what
+    keeps 'Statue of Liberty' out of a 'statue of unity' search — it has 'statue' but not 'unity'."""
+    hay = f"{row.get('title','')} {row.get('source','')} {row.get('link','')}".lower()
+    return all(t in hay for t in tokens)
+
+
+def _parse_page(text: str, query: str, seen: set) -> list[dict]:
+    """All new image rows from one Bing async page (deduped against `seen`)."""
+    out = []
+    for c in _IUSC.findall(text):
+        try:
+            m = json.loads(html.unescape(c))
+        except Exception:
+            continue
+        img = m.get("murl") or ""
+        if not img or img in seen:
+            continue
+        seen.add(img)
+        out.append({
+            "query": query,
+            "title": m.get("t") or "",
+            "image": img,
+            "thumbnail": m.get("turl") or "",
+            "source": _host(m.get("purl") or img),
+            "link": m.get("purl") or "",
+            "width": str(m.get("mw") or ""),
+            "height": str(m.get("mh") or ""),
+        })
+    return out
+
+
 def search_sync(query: str, limit: int | None = None, country: str = "us",
                 language: str = "en", job_id: str | None = None) -> list[dict]:
     headers = {"Accept-Language": f"{(language or 'en')}-{(country or 'us').upper()},"
                                   f"{(language or 'en')};q=0.9"}
+    tokens = _query_tokens(query)
     rows: list[dict] = []
     seen, first = set(), 1
     for _page in range(25):                       # ~35 images/page, hard cap
@@ -46,33 +91,22 @@ def search_sync(query: str, limit: int | None = None, country: str = "us",
                 break
             raise RuntimeError("Could not reach Bing image search through a proxy (set a PROXY_URL, "
                                "or wait for the free pool to warm up). The real IP is never used.")
-        cells = _IUSC.findall(r.text)
-        if not cells:
+        raw = _parse_page(r.text, query, seen)
+        if not raw:
             break
-        added = 0
-        for c in cells:
-            try:
-                m = json.loads(html.unescape(c))
-            except Exception:
-                continue
-            img = m.get("murl") or ""
-            if not img or img in seen:
-                continue
-            seen.add(img)
-            added += 1
-            rows.append({
-                "query": query,
-                "title": m.get("t") or "",
-                "image": img,
-                "thumbnail": m.get("turl") or "",
-                "source": _host(m.get("purl") or img),
-                "link": m.get("purl") or "",
-                "width": str(m.get("mw") or ""),
-                "height": str(m.get("mh") or ""),
-            })
-            if limit and len(rows) >= limit:
-                return rows
-        if not added:
+        # Per-image relevance filter: drop images whose title clearly doesn't match the query, but
+        # KEEP untitled ones (no signal → benefit of the doubt, so valid images aren't lost).
+        if tokens:
+            kept = [x for x in raw if not x["title"].strip() or _matches(x, tokens)]
+            match_ratio = sum(_matches(x, tokens) for x in raw) / len(raw)
+        else:
+            kept, match_ratio = raw, 1.0
+        rows.extend(kept)
+        if limit and len(rows) >= limit:
+            return rows[:limit]
+        # Relevance cliff: once Bing exhausts on-topic images it pads deeper pages with unrelated
+        # results. When a page is mostly off-query, stop here (skip the padding pages entirely).
+        if tokens and len(rows) >= _MIN_BEFORE_STOP and match_ratio < _RELEVANCE_MIN:
             break
         first += 35
     return rows

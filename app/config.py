@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     # headless render is steadier on a fixed paid US proxy.
     BESTBUY_PROXY_URL: str = ""
 
+    # AI Scraper — extracts structured data from any web page using Claude. Needs a paid Claude API
+    # key from console.anthropic.com. Empty = the AI Scraper returns a clear "set ANTHROPIC_API_KEY"
+    # error (page fetches still go through the proxy pool, never the real IP).
+    ANTHROPIC_API_KEY: str = ""
+    AI_MODEL: str = "claude-opus-4-8"
+
     # Optional ScraperAPI key (free tier ~1000 req/month, no card). When set, the G2 Reviews
     # scraper fetches through ScraperAPI's residential proxies + JS render, which clears G2's
     # DataDome bot-check (your own IP is never used). Empty = G2 stays on the free proxy pool.
