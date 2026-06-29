@@ -21,7 +21,8 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  olx_results, apollo_results, upwork_results, youtube_videos_results,
                  glassdoor_company_jobs_results,
                  booking_results, bestbuy_results, yelp_results, yelp_reviews,
-                 yelp_photos, yt_transcripts, yt_search,
+                 yelp_photos, yt_transcripts, yt_search, emails_contacts,
+                 leads_enrichment, email_verifier, company_insights, phone_enricher,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -43,7 +44,9 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      UpworkRequest, YouTubeVideosRequest, GlassdoorCompanyJobsRequest,
                      BookingSearchRequest,
                      BestBuyProductsRequest, YelpBusinessRequest, YelpReviewsRequest,
-                     YelpPhotosRequest, YTTranscriptsRequest, YTSearchRequest)
+                     YelpPhotosRequest, YTTranscriptsRequest, YTSearchRequest,
+                     EmailsContactsRequest, LeadsEnrichmentRequest, EmailVerifierRequest,
+                     CompanyInsightsRequest, PhoneEnricherRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -61,7 +64,10 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                apollo, upwork, youtube_videos as yt_videos,
                glassdoor_company_jobs as gd_company_jobs, booking, bestbuy, yelp,
                yelp_reviews as yelp_reviews_mod, yelp_photos as yelp_photos_mod,
-               yt_transcripts as yt_transcripts_mod, yt_search as yt_search_mod)
+               yt_transcripts as yt_transcripts_mod, yt_search as yt_search_mod,
+               emails_contacts as emails_contacts_mod, leads_enrichment as leads_enrichment_mod,
+               email_verifier as email_verifier_mod, company_insights as company_insights_mod,
+               phone_enricher as phone_enricher_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -249,6 +255,31 @@ async def _ytt_rows(job_id):
 async def _yts_rows(job_id):
     rows = [d async for d in yt_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, yt_search_mod.YTS_COLUMNS
+
+
+async def _ec_rows(job_id):
+    rows = [d async for d in emails_contacts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, emails_contacts_mod.EC_COLUMNS
+
+
+async def _le_rows(job_id):
+    rows = [d async for d in leads_enrichment.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, leads_enrichment_mod.LE_COLUMNS
+
+
+async def _ev_rows(job_id):
+    rows = [d async for d in email_verifier.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, email_verifier_mod.EV_COLUMNS
+
+
+async def _ci_rows(job_id):
+    rows = [d async for d in company_insights.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, company_insights_mod.CI_COLUMNS
+
+
+async def _pe_rows(job_id):
+    rows = [d async for d in phone_enricher.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, phone_enricher_mod.PE_COLUMNS
 
 
 async def _gplay_rows(job_id):
@@ -1915,6 +1946,122 @@ async def yt_search_start(req: YTSearchRequest):
 @app.get("/api/yt-search/results/{job_id}")
 async def yt_search_results(job_id: str, limit: int = 5000):
     rows = [d async for d in yt_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/emails-contacts")
+async def emails_contacts_start(req: EmailsContactsRequest):
+    """Emails & Contacts Scraper — emails, social links, phones & website meta from each domain/URL
+    (proxy-only, works on the free pool — general websites aren't anti-bot protected)."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one domain or URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "emails_contacts", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        emails_contacts_mod.run_job(job_id, queries, None), "emails_contacts", job_id, _ec_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/emails-contacts/results/{job_id}")
+async def emails_contacts_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in emails_contacts.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/leads-enrichment")
+async def leads_enrichment_start(req: LeadsEnrichmentRequest):
+    """Leads & Contacts Enrichment — emails, phones, names, job titles & socials per company
+    (proxy-only, works on the free pool). One row per contact."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one domain or URL is required")
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "leads_enrichment", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        leads_enrichment_mod.run_job(job_id, queries, lim), "leads_enrichment", job_id, _le_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/leads-enrichment/results/{job_id}")
+async def leads_enrichment_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in leads_enrichment.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/email-verifier")
+async def email_verifier_start(req: EmailVerifierRequest):
+    """Email Address Verifier — format, disposable & domain-level (MX) deliverability per email
+    (proxy-only DNS-over-HTTPS; no real IP). One row per email."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one email address is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "email_verifier", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        email_verifier_mod.run_job(job_id, queries, None), "email_verifier", job_id, _ev_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/email-verifier/results/{job_id}")
+async def email_verifier_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in email_verifier.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/company-insights")
+async def company_insights_start(req: CompanyInsightsRequest):
+    """Company Insights — firmographics (public status, employees, tech tags, site meta) per company
+    (proxy-only, works on the free pool). One row per company."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one domain or URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "company_insights", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        company_insights_mod.run_job(job_id, queries, None), "company_insights", job_id, _ci_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/company-insights/results/{job_id}")
+async def company_insights_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in company_insights.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/phone-enricher")
+async def phone_enricher_start(req: PhoneEnricherRequest):
+    """Phone Numbers Enricher — validity, line type, carrier, location & formats per number
+    (offline libphonenumber lookup; no network/proxy). One row per number."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one phone number is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "phone_enricher", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        phone_enricher_mod.run_job(job_id, queries, None), "phone_enricher", job_id, _pe_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/phone-enricher/results/{job_id}")
+async def phone_enricher_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in phone_enricher.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 
