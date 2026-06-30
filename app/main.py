@@ -29,7 +29,7 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  similarweb, geocoding, builtwith, disposable_email, whitepages_addresses,
                  fastbackgroundcheck_addresses, reverse_geocoding, domain_info, yahoo_search, zoominfo,
                  screenshoter, eventbrite, meetup, tiktok_videos, tiktok_hashtags, tiktok_search,
-                 tiktok_comments,
+                 tiktok_comments, appstore_reviews, asos_products,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -60,7 +60,8 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      WhitepagesAddressesRequest, FastbgAddressesRequest, ReverseGeocodingRequest,
                      DomainInfoRequest, YahooSearchRequest, ZoomInfoRequest, ScreenshoterRequest,
                      EventbriteRequest, MeetupRequest, TikTokVideosRequest, TikTokHashtagsRequest,
-                     TikTokSearchRequest, TikTokCommentsRequest)
+                     TikTokSearchRequest, TikTokCommentsRequest, AppStoreReviewsRequest,
+                     AsosProductsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -91,7 +92,8 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                domain_info as domain_info_mod, yahoo_search as yahoo_search_mod, zoominfo as zoominfo_mod,
                screenshoter as screenshoter_mod, eventbrite as eventbrite_mod, meetup as meetup_mod,
                tiktok_videos as tiktok_videos_mod, tiktok_hashtags as tiktok_hashtags_mod,
-               tiktok_search as tiktok_search_mod, tiktok_comments as tiktok_comments_mod)
+               tiktok_search as tiktok_search_mod, tiktok_comments as tiktok_comments_mod,
+               appstore_reviews as appstore_reviews_mod, asos as asos_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -435,6 +437,16 @@ async def _ts_rows(job_id):
 async def _tc_rows(job_id):
     rows = [d async for d in tiktok_comments.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, tiktok_comments_mod.TC_COLUMNS
+
+
+async def _asr_rows(job_id):
+    rows = [d async for d in appstore_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, appstore_reviews_mod.AR_COLUMNS
+
+
+async def _asos_rows(job_id):
+    rows = [d async for d in asos_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, asos_mod.AS_COLUMNS
 
 
 async def _start_enrich_lim(kind, queries, lim, run_coro_fn, rows_fn):
@@ -2675,6 +2687,33 @@ async def tiktok_comments_start(req: TikTokCommentsRequest):
 @app.get("/api/tiktok-comments/results/{job_id}")
 async def tiktok_comments_results(job_id: str, limit: int = 5000):
     rows = [d async for d in tiktok_comments.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/appstore-reviews")
+async def appstore_reviews_start(req: AppStoreReviewsRequest):
+    """AppStore Reviews Scraper — customer reviews via Apple's iTunes RSS (proxy-only, cross-IP retry)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("appstore_reviews", _clean_queries(req), lim,
+                                   appstore_reviews_mod.run_job, _asr_rows)
+
+
+@app.get("/api/appstore-reviews/results/{job_id}")
+async def appstore_reviews_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in appstore_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/asos-products")
+async def asos_products_start(req: AsosProductsRequest):
+    """Asos Products Scraper — product listings via ASOS's internal search API (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("asos_products", _clean_queries(req), lim, asos_mod.run_job, _asos_rows)
+
+
+@app.get("/api/asos-products/results/{job_id}")
+async def asos_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in asos_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

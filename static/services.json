@@ -422,11 +422,12 @@
   "no": "38",
   "name": "Asos Products Scraper",
   "brand": "Asos",
-  "description": "",
+  "description": "Returns product listings from ASOS",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "asos_products"
  },
  {
   "no": "39",
@@ -436,7 +437,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "appstore_reviews"
  },
  {
   "no": "40",

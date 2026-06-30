@@ -3122,6 +3122,52 @@
   <div id="tcResults"></div>
   </div><!-- /tiktokCommentsView -->
 
+  <div id="appstoreReviewsView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Queries (App Store URLs or ids) <span class="req">*</span></label>
+      <textarea id="asrInput" placeholder="https://apps.apple.com/us/app/telegram-messenger/id686449807&#10;id686449807"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="asrFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="asrFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('asrFile').click()">⬆ Upload file</button>
+        <span class="hint" id="asrFileName"></span></div>
+      <span class="hint">Customer reviews from the App Store via Apple's iTunes RSS feed, through the proxy pool (real IP never used). Up to ~500 reviews per app (most recent). One row per review.</span>
+    </div>
+    <div class="field"><label>Limit per one query</label><input id="asrLimit" type="number" min="1" max="500" placeholder="100" value="100"><span class="hint">Up to 500 (0 = 500).</span></div>
+  </div><div class="actions">
+    <button class="btn-primary" id="asrStartBtn" onclick="asrStart()">⬇ Export Reviews</button>
+    <button class="btn-stop" id="asrStopBtn" onclick="asrStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="asrStatus"></div><div class="bar" id="asrBar"><i></i></div>
+  <div class="resbar" id="asrResbar" style="display:none"><div class="count" id="asrCount"></div>
+    <div class="resbar-controls"><a id="asrDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="asrDownloadXlsx" style="display:none" onclick="asrDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="asrResults"></div>
+  </div><!-- /appstoreReviewsView -->
+
+  <div id="asosProductsView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Queries (ASOS URLs or keywords) <span class="req">*</span></label>
+      <textarea id="asosInput" placeholder="blue jeans&#10;https://www.asos.com/search/?q=blue+jeans&#10;https://www.asos.com/women/dresses/cat/?cid=8799"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="asosFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="asosFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('asosFile').click()">⬆ Upload file</button>
+        <span class="hint" id="asosFileName"></span></div>
+      <span class="hint">Product listings from ASOS via its internal search API, through the proxy pool. A <code>cid=</code> category URL searches by category, otherwise by keyword. One row per product.</span>
+    </div>
+    <div class="field"><label>Limit per one query</label><input id="asosLimit" type="number" min="1" placeholder="all" value="100"><span class="hint">0 = all.</span></div>
+  </div><div class="actions">
+    <button class="btn-primary" id="asosStartBtn" onclick="asosStart()">⬇ Get Data</button>
+    <button class="btn-stop" id="asosStopBtn" onclick="asosStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="asosStatus"></div><div class="bar" id="asosBar"><i></i></div>
+  <div class="resbar" id="asosResbar" style="display:none"><div class="count" id="asosCount"></div>
+    <div class="resbar-controls"><a id="asosDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="asosDownloadXlsx" style="display:none" onclick="asosDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="asosResults"></div>
+  </div><!-- /asosProductsView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -5148,7 +5194,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','appstoreReviewsView','asosProductsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -5354,6 +5400,8 @@ function selectService(s, keep, fromHistory){
   document.getElementById('tiktokHashtagsView').style.display = vt==='tiktok_hashtags' ? '' : 'none';
   document.getElementById('tiktokSearchView').style.display = vt==='tiktok_search' ? '' : 'none';
   document.getElementById('tiktokCommentsView').style.display = vt==='tiktok_comments' ? '' : 'none';
+  document.getElementById('appstoreReviewsView').style.display = vt==='appstore_reviews' ? '' : 'none';
+  document.getElementById('asosProductsView').style.display = vt==='asos_products' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -5459,6 +5507,8 @@ function viewType(s){
   if(s.ui === 'tiktok_hashtags') return 'tiktok_hashtags';
   if(s.ui === 'tiktok_search') return 'tiktok_search';
   if(s.ui === 'tiktok_comments') return 'tiktok_comments';
+  if(s.ui === 'appstore_reviews') return 'appstore_reviews';
+  if(s.ui === 'asos_products') return 'asos_products';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -12275,6 +12325,10 @@ const TS_COLUMNS=["query","status"];
 _enrichSvc('ts',{api:'/api/tiktok-search', columns:TS_COLUMNS, noun:'query', nounP:'queries', verb:'Searching', sheet:'tiktok-search', sheetTab:'TikTokSearch'});
 const TC_COLUMNS=["query","video_id","comment_count","status"];
 _enrichSvc('tc',{api:'/api/tiktok-comments', columns:TC_COLUMNS, noun:'video', nounP:'videos', verb:'Scraping', sheet:'tiktok-comments', sheetTab:'TikTokComments'});
+const ASR_COLUMNS=["query","app_id","author","rating","title","review","version","updated"];
+_enrichSvc('asr',{api:'/api/appstore-reviews', columns:ASR_COLUMNS, noun:'review', nounP:'reviews', verb:'Exporting', sheet:'appstore-reviews', sheetTab:'AppStore'});
+const ASOS_COLUMNS=["query","product_id","name","brand","price","colour","product_type","url","image"];
+_enrichSvc('asos',{api:'/api/asos-products', columns:ASOS_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'asos-products', sheetTab:'ASOS'});
 
 // ===== WebPage Screenshoter (custom: extra options + image rendering) =====
 let ssTimer=null, ssJob=null, _ssRows=[], _ssDlUrl=null;

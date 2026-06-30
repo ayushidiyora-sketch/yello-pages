@@ -289,6 +289,18 @@ class ZoomInfoRequest(BaseModel):
     limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
 
 
+class AppStoreReviewsRequest(BaseModel):
+    # each line: an apps.apple.com URL or id<digits> / numeric app id
+    queries: list[str] = Field(..., min_length=1, examples=[["id686449807"]])
+    limit: Optional[int] = Field(100, ge=0, le=500, examples=[100])  # reviews/app; 0 = up to 500
+
+
+class AsosProductsRequest(BaseModel):
+    # each line: an ASOS search/category URL or a keyword
+    queries: list[str] = Field(..., min_length=1, examples=[["blue jeans"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # products/query; 0 = all
+
+
 class EventbriteRequest(BaseModel):
     # each line: an Eventbrite event URL or numeric event id
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.eventbrite.com/e/1417752679429"]])
