@@ -91,14 +91,19 @@ def search_sync(query: str, limit: int | None = None) -> list[dict]:
     url = (query or "").strip()
     if not url.lower().startswith("http"):
         return []
-    try:
-        r = yp_us.pooled_get(url, {}, timeout=25)
-    except Exception:
-        return []
-    if r is None or r.status_code != 200:
-        return []
-    rows = _parse(r.text, query)
-    return rows[:limit] if limit else rows
+    # OfferUp 403s most datacenter/free IPs; only some return the real page. Rotate through the
+    # pool a few times until one IP returns a 200 page we can actually parse.
+    for _ in range(8):
+        try:
+            r = yp_us.pooled_get(url, {}, timeout=25)
+        except Exception:
+            continue
+        if r is None or r.status_code != 200 or "__NEXT_DATA__" not in (r.text or ""):
+            continue
+        rows = _parse(r.text, query)
+        if rows:
+            return rows[:limit] if limit else rows
+    return []
 
 
 async def search(query: str, limit: int | None = None) -> list[dict]:
