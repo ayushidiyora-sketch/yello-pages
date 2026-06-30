@@ -661,7 +661,7 @@ class YouTubeChannelsRequest(BaseModel):
 class YouTubeVideosRequest(BaseModel):
     # one line each: a channel URL (/@handle, /channel/UC..., /@handle/videos, /@handle/shorts) or a handle.
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.youtube.com/@Google", "@Google/shorts"]])
-    limit: Optional[int] = Field(None, ge=1, le=5000, examples=[100])  # videos/query; None = all
+    limit: Optional[int] = Field(None, ge=0, le=5000, examples=[100])  # videos/query; 0/None = all
     video_type: str = Field("video", examples=["video", "short"])      # "short" = Shorts Only
 
 
