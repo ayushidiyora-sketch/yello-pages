@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 from . import yp_us
 from .scraper import STOP_REQUESTS
 
-ZI_COLUMNS = [
+ZS_COLUMNS = [
     "query", "company", "website", "phone", "employees", "revenue", "industry",
     "founded", "address", "city", "state", "country", "ticker", "logo",
 ]
@@ -58,7 +58,7 @@ def _row_from_ld(d: dict, query: str) -> dict | None:
     emp = d.get("numberOfEmployees") or ""
     if isinstance(emp, dict):
         emp = emp.get("value") or emp.get("minValue") or ""
-    row = {c: "" for c in ZI_COLUMNS}
+    row = {c: "" for c in ZS_COLUMNS}
     row.update({
         "query": query,
         "company": _u(d.get("name") or d.get("legalName")),
@@ -96,7 +96,7 @@ def _row_from_obj(d: dict, query: str) -> dict | None:
         addr = addr[0] if addr else {}
     if not isinstance(addr, dict):
         addr = {}
-    row = {c: "" for c in ZI_COLUMNS}
+    row = {c: "" for c in ZS_COLUMNS}
     row.update({
         "query": query,
         "company": _u(name),
@@ -187,7 +187,7 @@ async def search(query: str, limit: int | None = None) -> list[dict]:
 
 
 def to_export(doc: dict) -> dict:
-    return {c: doc.get(c, "") for c in ZI_COLUMNS}
+    return {c: doc.get(c, "") for c in ZS_COLUMNS}
 
 
 async def run_job(job_id: str, queries: list[str], limit: int | None = None) -> None:

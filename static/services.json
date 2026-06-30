@@ -1734,7 +1734,7 @@
    "Businesses & POI"
   ],
   "live": true,
-  "ui": "zoominfo"
+  "ui": "zoominfo_scraper"
  },
  {
   "no": "167",

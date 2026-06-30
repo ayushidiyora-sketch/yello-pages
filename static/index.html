@@ -1785,44 +1785,44 @@
   <div id="cbsPager"></div>
   </div><!-- /crunchbaseSearchView -->
 
-  <div id="zoominfoView" style="display:none">
+  <div id="zoominfoScraperView" style="display:none">
   <div class="panel">
     <div class="grid">
       <div class="field full">
         <label>Queries <span class="req">*</span></label>
-        <textarea id="ziInput" placeholder="https://www.zoominfo.com/c/crafters-companion-ltd/41668339"></textarea>
+        <textarea id="zisInput" placeholder="https://www.zoominfo.com/c/crafters-companion-ltd/41668339"></textarea>
         <div class="upload-row">
           <span>or select a CSV / XLSX / TXT / Parquet file</span>
-          <input type="file" id="ziFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ziFilePicked()">
-          <button type="button" class="btn-upload" onclick="document.getElementById('ziFile').click()">⬆ Upload file</button>
-          <span class="hint" id="ziFileName"></span>
+          <input type="file" id="zisFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="zisFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('zisFile').click()">⬆ Upload file</button>
+          <span class="hint" id="zisFileName"></span>
         </div>
         <span class="hint">One per line: a zoominfo.com/c/&lt;slug&gt;/&lt;id&gt; company URL. Fetched through the proxy pool (never the real IP). One row per company. ZoomInfo uses Cloudflare — live results need a residential proxy.</span>
       </div>
       <div class="field">
         <label>Limit per one query</label>
-        <input id="ziLimit" type="number" min="0" placeholder="all (0)" value="100">
+        <input id="zisLimit" type="number" min="0" placeholder="all (0)" value="100">
       </div>
     </div>
     <div class="actions">
-      <button class="btn-primary" id="ziStartBtn" onclick="ziStart()">⬇ Get Data</button>
-      <button class="btn-stop" id="ziStopBtn" onclick="ziStop()" disabled>■ Stop</button>
+      <button class="btn-primary" id="zisStartBtn" onclick="zisStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="zisStopBtn" onclick="zisStop()" disabled>■ Stop</button>
     </div>
   </div>
 
-  <div class="status" id="ziStatus"></div>
-  <div class="bar" id="ziBar"><i></i></div>
+  <div class="status" id="zisStatus"></div>
+  <div class="bar" id="zisBar"><i></i></div>
 
-  <div class="resbar" id="ziResbar" style="display:none">
-    <div class="count" id="ziCount"></div>
+  <div class="resbar" id="zisResbar" style="display:none">
+    <div class="count" id="zisCount"></div>
     <div class="resbar-controls">
-      <a id="ziDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
-      <button class="btn-ghost" type="button" id="ziDownloadXlsx" style="display:none" onclick="ziDownloadExcel()">⬇ Download Excel</button>
+      <a id="zisDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="zisDownloadXlsx" style="display:none" onclick="zisDownloadExcel()">⬇ Download Excel</button>
     </div>
   </div>
-  <div id="ziResults"></div>
-  <div id="ziPager"></div>
-  </div><!-- /zoominfoView -->
+  <div id="zisResults"></div>
+  <div id="zisPager"></div>
+  </div><!-- /zoominfoScraperView -->
 
   <div id="deliverooReviewsView" style="display:none">
   <div class="panel">
@@ -5411,7 +5411,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoScraperView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -5585,8 +5585,8 @@ function selectService(s, keep, fromHistory){
   if(vt==='crunchbase') cbInit();
   document.getElementById('crunchbaseSearchView').style.display = vt==='crunchbase_search' ? '' : 'none';
   if(vt==='crunchbase_search') cbsInit();
-  document.getElementById('zoominfoView').style.display = vt==='zoominfo' ? '' : 'none';
-  if(vt==='zoominfo') ziInit();
+  document.getElementById('zoominfoScraperView').style.display = vt==='zoominfo_scraper' ? '' : 'none';
+  if(vt==='zoominfo_scraper') zisInit();
   document.getElementById('deliverooReviewsView').style.display = vt==='deliveroo_reviews' ? '' : 'none';
   if(vt==='deliveroo_reviews') drInit();
   document.getElementById('deliverooView').style.display = vt==='deliveroo' ? '' : 'none';
@@ -5707,7 +5707,7 @@ function viewType(s){
   if(s.ui === 'feedbackcompany_company') return 'feedbackcompany_company';
   if(s.ui === 'crunchbase') return 'crunchbase';
   if(s.ui === 'crunchbase_search') return 'crunchbase_search';
-  if(s.ui === 'zoominfo') return 'zoominfo';
+  if(s.ui === 'zoominfo_scraper') return 'zoominfo_scraper';
   if(s.ui === 'deliveroo_reviews') return 'deliveroo_reviews';
   if(s.ui === 'deliveroo') return 'deliveroo';
   if(s.ui === 'ubereats') return 'ubereats';
@@ -10059,18 +10059,18 @@ function cbsDownloadExcel(){
 /* ---------- end Crunchbase Search ---------- */
 
 /* ---------- ZoomInfo Scraper ---------- */
-const ZI_COLUMNS=["query","company","website","phone","employees","revenue","industry","founded","address","city","state","country","ticker","logo"];
-const ZI_PAGE_SIZE=50;
-let ziTimer=null, ziJob=null, _ziRows=[], _ziPage=0, _ziDlUrl=null;
+const ZS_COLUMNS=["query","company","website","phone","employees","revenue","industry","founded","address","city","state","country","ticker","logo"];
+const ZS_PAGE_SIZE=50;
+let zisTimer=null, zisJob=null, _zisRows=[], _zisPage=0, _zisDlUrl=null;
 
-function ziInit(){}
+function zisInit(){}
 
-async function ziFilePicked(){
-  const f=document.getElementById('ziFile').files[0];
-  const nameEl=document.getElementById('ziFileName'); if(!f) return;
+async function zisFilePicked(){
+  const f=document.getElementById('zisFile').files[0];
+  const nameEl=document.getElementById('zisFileName'); if(!f) return;
   nameEl.textContent=f.name;
   const ext=(f.name.split('.').pop()||'').toLowerCase();
-  const ta=document.getElementById('ziInput');
+  const ta=document.getElementById('zisInput');
   const append=(arr)=>{ const cur=ta.value.trim(); ta.value=(cur?cur+'\n':'')+arr.join('\n'); };
   try{
     if(ext==='xlsx'){
@@ -10082,124 +10082,124 @@ async function ziFilePicked(){
   }catch(e){ nameEl.textContent='Could not read '+f.name; }
 }
 
-function ziSetRunning(on){
-  document.getElementById('ziStartBtn').disabled=on;
-  document.getElementById('ziStopBtn').disabled=!on;
-  ['ziInput','ziLimit'].forEach(id=>document.getElementById(id).disabled=on);
+function zisSetRunning(on){
+  document.getElementById('zisStartBtn').disabled=on;
+  document.getElementById('zisStopBtn').disabled=!on;
+  ['zisInput','zisLimit'].forEach(id=>document.getElementById(id).disabled=on);
 }
 
-async function ziStart(){
-  const typed=document.getElementById('ziInput').value.trim();
+async function zisStart(){
+  const typed=document.getElementById('zisInput').value.trim();
   const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
   if(!queries.length){ alert('Enter at least one ZoomInfo company URL (one per line), or upload a file.'); return; }
-  const limitRaw=document.getElementById('ziLimit').value.trim();
+  const limitRaw=document.getElementById('zisLimit').value.trim();
   const body={ queries, limit: limitRaw?parseInt(limitRaw,10):0 };
   let r;
-  try{ r=await fetch('/api/zoominfo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  try{ r=await fetch('/api/zoominfo-scraper',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
   catch(e){ alert('Could not reach the server.'); return; }
   if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
-  ziJob=(await r.json()).job_id;
-  _ziRows=[]; _ziPage=0;
-  document.getElementById('ziResbar').style.display='none';
-  document.getElementById('ziResults').innerHTML='';
-  document.getElementById('ziPager').innerHTML='';
-  document.getElementById('ziCount').textContent='';
-  document.getElementById('ziBar').style.display='block';
-  document.querySelector('#ziBar>i').style.width='30%';
-  ziSetRunning(true);
-  if(ziTimer) clearInterval(ziTimer);
-  ziTimer=setInterval(()=>ziPoll(ziJob),1500);
-  ziPoll(ziJob);
+  zisJob=(await r.json()).job_id;
+  _zisRows=[]; _zisPage=0;
+  document.getElementById('zisResbar').style.display='none';
+  document.getElementById('zisResults').innerHTML='';
+  document.getElementById('zisPager').innerHTML='';
+  document.getElementById('zisCount').textContent='';
+  document.getElementById('zisBar').style.display='block';
+  document.querySelector('#zisBar>i').style.width='30%';
+  zisSetRunning(true);
+  if(zisTimer) clearInterval(zisTimer);
+  zisTimer=setInterval(()=>zisPoll(zisJob),1500);
+  zisPoll(zisJob);
 }
 
-async function ziStop(){ if(ziJob){ document.getElementById('ziStopBtn').disabled=true; await fetch('/api/stop/'+ziJob,{method:'POST'}); } }
+async function zisStop(){ if(zisJob){ document.getElementById('zisStopBtn').disabled=true; await fetch('/api/stop/'+zisJob,{method:'POST'}); } }
 
-async function ziPoll(job_id){
+async function zisPoll(job_id){
   const s=await (await fetch('/api/status/'+job_id)).json();
-  const el=document.getElementById('ziStatus'); const got=s.total_scraped||0;
+  const el=document.getElementById('zisStatus'); const got=s.total_scraped||0;
   if(s.status==='running'){
     el.className='status running';
     el.innerHTML='<span class="spin"></span> Fetching ZoomInfo companies… '+got+' rows';
   } else {
-    clearInterval(ziTimer); ziSetRunning(false);
-    document.getElementById('ziBar').style.display='none';
+    clearInterval(zisTimer); zisSetRunning(false);
+    document.getElementById('zisBar').style.display='none';
     if(s.status==='done'||s.status==='stopped'){
       el.className='status '+s.status;
       el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' rows';
-      ziShowResults(job_id);
+      zisShowResults(job_id);
     } else if(s.status==='error'){
       el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown');
     }
   }
 }
 
-async function ziShowResults(job_id){
-  _ziRows=await (await fetch('/api/zoominfo-results/'+job_id+'?limit=5000')).json();
-  const resbar=document.getElementById('ziResbar');
-  if(!_ziRows.length){
-    document.getElementById('ziResults').innerHTML='';
-    document.getElementById('ziCount').innerHTML='<span class="empty">No data — ZoomInfo is Cloudflare-protected; a residential proxy is needed for live results. Use a zoominfo.com/c/&lt;slug&gt;/&lt;id&gt; URL.</span>';
+async function zisShowResults(job_id){
+  _zisRows=await (await fetch('/api/zoominfo-scraper-results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('zisResbar');
+  if(!_zisRows.length){
+    document.getElementById('zisResults').innerHTML='';
+    document.getElementById('zisCount').innerHTML='<span class="empty">No data — ZoomInfo is Cloudflare-protected; a residential proxy is needed for live results. Use a zoominfo.com/c/&lt;slug&gt;/&lt;id&gt; URL.</span>';
     resbar.style.display='flex';
-    document.getElementById('ziDownload').style.display='none';
-    document.getElementById('ziDownloadXlsx').style.display='none';
+    document.getElementById('zisDownload').style.display='none';
+    document.getElementById('zisDownloadXlsx').style.display='none';
     return;
   }
-  resbar.style.display='flex'; _ziPage=0;
-  ziRender();
-  document.getElementById('ziCount').textContent='Showing '+_ziRows.length+' rows ('+ZI_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
-  ziUpdateDownload();
+  resbar.style.display='flex'; _zisPage=0;
+  zisRender();
+  document.getElementById('zisCount').textContent='Showing '+_zisRows.length+' rows ('+ZS_PAGE_SIZE+' per page · download JSON/Excel for the full set).';
+  zisUpdateDownload();
 }
 
-function ziRender(){
-  const start=_ziPage*ZI_PAGE_SIZE;
+function zisRender(){
+  const start=_zisPage*ZS_PAGE_SIZE;
   const th='text-align:left;padding:8px 10px;font-size:12px;color:#70757a;border-bottom:1px solid var(--line);white-space:nowrap';
   const td='padding:8px 10px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;max-width:320px;overflow:hidden;text-overflow:ellipsis';
   let h='<div style="overflow-x:auto"><table style="display:table;width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px">'
-    +'<thead><tr>'+ZI_COLUMNS.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
-  for(const r of _ziRows.slice(start, start+ZI_PAGE_SIZE)){
-    h+='<tr>'+ZI_COLUMNS.map(c=>{
+    +'<thead><tr>'+ZS_COLUMNS.map(c=>`<th style="${th}">${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of _zisRows.slice(start, start+ZS_PAGE_SIZE)){
+    h+='<tr>'+ZS_COLUMNS.map(c=>{
       let v=r[c]; v=(v===null||v===undefined)?'':String(v);
       const cell=/^https?:\/\//.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">link</a>`:esc(v);
       return `<td style="${td}" title="${esc(v)}">${cell}</td>`;
     }).join('')+'</tr>';
   }
   h+='</tbody></table></div>';
-  document.getElementById('ziResults').innerHTML=h;
-  ziRenderPager(_ziRows.length);
+  document.getElementById('zisResults').innerHTML=h;
+  zisRenderPager(_zisRows.length);
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-function ziRenderPager(total){
-  const pages=Math.ceil(total/ZI_PAGE_SIZE), pg=document.getElementById('ziPager'); pg.innerHTML='';
+function zisRenderPager(total){
+  const pages=Math.ceil(total/ZS_PAGE_SIZE), pg=document.getElementById('zisPager'); pg.innerHTML='';
   if(pages<=1) return;
   const mk=(label,page,o={})=>{ const b=document.createElement('button'); b.className='btn-ghost'; b.textContent=label;
-    if(o.disabled) b.disabled=true; b.onclick=()=>{_ziPage=page; ziRender();}; return b; };
+    if(o.disabled) b.disabled=true; b.onclick=()=>{_zisPage=page; zisRender();}; return b; };
   const pinfo=(t)=>{ const s=document.createElement('span'); s.className='hint'; s.style.margin='0 8px'; s.textContent=t; return s; };
-  pg.appendChild(mk('‹ Prev',_ziPage-1,{disabled:_ziPage<=0}));
-  pg.appendChild(pinfo('Page '+(_ziPage+1)+' of '+pages));
-  pg.appendChild(mk('Next ›',_ziPage+1,{disabled:_ziPage>=pages-1}));
+  pg.appendChild(mk('‹ Prev',_zisPage-1,{disabled:_zisPage<=0}));
+  pg.appendChild(pinfo('Page '+(_zisPage+1)+' of '+pages));
+  pg.appendChild(mk('Next ›',_zisPage+1,{disabled:_zisPage>=pages-1}));
 }
 
-function ziFileName(){
-  const q=(document.getElementById('ziInput').value.trim().split(/\r?\n/)[0]||'results');
+function zisFileName(){
+  const q=(document.getElementById('zisInput').value.trim().split(/\r?\n/)[0]||'results');
   return 'zoominfo_'+q.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
 }
-function ziUpdateDownload(){
-  const dl=document.getElementById('ziDownload'), xl=document.getElementById('ziDownloadXlsx');
-  if(!_ziRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
-  if(_ziDlUrl) URL.revokeObjectURL(_ziDlUrl);
-  const rows=_ziRows.map(r=>{ const o={}; for(const c of ZI_COLUMNS) o[c]=r[c]??''; return o; });
-  _ziDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
-  dl.href=_ziDlUrl; dl.setAttribute('download', ziFileName()+'.json'); dl.style.display='inline-block';
+function zisUpdateDownload(){
+  const dl=document.getElementById('zisDownload'), xl=document.getElementById('zisDownloadXlsx');
+  if(!_zisRows.length){ dl.style.display='none'; xl.style.display='none'; return; }
+  if(_zisDlUrl) URL.revokeObjectURL(_zisDlUrl);
+  const rows=_zisRows.map(r=>{ const o={}; for(const c of ZS_COLUMNS) o[c]=r[c]??''; return o; });
+  _zisDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_zisDlUrl; dl.setAttribute('download', zisFileName()+'.json'); dl.style.display='inline-block';
   xl.style.display='inline-block';
 }
-function ziDownloadExcel(){
-  if(!_ziRows.length) return;
+function zisDownloadExcel(){
+  if(!_zisRows.length) return;
   if(typeof XLSX==='undefined'){ alert('Excel library not loaded.'); return; }
-  const rows=_ziRows.map(r=>{ const o={}; for(const c of ZI_COLUMNS) o[c]=r[c]??''; return o; });
-  const ws=XLSX.utils.json_to_sheet(rows,{header:ZI_COLUMNS});
+  const rows=_zisRows.map(r=>{ const o={}; for(const c of ZS_COLUMNS) o[c]=r[c]??''; return o; });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:ZS_COLUMNS});
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'ZoomInfo');
-  XLSX.writeFile(wb, ziFileName()+'.xlsx');
+  XLSX.writeFile(wb, zisFileName()+'.xlsx');
 }
 /* ---------- end ZoomInfo ---------- */
 

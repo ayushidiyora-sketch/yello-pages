@@ -193,7 +193,7 @@ class CrunchbaseSearchRequest(BaseModel):
     limit: int | None = Field(None, examples=[100])
 
 
-class ZoominfoRequest(BaseModel):
+class ZoominfoScraperRequest(BaseModel):
     # one per line: a zoominfo.com/c/<slug>/<id> company URL.
     queries: list[str] = Field(..., min_length=1, examples=[[
         "https://www.zoominfo.com/c/crafters-companion-ltd/41668339"]])

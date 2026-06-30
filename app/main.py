@@ -48,7 +48,7 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      AngiRequest, OfferupRequest, S1688Request, CraigslistRequest, AllegroRequest,
                      ImmoweltRequest, MobiledeRequest, WillhabenRequest, FeedbackCompanyRequest,
                      FeedbackCompanyCompanyRequest, CrunchbaseRequest, CrunchbaseSearchRequest,
-                     ZoominfoRequest, DeliverooReviewsRequest, DeliverooRequest, UberEatsRequest,
+                     ZoominfoScraperRequest, DeliverooReviewsRequest, DeliverooRequest, UberEatsRequest,
                      StreetEasyRequest, BingMapsRequest, UniversalAIRequest, EmailFinderRequest,
                      ZillowTransactionsRequest,
                      GSJobsRequest, GShopRequest, GShopReviewsRequest, GPlayRequest,
@@ -79,7 +79,7 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                immowelt as immowelt_mod, mobilede as mobilede_mod, willhaben as willhaben_mod,
                feedbackcompany as feedbackcompany_mod,
                feedbackcompany_company as feedbackcompany_company_mod, crunchbase as crunchbase_mod,
-               crunchbase_search as crunchbase_search_mod, zoominfo as zoominfo_mod,
+               crunchbase_search as crunchbase_search_mod, zoominfo_scraper as zoominfo_scraper_mod,
                deliveroo_reviews as deliveroo_reviews_mod, deliveroo as deliveroo_mod,
                ubereats as ubereats_mod, streeteasy as streeteasy_mod, bingmaps as bingmaps_mod,
                ai_universal as ai_universal_mod, email_finder as email_finder_mod,
@@ -259,9 +259,9 @@ async def _crunchbase_search_rows(job_id):
     return rows, crunchbase_search_mod.CBS_COLUMNS
 
 
-async def _zoominfo_rows(job_id):
+async def _zoominfo_scraper_rows(job_id):
     rows = [d async for d in zoominfo_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
-    return rows, zoominfo_mod.ZI_COLUMNS
+    return rows, zoominfo_scraper_mod.ZS_COLUMNS
 
 
 async def _deliveroo_reviews_rows(job_id):
@@ -1972,8 +1972,8 @@ async def crunchbase_search_results_get(job_id: str, limit: int = 5000):
     return rows[:limit]
 
 
-@app.post("/api/zoominfo")
-async def zoominfo_start(req: ZoominfoRequest):
+@app.post("/api/zoominfo-scraper")
+async def zoominfo_scraper_start(req: ZoominfoScraperRequest):
     """ZoomInfo Scraper — company profiles from zoominfo.com (needs residential proxy)."""
     queries = [q.strip() for q in req.queries if q and q.strip()]
     if not queries:
@@ -1981,17 +1981,17 @@ async def zoominfo_start(req: ZoominfoRequest):
     limit = req.limit if (req.limit and req.limit > 0) else None
     job_id = uuid.uuid4().hex
     await jobs.insert_one({
-        "job_id": job_id, "kind": "zoominfo", "queries": queries,
+        "job_id": job_id, "kind": "zoominfo_scraper", "queries": queries,
         "status": "running", "total_scraped": 0,
         "started_at": datetime.utcnow(), "finished_at": None,
     })
     asyncio.create_task(_run_and_archive(
-        zoominfo_mod.run_job(job_id, queries, limit), "zoominfo", job_id, _zoominfo_rows))
+        zoominfo_scraper_mod.run_job(job_id, queries, limit), "zoominfo_scraper", job_id, _zoominfo_scraper_rows))
     return {"job_id": job_id}
 
 
-@app.get("/api/zoominfo-results/{job_id}")
-async def zoominfo_results_get(job_id: str, limit: int = 5000):
+@app.get("/api/zoominfo-scraper-results/{job_id}")
+async def zoominfo_scraper_results_get(job_id: str, limit: int = 5000):
     rows = [d async for d in zoominfo_results.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
