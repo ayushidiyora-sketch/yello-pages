@@ -2985,6 +2985,143 @@
   <div id="ssResults"></div>
   </div><!-- /screenshoterView -->
 
+  <div id="eventbriteView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Event IDs or URLs <span class="req">*</span></label>
+      <textarea id="ebInput" placeholder="https://www.eventbrite.com/e/...-1417752679429&#10;1417752679429"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="ebFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ebFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('ebFile').click()">⬆ Upload file</button>
+        <span class="hint" id="ebFileName"></span></div>
+      <span class="hint">Event listings from Eventbrite (name, date, venue, price, organizer) from each event page's JSON-LD, through the proxy pool. One row per event.</span>
+    </div>
+    <div class="field"><label>Limit per one query</label><input id="ebLimit" type="number" min="1" placeholder="all" value="100"><span class="hint">0 = all.</span></div>
+  </div><div class="actions">
+    <button class="btn-primary" id="ebStartBtn" onclick="ebStart()">⬇ Get Data</button>
+    <button class="btn-stop" id="ebStopBtn" onclick="ebStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="ebStatus"></div><div class="bar" id="ebBar"><i></i></div>
+  <div class="resbar" id="ebResbar" style="display:none"><div class="count" id="ebCount"></div>
+    <div class="resbar-controls"><a id="ebDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="ebDownloadXlsx" style="display:none" onclick="ebDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="ebResults"></div>
+  </div><!-- /eventbriteView -->
+
+  <div id="meetupView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Search queries or URLs <span class="req">*</span></label>
+      <textarea id="muInput" placeholder="concert&#10;https://www.meetup.com/find/?keywords=soccer&source=EVENTS"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="muFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="muFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('muFile').click()">⬆ Upload file</button>
+        <span class="hint" id="muFileName"></span></div>
+      <span class="hint">Event listings from Meetup.com (name, date, venue, group) from each page's JSON-LD, through the proxy pool. One row per event.</span>
+    </div>
+    <div class="field"><label>Limit per one query</label><input id="muLimit" type="number" min="1" placeholder="all" value="100"><span class="hint">0 = all.</span></div>
+  </div><div class="actions">
+    <button class="btn-primary" id="muStartBtn" onclick="muStart()">⬇ Get Data</button>
+    <button class="btn-stop" id="muStopBtn" onclick="muStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="muStatus"></div><div class="bar" id="muBar"><i></i></div>
+  <div class="resbar" id="muResbar" style="display:none"><div class="count" id="muCount"></div>
+    <div class="resbar-controls"><a id="muDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="muDownloadXlsx" style="display:none" onclick="muDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="muResults"></div>
+  </div><!-- /meetupView -->
+
+  <div id="tiktokVideosView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Video IDs or URLs <span class="req">*</span></label>
+      <textarea id="tvInput" placeholder="https://www.tiktok.com/@username/video/1234567890123456789"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="tvFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="tvFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('tvFile').click()">⬆ Upload file</button>
+        <span class="hint" id="tvFileName"></span></div>
+      <span class="hint">Video data (author, description, likes/comments/shares/plays) from each video page's embedded JSON, through the proxy pool. One row per video.</span>
+    </div>
+  </div><div class="actions">
+    <button class="btn-primary" id="tvStartBtn" onclick="tvStart()">⬇ Get Data</button>
+    <button class="btn-stop" id="tvStopBtn" onclick="tvStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="tvStatus"></div><div class="bar" id="tvBar"><i></i></div>
+  <div class="resbar" id="tvResbar" style="display:none"><div class="count" id="tvCount"></div>
+    <div class="resbar-controls"><a id="tvDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="tvDownloadXlsx" style="display:none" onclick="tvDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="tvResults"></div>
+  </div><!-- /tiktokVideosView -->
+
+  <div id="tiktokHashtagsView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Hashtags or hashtag URLs <span class="req">*</span></label>
+      <textarea id="thInput" placeholder="squidgame&#10;#squidgame&#10;https://www.tiktok.com/tag/squidgame"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="thFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="thFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('thFile').click()">⬆ Upload file</button>
+        <span class="hint" id="thFileName"></span></div>
+      <span class="hint">Hashtag view/video counts when embedded. <b>The video list loads via TikTok's request-signed API</b> (not in page HTML), so videos need a signing service. One row per hashtag.</span>
+    </div>
+    <div class="field"><label>Limit per one query</label><input id="thLimit" type="number" min="1" placeholder="100" value="100"></div>
+  </div><div class="actions">
+    <button class="btn-primary" id="thStartBtn" onclick="thStart()">⬇ Get Data</button>
+    <button class="btn-stop" id="thStopBtn" onclick="thStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="thStatus"></div><div class="bar" id="thBar"><i></i></div>
+  <div class="resbar" id="thResbar" style="display:none"><div class="count" id="thCount"></div>
+    <div class="resbar-controls"><a id="thDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="thDownloadXlsx" style="display:none" onclick="thDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="thResults"></div>
+  </div><!-- /tiktokHashtagsView -->
+
+  <div id="tiktokSearchView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Search queries <span class="req">*</span></label>
+      <textarea id="tsInput" placeholder="squid game&#10;trending dance"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="tsFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="tsFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('tsFile').click()">⬆ Upload file</button>
+        <span class="hint" id="tsFileName"></span></div>
+      <span class="hint"><b>TikTok search results load via TikTok's request-signed API</b> (not in page HTML), so they need a signing service. Returns a status per query.</span>
+    </div>
+    <div class="field"><label>Limit per one query</label><input id="tsLimit" type="number" min="1" placeholder="100" value="100"></div>
+  </div><div class="actions">
+    <button class="btn-primary" id="tsStartBtn" onclick="tsStart()">⬇ Get Data</button>
+    <button class="btn-stop" id="tsStopBtn" onclick="tsStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="tsStatus"></div><div class="bar" id="tsBar"><i></i></div>
+  <div class="resbar" id="tsResbar" style="display:none"><div class="count" id="tsCount"></div>
+    <div class="resbar-controls"><a id="tsDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="tsDownloadXlsx" style="display:none" onclick="tsDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="tsResults"></div>
+  </div><!-- /tiktokSearchView -->
+
+  <div id="tiktokCommentsView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full">
+      <label>Video links or video IDs <span class="req">*</span></label>
+      <textarea id="tcInput" placeholder="https://www.tiktok.com/@user/video/7529087250404019458&#10;7529087250404019458"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="tcFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="tcFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('tcFile').click()">⬆ Upload file</button>
+        <span class="hint" id="tcFileName"></span></div>
+      <span class="hint">Returns the video's comment count. <b>The comments themselves load via TikTok's request-signed API</b> (not in page HTML), so they need a signing service. One row per video.</span>
+    </div>
+    <div class="field"><label>Comments limit</label><input id="tcLimit" type="number" min="1" placeholder="100" value="100"></div>
+  </div><div class="actions">
+    <button class="btn-primary" id="tcStartBtn" onclick="tcStart()">⬇ Get Data</button>
+    <button class="btn-stop" id="tcStopBtn" onclick="tcStop()" disabled>■ Stop</button>
+  </div></div>
+  <div class="status" id="tcStatus"></div><div class="bar" id="tcBar"><i></i></div>
+  <div class="resbar" id="tcResbar" style="display:none"><div class="count" id="tcCount"></div>
+    <div class="resbar-controls"><a id="tcDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    <button class="btn-ghost" type="button" id="tcDownloadXlsx" style="display:none" onclick="tcDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="tcResults"></div>
+  </div><!-- /tiktokCommentsView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -5011,7 +5148,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -5211,6 +5348,12 @@ function selectService(s, keep, fromHistory){
   document.getElementById('yahooSearchView').style.display = vt==='yahoo_search' ? '' : 'none';
   document.getElementById('zoominfoView').style.display = vt==='zoominfo' ? '' : 'none';
   document.getElementById('screenshoterView').style.display = vt==='screenshoter' ? '' : 'none';
+  document.getElementById('eventbriteView').style.display = vt==='eventbrite' ? '' : 'none';
+  document.getElementById('meetupView').style.display = vt==='meetup' ? '' : 'none';
+  document.getElementById('tiktokVideosView').style.display = vt==='tiktok_videos' ? '' : 'none';
+  document.getElementById('tiktokHashtagsView').style.display = vt==='tiktok_hashtags' ? '' : 'none';
+  document.getElementById('tiktokSearchView').style.display = vt==='tiktok_search' ? '' : 'none';
+  document.getElementById('tiktokCommentsView').style.display = vt==='tiktok_comments' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -5310,6 +5453,12 @@ function viewType(s){
   if(s.ui === 'yahoo_search') return 'yahoo_search';
   if(s.ui === 'zoominfo') return 'zoominfo';
   if(s.ui === 'screenshoter') return 'screenshoter';
+  if(s.ui === 'eventbrite') return 'eventbrite';
+  if(s.ui === 'meetup') return 'meetup';
+  if(s.ui === 'tiktok_videos') return 'tiktok_videos';
+  if(s.ui === 'tiktok_hashtags') return 'tiktok_hashtags';
+  if(s.ui === 'tiktok_search') return 'tiktok_search';
+  if(s.ui === 'tiktok_comments') return 'tiktok_comments';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -12114,6 +12263,18 @@ const YS_COLUMNS=["query","position","title","url","description"];
 _enrichSvc('ys',{api:'/api/yahoo-search', columns:YS_COLUMNS, noun:'result', nounP:'results', verb:'Searching', sheet:'yahoo-search', sheetTab:'Yahoo'});
 const ZI_COLUMNS=["domain","company_name","zoominfo_url","status"];
 _enrichSvc('zi',{api:'/api/zoominfo', columns:ZI_COLUMNS, noun:'domain', nounP:'domains', verb:'Looking up', sheet:'zoominfo', sheetTab:'ZoomInfo'});
+
+const EVENT_COLUMNS=["query","name","start","end","venue","address","price","currency","organizer","url"];
+_enrichSvc('eb',{api:'/api/eventbrite', columns:EVENT_COLUMNS, noun:'event', nounP:'events', verb:'Scraping', sheet:'eventbrite', sheetTab:'Eventbrite'});
+_enrichSvc('mu',{api:'/api/meetup', columns:EVENT_COLUMNS, noun:'event', nounP:'events', verb:'Scraping', sheet:'meetup', sheetTab:'Meetup'});
+const TV_COLUMNS=["query","video_id","author","description","create_time","likes","comments","shares","plays","url"];
+_enrichSvc('tv',{api:'/api/tiktok-videos', columns:TV_COLUMNS, noun:'video', nounP:'videos', verb:'Scraping', sheet:'tiktok-videos', sheetTab:'TikTokVideos'});
+const TH_COLUMNS=["query","hashtag","views","videos","status"];
+_enrichSvc('th',{api:'/api/tiktok-hashtags', columns:TH_COLUMNS, noun:'hashtag', nounP:'hashtags', verb:'Scraping', sheet:'tiktok-hashtags', sheetTab:'TikTokHashtags'});
+const TS_COLUMNS=["query","status"];
+_enrichSvc('ts',{api:'/api/tiktok-search', columns:TS_COLUMNS, noun:'query', nounP:'queries', verb:'Searching', sheet:'tiktok-search', sheetTab:'TikTokSearch'});
+const TC_COLUMNS=["query","video_id","comment_count","status"];
+_enrichSvc('tc',{api:'/api/tiktok-comments', columns:TC_COLUMNS, noun:'video', nounP:'videos', verb:'Scraping', sheet:'tiktok-comments', sheetTab:'TikTokComments'});
 
 // ===== WebPage Screenshoter (custom: extra options + image rendering) =====
 let ssTimer=null, ssJob=null, _ssRows=[], _ssDlUrl=null;

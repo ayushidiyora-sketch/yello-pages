@@ -289,6 +289,42 @@ class ZoomInfoRequest(BaseModel):
     limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
 
 
+class EventbriteRequest(BaseModel):
+    # each line: an Eventbrite event URL or numeric event id
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.eventbrite.com/e/1417752679429"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # events/query; 0 = all
+
+
+class MeetupRequest(BaseModel):
+    # each line: a Meetup event/find URL or a keyword
+    queries: list[str] = Field(..., min_length=1, examples=[["concert"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # events/query; 0 = all
+
+
+class TikTokVideosRequest(BaseModel):
+    # each line: a TikTok video URL or numeric id
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.tiktok.com/@user/video/123"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/video); kept for UI parity
+
+
+class TikTokHashtagsRequest(BaseModel):
+    # each line: a hashtag, #hashtag, or hashtag URL
+    queries: list[str] = Field(..., min_length=1, examples=[["squidgame"]])
+    limit: Optional[int] = Field(100, ge=0, examples=[100])  # videos/query (API-gated)
+
+
+class TikTokSearchRequest(BaseModel):
+    # each line: a TikTok search query
+    queries: list[str] = Field(..., min_length=1, examples=[["squid game"]])
+    limit: Optional[int] = Field(100, ge=0, examples=[100])  # results/query (API-gated)
+
+
+class TikTokCommentsRequest(BaseModel):
+    # each line: a TikTok video URL or numeric id
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.tiktok.com/@user/video/123"]])
+    limit: Optional[int] = Field(100, ge=0, examples=[100])  # comments/video (API-gated)
+
+
 class ScreenshoterRequest(BaseModel):
     # each line: a URL to screenshot
     queries: list[str] = Field(..., min_length=1, examples=[["https://outscraper.com"]])

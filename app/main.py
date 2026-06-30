@@ -28,7 +28,8 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  leads_enrichment, email_verifier, company_insights, phone_enricher, phone_identity,
                  similarweb, geocoding, builtwith, disposable_email, whitepages_addresses,
                  fastbackgroundcheck_addresses, reverse_geocoding, domain_info, yahoo_search, zoominfo,
-                 screenshoter,
+                 screenshoter, eventbrite, meetup, tiktok_videos, tiktok_hashtags, tiktok_search,
+                 tiktok_comments,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -57,7 +58,9 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      CompanyInsightsRequest, PhoneEnricherRequest, PhoneIdentityRequest,
                      SimilarWebRequest, GeocodingRequest, BuiltWithRequest, DisposableEmailRequest,
                      WhitepagesAddressesRequest, FastbgAddressesRequest, ReverseGeocodingRequest,
-                     DomainInfoRequest, YahooSearchRequest, ZoomInfoRequest, ScreenshoterRequest)
+                     DomainInfoRequest, YahooSearchRequest, ZoomInfoRequest, ScreenshoterRequest,
+                     EventbriteRequest, MeetupRequest, TikTokVideosRequest, TikTokHashtagsRequest,
+                     TikTokSearchRequest, TikTokCommentsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -86,7 +89,9 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                disposable_email as disposable_email_mod, whitepages_addresses as whitepages_addresses_mod,
                fastbackgroundcheck_addresses as fastbg_mod, reverse_geocoding as reverse_geocoding_mod,
                domain_info as domain_info_mod, yahoo_search as yahoo_search_mod, zoominfo as zoominfo_mod,
-               screenshoter as screenshoter_mod)
+               screenshoter as screenshoter_mod, eventbrite as eventbrite_mod, meetup as meetup_mod,
+               tiktok_videos as tiktok_videos_mod, tiktok_hashtags as tiktok_hashtags_mod,
+               tiktok_search as tiktok_search_mod, tiktok_comments as tiktok_comments_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -400,6 +405,47 @@ async def _zi_rows(job_id):
 async def _ss_rows(job_id):
     rows = [d async for d in screenshoter.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, screenshoter_mod.SS_COLUMNS
+
+
+async def _eb_rows(job_id):
+    rows = [d async for d in eventbrite.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, eventbrite_mod.EB_COLUMNS
+
+
+async def _mu_rows(job_id):
+    rows = [d async for d in meetup.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, meetup_mod.MU_COLUMNS
+
+
+async def _tv_rows(job_id):
+    rows = [d async for d in tiktok_videos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_videos_mod.TV_COLUMNS
+
+
+async def _th_rows(job_id):
+    rows = [d async for d in tiktok_hashtags.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_hashtags_mod.TH_COLUMNS
+
+
+async def _ts_rows(job_id):
+    rows = [d async for d in tiktok_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_search_mod.TS_COLUMNS
+
+
+async def _tc_rows(job_id):
+    rows = [d async for d in tiktok_comments.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_comments_mod.TC_COLUMNS
+
+
+async def _start_enrich_lim(kind, queries, lim, run_coro_fn, rows_fn):
+    """Like _start_enrich but passes a per-query limit to run_job."""
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": kind, "queries": queries, "limit": lim, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(run_coro_fn(job_id, queries, lim), kind, job_id, rows_fn))
+    return {"job_id": job_id}
 
 
 async def _gplay_rows(job_id):
@@ -2550,6 +2596,86 @@ async def screenshoter_file(job_id: str, name: str):
     if not os.path.isfile(path):
         raise HTTPException(404, "not found")
     return FileResponse(path)
+
+
+@app.post("/api/eventbrite")
+async def eventbrite_start(req: EventbriteRequest):
+    """Eventbrite Scraper — event listings from eventbrite.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("eventbrite", _clean_queries(req), lim, eventbrite_mod.run_job, _eb_rows)
+
+
+@app.get("/api/eventbrite/results/{job_id}")
+async def eventbrite_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in eventbrite.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/meetup")
+async def meetup_start(req: MeetupRequest):
+    """Meetup Scraper — event listings from meetup.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("meetup", _clean_queries(req), lim, meetup_mod.run_job, _mu_rows)
+
+
+@app.get("/api/meetup/results/{job_id}")
+async def meetup_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in meetup.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-videos")
+async def tiktok_videos_start(req: TikTokVideosRequest):
+    """TikTok Videos Scraper — video detail from the page's embedded JSON (proxy-only)."""
+    return await _start_enrich("tiktok_videos", _clean_queries(req), tiktok_videos_mod.run_job, _tv_rows)
+
+
+@app.get("/api/tiktok-videos/results/{job_id}")
+async def tiktok_videos_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_videos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-hashtags")
+async def tiktok_hashtags_start(req: TikTokHashtagsRequest):
+    """TikTok Hashtags Scraper — hashtag counts (video list is signed-API-gated). Proxy-only."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("tiktok_hashtags", _clean_queries(req), lim,
+                                   tiktok_hashtags_mod.run_job, _th_rows)
+
+
+@app.get("/api/tiktok-hashtags/results/{job_id}")
+async def tiktok_hashtags_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_hashtags.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-search")
+async def tiktok_search_start(req: TikTokSearchRequest):
+    """TikTok Search Scraper — results are signed-API-gated; returns a status. Proxy-only."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("tiktok_search", _clean_queries(req), lim,
+                                   tiktok_search_mod.run_job, _ts_rows)
+
+
+@app.get("/api/tiktok-search/results/{job_id}")
+async def tiktok_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-comments")
+async def tiktok_comments_start(req: TikTokCommentsRequest):
+    """TikTok Comments Scraper — comments are signed-API-gated; returns count + status. Proxy-only."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("tiktok_comments", _clean_queries(req), lim,
+                                   tiktok_comments_mod.run_job, _tc_rows)
+
+
+@app.get("/api/tiktok-comments/results/{job_id}")
+async def tiktok_comments_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_comments.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
 
 
 @app.post("/api/gplay")
