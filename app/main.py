@@ -1,4 +1,5 @@
 import asyncio
+import os
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -24,7 +25,11 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  glassdoor_company_jobs_results,
                  booking_results, bestbuy_results, yelp_results, yelp_reviews,
                  yelp_photos, yt_transcripts, yt_search, emails_contacts,
-                 leads_enrichment, email_verifier, company_insights, phone_enricher,
+                 leads_enrichment, email_verifier, company_insights, phone_enricher, phone_identity,
+                 similarweb, geocoding, builtwith, disposable_email, whitepages_addresses,
+                 fastbackgroundcheck_addresses, reverse_geocoding, domain_info, yahoo_search, zoominfo,
+                 screenshoter, eventbrite, meetup, tiktok_videos, tiktok_hashtags, tiktok_search,
+                 tiktok_comments, appstore_reviews, asos_products,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -50,7 +55,13 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      BestBuyProductsRequest, YelpBusinessRequest, YelpReviewsRequest,
                      YelpPhotosRequest, YTTranscriptsRequest, YTSearchRequest,
                      EmailsContactsRequest, LeadsEnrichmentRequest, EmailVerifierRequest,
-                     CompanyInsightsRequest, PhoneEnricherRequest)
+                     CompanyInsightsRequest, PhoneEnricherRequest, PhoneIdentityRequest,
+                     SimilarWebRequest, GeocodingRequest, BuiltWithRequest, DisposableEmailRequest,
+                     WhitepagesAddressesRequest, FastbgAddressesRequest, ReverseGeocodingRequest,
+                     DomainInfoRequest, YahooSearchRequest, ZoomInfoRequest, ScreenshoterRequest,
+                     EventbriteRequest, MeetupRequest, TikTokVideosRequest, TikTokHashtagsRequest,
+                     TikTokSearchRequest, TikTokCommentsRequest, AppStoreReviewsRequest,
+                     AsosProductsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -74,7 +85,15 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                yt_transcripts as yt_transcripts_mod, yt_search as yt_search_mod,
                emails_contacts as emails_contacts_mod, leads_enrichment as leads_enrichment_mod,
                email_verifier as email_verifier_mod, company_insights as company_insights_mod,
-               phone_enricher as phone_enricher_mod)
+               phone_enricher as phone_enricher_mod, phone_identity as phone_identity_mod,
+               similarweb as similarweb_mod, geocoding as geocoding_mod, builtwith as builtwith_mod,
+               disposable_email as disposable_email_mod, whitepages_addresses as whitepages_addresses_mod,
+               fastbackgroundcheck_addresses as fastbg_mod, reverse_geocoding as reverse_geocoding_mod,
+               domain_info as domain_info_mod, yahoo_search as yahoo_search_mod, zoominfo as zoominfo_mod,
+               screenshoter as screenshoter_mod, eventbrite as eventbrite_mod, meetup as meetup_mod,
+               tiktok_videos as tiktok_videos_mod, tiktok_hashtags as tiktok_hashtags_mod,
+               tiktok_search as tiktok_search_mod, tiktok_comments as tiktok_comments_mod,
+               appstore_reviews as appstore_reviews_mod, asos as asos_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -328,6 +347,117 @@ async def _ci_rows(job_id):
 async def _pe_rows(job_id):
     rows = [d async for d in phone_enricher.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, phone_enricher_mod.PE_COLUMNS
+
+
+async def _pi_rows(job_id):
+    rows = [d async for d in phone_identity.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, phone_identity_mod.PI_COLUMNS
+
+
+async def _sw_rows(job_id):
+    rows = [d async for d in similarweb.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, similarweb_mod.SW_COLUMNS
+
+
+async def _gc_rows(job_id):
+    rows = [d async for d in geocoding.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, geocoding_mod.GC_COLUMNS
+
+
+async def _bw_rows(job_id):
+    rows = [d async for d in builtwith.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, builtwith_mod.BW_COLUMNS
+
+
+async def _de_rows(job_id):
+    rows = [d async for d in disposable_email.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, disposable_email_mod.DE_COLUMNS
+
+
+async def _wa_rows(job_id):
+    rows = [d async for d in whitepages_addresses.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, whitepages_addresses_mod.AR_COLUMNS
+
+
+async def _fb_rows(job_id):
+    rows = [d async for d in fastbackgroundcheck_addresses.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, fastbg_mod.AR_COLUMNS
+
+
+async def _rg_rows(job_id):
+    rows = [d async for d in reverse_geocoding.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, reverse_geocoding_mod.RG_COLUMNS
+
+
+async def _di_rows(job_id):
+    rows = [d async for d in domain_info.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, domain_info_mod.DI_COLUMNS
+
+
+async def _ys_rows(job_id):
+    rows = [d async for d in yahoo_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, yahoo_search_mod.YS_COLUMNS
+
+
+async def _zi_rows(job_id):
+    rows = [d async for d in zoominfo.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, zoominfo_mod.ZI_COLUMNS
+
+
+async def _ss_rows(job_id):
+    rows = [d async for d in screenshoter.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, screenshoter_mod.SS_COLUMNS
+
+
+async def _eb_rows(job_id):
+    rows = [d async for d in eventbrite.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, eventbrite_mod.EB_COLUMNS
+
+
+async def _mu_rows(job_id):
+    rows = [d async for d in meetup.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, meetup_mod.MU_COLUMNS
+
+
+async def _tv_rows(job_id):
+    rows = [d async for d in tiktok_videos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_videos_mod.TV_COLUMNS
+
+
+async def _th_rows(job_id):
+    rows = [d async for d in tiktok_hashtags.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_hashtags_mod.TH_COLUMNS
+
+
+async def _ts_rows(job_id):
+    rows = [d async for d in tiktok_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_search_mod.TS_COLUMNS
+
+
+async def _tc_rows(job_id):
+    rows = [d async for d in tiktok_comments.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, tiktok_comments_mod.TC_COLUMNS
+
+
+async def _asr_rows(job_id):
+    rows = [d async for d in appstore_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, appstore_reviews_mod.AR_COLUMNS
+
+
+async def _asos_rows(job_id):
+    rows = [d async for d in asos_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, asos_mod.AS_COLUMNS
+
+
+async def _start_enrich_lim(kind, queries, lim, run_coro_fn, rows_fn):
+    """Like _start_enrich but passes a per-query limit to run_job."""
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": kind, "queries": queries, "limit": lim, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(run_coro_fn(job_id, queries, lim), kind, job_id, rows_fn))
+    return {"job_id": job_id}
 
 
 async def _gplay_rows(job_id):
@@ -2259,6 +2389,331 @@ async def phone_enricher_start(req: PhoneEnricherRequest):
 @app.get("/api/phone-enricher/results/{job_id}")
 async def phone_enricher_results(job_id: str, limit: int = 5000):
     rows = [d async for d in phone_enricher.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/phone-identity")
+async def phone_identity_start(req: PhoneIdentityRequest):
+    """Phone Identity Finder — owner name + address for a US phone number (reverse lookup via
+    thatsthem, proxy-only). One row per number."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one US phone number is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "phone_identity", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        phone_identity_mod.run_job(job_id, queries, None), "phone_identity", job_id, _pi_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/phone-identity/results/{job_id}")
+async def phone_identity_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in phone_identity.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/similarweb")
+async def similarweb_start(req: SimilarWebRequest):
+    """SimilarWeb Scraper — traffic/rank/engagement per domain from SimilarWeb's internal JSON API
+    (proxy-only). Residential-only: datacenter IPs are WAF-blocked (403). One row per domain."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one domain or URL is required")
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "similarweb", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        similarweb_mod.run_job(job_id, queries, None), "similarweb", job_id, _sw_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/similarweb/results/{job_id}")
+async def similarweb_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in similarweb.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+def _clean_queries(req):
+    qs = [q.strip() for q in req.queries if q and q.strip()]
+    if not qs:
+        raise HTTPException(400, "at least one input is required")
+    return qs
+
+
+async def _start_enrich(kind, queries, run_coro_fn, rows_fn):
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": kind, "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(run_coro_fn(job_id, queries, None), kind, job_id, rows_fn))
+    return {"job_id": job_id}
+
+
+@app.post("/api/geocoding")
+async def geocoding_start(req: GeocodingRequest):
+    """Geocoding — address -> lat/lon + place metadata (OpenStreetMap, proxy-only)."""
+    return await _start_enrich("geocoding", _clean_queries(req), geocoding_mod.run_job, _gc_rows)
+
+
+@app.get("/api/geocoding/results/{job_id}")
+async def geocoding_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in geocoding.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/builtwith")
+async def builtwith_start(req: BuiltWithRequest):
+    """BuiltWith Scraper — a website's tech stack from its HTML/headers (proxy-only, free pool)."""
+    return await _start_enrich("builtwith", _clean_queries(req), builtwith_mod.run_job, _bw_rows)
+
+
+@app.get("/api/builtwith/results/{job_id}")
+async def builtwith_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in builtwith.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/disposable-email")
+async def disposable_email_start(req: DisposableEmailRequest):
+    """Disposable Email Checker — classify each email's domain disposable/free/corporate (offline)."""
+    return await _start_enrich("disposable_email", _clean_queries(req), disposable_email_mod.run_job, _de_rows)
+
+
+@app.get("/api/disposable-email/results/{job_id}")
+async def disposable_email_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in disposable_email.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/whitepages-addresses")
+async def whitepages_addresses_start(req: WhitepagesAddressesRequest):
+    """Whitepages Addresses Scraper — geocoded location + best-effort residents (proxy-only)."""
+    return await _start_enrich("whitepages_addresses", _clean_queries(req),
+                               whitepages_addresses_mod.run_job, _wa_rows)
+
+
+@app.get("/api/whitepages-addresses/results/{job_id}")
+async def whitepages_addresses_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in whitepages_addresses.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/fastbg-addresses")
+async def fastbg_addresses_start(req: FastbgAddressesRequest):
+    """Fastbackgroundcheck Addresses Scraper — geocoded location + best-effort residents (proxy-only)."""
+    return await _start_enrich("fastbackgroundcheck_addresses", _clean_queries(req),
+                               fastbg_mod.run_job, _fb_rows)
+
+
+@app.get("/api/fastbg-addresses/results/{job_id}")
+async def fastbg_addresses_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in fastbackgroundcheck_addresses.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/reverse-geocoding")
+async def reverse_geocoding_start(req: ReverseGeocodingRequest):
+    """Reverse Geocoding — 'lat,lon' -> a human-readable address (OpenStreetMap, proxy-only)."""
+    return await _start_enrich("reverse_geocoding", _clean_queries(req), reverse_geocoding_mod.run_job, _rg_rows)
+
+
+@app.get("/api/reverse-geocoding/results/{job_id}")
+async def reverse_geocoding_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in reverse_geocoding.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/domain-info")
+async def domain_info_start(req: DomainInfoRequest):
+    """Domain Information — WHOIS/RDAP registrar, dates, nameservers & status per domain (proxy-only)."""
+    return await _start_enrich("domain_info", _clean_queries(req), domain_info_mod.run_job, _di_rows)
+
+
+@app.get("/api/domain-info/results/{job_id}")
+async def domain_info_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in domain_info.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/yahoo-search")
+async def yahoo_search_start(req: YahooSearchRequest):
+    """Yahoo Search Scraper — organic web results per query (proxy-only, works on the free pool)."""
+    queries = _clean_queries(req)
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "yahoo_search", "queries": queries, "limit": lim, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        yahoo_search_mod.run_job(job_id, queries, lim), "yahoo_search", job_id, _ys_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/yahoo-search/results/{job_id}")
+async def yahoo_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in yahoo_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/zoominfo")
+async def zoominfo_start(req: ZoomInfoRequest):
+    """Zoominfo by Domains — company lookup (paid/anti-bot source; blocked on datacenter IPs)."""
+    return await _start_enrich("zoominfo", _clean_queries(req), zoominfo_mod.run_job, _zi_rows)
+
+
+@app.get("/api/zoominfo/results/{job_id}")
+async def zoominfo_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in zoominfo.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/screenshoter")
+async def screenshoter_start(req: ScreenshoterRequest):
+    """WebPage Screenshoter — render each URL in a headless browser and capture PNG/JPEG/PDF
+    (proxy-first, direct fallback). One row per URL."""
+    queries = [q.strip() for q in req.queries if q and q.strip()]
+    if not queries:
+        raise HTTPException(400, "at least one URL is required")
+    fmt = (req.image_format or "png").lower()
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "screenshoter", "queries": queries, "status": "running",
+        "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        screenshoter_mod.run_job(job_id, queries, fmt, req.width, req.height, req.full_page),
+        "screenshoter", job_id, _ss_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/screenshoter/results/{job_id}")
+async def screenshoter_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in screenshoter.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.get("/api/screenshoter/file/{job_id}/{name}")
+async def screenshoter_file(job_id: str, name: str):
+    # serve a captured screenshot/PDF; guard against path traversal
+    if "/" in name or "\\" in name or ".." in name or "/" in job_id or ".." in job_id:
+        raise HTTPException(400, "bad path")
+    path = os.path.join("data", "screenshots", job_id, name)
+    if not os.path.isfile(path):
+        raise HTTPException(404, "not found")
+    return FileResponse(path)
+
+
+@app.post("/api/eventbrite")
+async def eventbrite_start(req: EventbriteRequest):
+    """Eventbrite Scraper — event listings from eventbrite.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("eventbrite", _clean_queries(req), lim, eventbrite_mod.run_job, _eb_rows)
+
+
+@app.get("/api/eventbrite/results/{job_id}")
+async def eventbrite_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in eventbrite.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/meetup")
+async def meetup_start(req: MeetupRequest):
+    """Meetup Scraper — event listings from meetup.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("meetup", _clean_queries(req), lim, meetup_mod.run_job, _mu_rows)
+
+
+@app.get("/api/meetup/results/{job_id}")
+async def meetup_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in meetup.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-videos")
+async def tiktok_videos_start(req: TikTokVideosRequest):
+    """TikTok Videos Scraper — video detail from the page's embedded JSON (proxy-only)."""
+    return await _start_enrich("tiktok_videos", _clean_queries(req), tiktok_videos_mod.run_job, _tv_rows)
+
+
+@app.get("/api/tiktok-videos/results/{job_id}")
+async def tiktok_videos_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_videos.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-hashtags")
+async def tiktok_hashtags_start(req: TikTokHashtagsRequest):
+    """TikTok Hashtags Scraper — hashtag counts (video list is signed-API-gated). Proxy-only."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("tiktok_hashtags", _clean_queries(req), lim,
+                                   tiktok_hashtags_mod.run_job, _th_rows)
+
+
+@app.get("/api/tiktok-hashtags/results/{job_id}")
+async def tiktok_hashtags_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_hashtags.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-search")
+async def tiktok_search_start(req: TikTokSearchRequest):
+    """TikTok Search Scraper — results are signed-API-gated; returns a status. Proxy-only."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("tiktok_search", _clean_queries(req), lim,
+                                   tiktok_search_mod.run_job, _ts_rows)
+
+
+@app.get("/api/tiktok-search/results/{job_id}")
+async def tiktok_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/tiktok-comments")
+async def tiktok_comments_start(req: TikTokCommentsRequest):
+    """TikTok Comments Scraper — comments are signed-API-gated; returns count + status. Proxy-only."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("tiktok_comments", _clean_queries(req), lim,
+                                   tiktok_comments_mod.run_job, _tc_rows)
+
+
+@app.get("/api/tiktok-comments/results/{job_id}")
+async def tiktok_comments_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in tiktok_comments.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/appstore-reviews")
+async def appstore_reviews_start(req: AppStoreReviewsRequest):
+    """AppStore Reviews Scraper — customer reviews via Apple's iTunes RSS (proxy-only, cross-IP retry)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("appstore_reviews", _clean_queries(req), lim,
+                                   appstore_reviews_mod.run_job, _asr_rows)
+
+
+@app.get("/api/appstore-reviews/results/{job_id}")
+async def appstore_reviews_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in appstore_reviews.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/asos-products")
+async def asos_products_start(req: AsosProductsRequest):
+    """Asos Products Scraper — product listings via ASOS's internal search API (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("asos_products", _clean_queries(req), lim, asos_mod.run_job, _asos_rows)
+
+
+@app.get("/api/asos-products/results/{job_id}")
+async def asos_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in asos_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 
