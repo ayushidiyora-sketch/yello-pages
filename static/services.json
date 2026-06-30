@@ -177,19 +177,10 @@
   "live": true,
   "ui": "trustpilot_search"
  },
- {
-  "no": "16",
-  "name": "Trustpilot Reviews Sentiment Analysis",
-  "brand": "Trustpilot",
-  "description": "",
-  "tags": [
-   "Reviews & Comments"
-  ],
-  "live": false
- },
+
  {
   "no": "17",
-  "name": "Trustpilot Reviews Summary",
+  "name": "Trustpilot Reviews Scraper",
   "brand": "Trustpilot",
   "description": "Returns reviews from a list of businesses",
   "tags": [
@@ -1420,16 +1411,7 @@
   ],
   "live": false
  },
- {
-  "no": "134",
-  "name": "Trustpilot Reviews Scraper",
-  "brand": "Trustpilot",
-  "description": "Returns reviews from a list of businesses",
-  "tags": [
-   "Reviews & Comments"
-  ],
-  "live": false
- },
+
  {
   "no": "135",
   "name": "Trustpilot Reviews Monitoring",
@@ -1690,16 +1672,7 @@
   "live": true,
   "ui": "ai_universal"
  },
- {
-  "no": "160",
-  "name": "WhatsApp Checker",
-  "brand": "Bing",
-  "description": "",
-  "tags": [
-   "Leads & Contacts"
-  ],
-  "live": false
- },
+
  {
   "no": "161",
   "name": "Bing Maps Scraper",
