@@ -14,7 +14,7 @@ import json
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -43,9 +43,10 @@ _BAD: set[str] = set()
 _LOCK = threading.Lock()  # guards _GOOD / _BAD (page fetches run concurrently)
 
 
-def _impersonated_get(url: str, params: dict, proxy: str | None, timeout: int | None = None):
+def _impersonated_get(url: str, params: dict, proxy: str | None, timeout: int | None = None,
+                      headers: dict | None = None):
     proxies = {"http": proxy, "https": proxy} if proxy else None
-    return cffi.get(url, params=params, impersonate="chrome", proxies=proxies,
+    return cffi.get(url, params=params, impersonate="chrome", proxies=proxies, headers=headers,
                     timeout=timeout or settings.REQUEST_TIMEOUT, verify=False)
 
 
@@ -248,15 +249,104 @@ def fetch_detail_sync(url: str) -> str | None:
     return None
 
 
-def pooled_get(url: str, params: dict | None = None, timeout: int | None = None):
-    """Fetch ANY url through a proxy — the paid PROXY_URL if set, else a warm free-pool proxy.
-    Used to keep ALL traffic (enrichment, AU/CA, SEC, DoH-DNS) off the real IP. Best-effort:
-    returns the response object, or None if no proxy delivered one."""
+# ---------------- PROXY_LIST rotation (paid datacenter pool, e.g. proxies.txt) ----------------
+# When PROXY_LIST is set, rotate through it and skip rate-limited (429) / blocked IPs. Helps services
+# that work on datacenter IPs but throttle a single one (e.g. Google Search verticals). Never the real IP.
+import os
+import time
+
+_PLIST: list[str] = []
+_PLIST_LOADED = False
+_PLIST_IDX = 0
+_PLIST_BAD: dict[str, float] = {}      # proxy -> cooldown-until (monotonic seconds)
+_PLIST_LOCK = threading.Lock()
+
+
+def _fmt_proxy(line: str) -> str | None:
+    line = (line or "").strip()
+    if not line or line.startswith("#"):
+        return None
+    if line.startswith("http://") or line.startswith("https://"):
+        return line
+    p = line.split(":")
+    if len(p) == 4:                    # ip:port:user:pass
+        return f"http://{p[2]}:{p[3]}@{p[0]}:{p[1]}"
+    if len(p) == 2:                    # ip:port
+        return f"http://{p[0]}:{p[1]}"
+    return None
+
+
+def _load_plist() -> list[str]:
+    """Load the rotating proxy pool. No .env needed: defaults to the `proxies.txt` file in the project
+    root (via PROXY_LIST, else PROXY_LIST_FILE, else the literal 'proxies.txt'). PROXY_LIST may also be
+    an inline whitespace/comma list. Just drop proxies.txt next to the app and rotation works."""
+    global _PLIST, _PLIST_LOADED
+    if _PLIST_LOADED:
+        return _PLIST
+    raw = (settings.PROXY_LIST.strip()
+           or settings.PROXY_LIST_FILE.strip()
+           or "proxies.txt")
+    lines: list[str] = []
+    if os.path.exists(raw):                         # a file path (proxies.txt) — the default
+        try:
+            lines = open(raw, encoding="utf-8").read().splitlines()
+        except Exception:
+            lines = []
+    elif raw:                                       # an inline list in PROXY_LIST
+        lines = re.split(r"[\s,]+", raw)
+    _PLIST = [p for p in (_fmt_proxy(x) for x in lines) if p]
+    _PLIST_LOADED = True
+    return _PLIST
+
+
+def _plist_candidates(k: int) -> list[str]:
+    """Up to `k` proxies from the rotating list, skipping those in cooldown (round-robin)."""
+    global _PLIST_IDX
+    plist = _load_plist()
+    if not plist:
+        return []
+    out, now, n = [], time.monotonic(), len(plist)
+    with _PLIST_LOCK:
+        for _ in range(n):
+            px = plist[_PLIST_IDX % n]
+            _PLIST_IDX += 1
+            if _PLIST_BAD.get(px, 0) > now:
+                continue
+            out.append(px)
+            if len(out) >= k:
+                break
+    return out
+
+
+def _plist_mark_bad(px: str, secs: int = 120) -> None:
+    with _PLIST_LOCK:
+        _PLIST_BAD[px] = time.monotonic() + secs
+
+
+def pooled_get(url: str, params: dict | None = None, timeout: int | None = None,
+               headers: dict | None = None):
+    """Fetch ANY url through a proxy — paid PROXY_URL if set, else a rotating PROXY_LIST proxy
+    (skipping 429/blocked IPs), else a warm free-pool proxy. Keeps ALL traffic off the real IP.
+    Best-effort: returns the response object, or None if no proxy delivered one."""
     if settings.PROXY_URL.strip():
         try:
-            return _impersonated_get(url, params or {}, settings.PROXY_URL.strip(), timeout)
+            return _impersonated_get(url, params or {}, settings.PROXY_URL.strip(), timeout, headers)
         except Exception:
             return None
+    # rotating paid pool (proxies.txt): try several, skip rate-limited/blocked IPs
+    cands = _plist_candidates(10)
+    if cands:
+        for px in cands:
+            try:
+                r = _impersonated_get(url, params or {}, px, timeout or PROBE_TIMEOUT, headers)
+            except Exception:
+                _plist_mark_bad(px)
+                continue
+            if r.status_code == 429 or r.status_code >= 500:   # rate-limited / dead → cool down, rotate
+                _plist_mark_bad(px)
+                continue
+            return r
+        # all rotated proxies failed → fall through to the free pool
     with _LOCK:
         warm = list(_GOOD)
     if not warm:                       # nothing warm yet — probe a small batch to seed the pool
@@ -265,7 +355,7 @@ def pooled_get(url: str, params: dict | None = None, timeout: int | None = None)
             warm = list(_GOOD)
     for px in warm[:6]:
         try:
-            r = _impersonated_get(url, params or {}, px, timeout or PROBE_TIMEOUT)
+            r = _impersonated_get(url, params or {}, px, timeout or PROBE_TIMEOUT, headers)
             if r.status_code < 500:
                 _mark_good(px)
                 return r
@@ -354,11 +444,63 @@ def _txt(node):
     return node.get_text(" ", strip=True) if node else None
 
 
+def _norm_path(url: str) -> str:
+    """Lowercased URL path (no scheme/host/query/trailing-slash) — used to match a JSON-LD
+    listing to its HTML card across domains (.com vs .com.au)."""
+    if not url:
+        return ""
+    try:
+        return urlparse(url).path.rstrip("/").lower()
+    except Exception:
+        return ""
+
+
+def parse_us_jsonld(html: str) -> list[dict]:
+    """Extract the page's embedded schema.org JSON-LD `LocalBusiness` listings — the site's
+    'internal-API data' that Yellow Pages server-renders into `<script type=application/ld+json>`
+    (US & AU). Returns normalized core dicts in page order, or [] when the page has none (so any
+    region/page without it falls back to pure HTML — no regression)."""
+    out = []
+    for m in re.finditer(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', html or "", re.S):
+        try:
+            data = json.loads(m.group(1).strip())
+        except (ValueError, json.JSONDecodeError):
+            continue
+        for o in (data if isinstance(data, list) else [data]):
+            if not isinstance(o, dict) or o.get("@type") != "LocalBusiness" or not o.get("name"):
+                continue
+            addr = o.get("address") if isinstance(o.get("address"), dict) else {}
+            rat = o.get("aggregateRating") if isinstance(o.get("aggregateRating"), dict) else {}
+            hours = o.get("openingHours")
+            if isinstance(hours, list):
+                hours = ", ".join(str(h) for h in hours if h)
+            pc = addr.get("postalCode")
+            rv = rat.get("ratingValue")
+            rc = rat.get("reviewCount")
+            out.append({
+                "name": o.get("name"),
+                "phone": o.get("telephone"),
+                "street": addr.get("streetAddress"),
+                "city": addr.get("addressLocality"),
+                "state": (addr.get("addressRegion") or "").upper() or None,
+                "pincode": str(pc) if pc not in (None, "") else None,
+                "rating": str(rv) if rv not in (None, "") else None,
+                "reviews_count": str(rc) if rc not in (None, "") else None,
+                "hours": hours or None,
+                "source_url": o.get("url"),
+                "_path": _norm_path(o.get("url")),
+            })
+    return out
+
+
 def parse_us_cards(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
     cards = soup.select("div.search-results.organic div.result") or soup.select("div.result")
+    # JSON-LD ("internal-API data") backbone: the same listings as clean structured JSON.
+    ld = parse_us_jsonld(html)
+    ld_by_path = {r["_path"]: r for r in ld if r.get("_path")}
     out = []
-    for c in cards:
+    for idx, c in enumerate(cards):
         name_el = c.select_one("a.business-name")
         name = _txt(name_el)
         if not name:
@@ -427,8 +569,9 @@ def parse_us_cards(html: str) -> list[dict]:
             years = ym.group(0) if ym else None
 
         href = name_el.get("href") if name_el else None
+        source_url = urljoin(BASE, href) if href else None
 
-        out.append({
+        row = {
             "name": name,
             "phone": phone,
             "category": category,        # joined, for display
@@ -448,6 +591,26 @@ def parse_us_cards(html: str) -> list[dict]:
             "image": image,
             "years_in_business": years,
             "description": snippet,
-            "source_url": urljoin(BASE, href) if href else None,
-        })
+            "source_url": source_url,
+        }
+
+        # Merge the JSON-LD ("internal-API") record for this card: match by profile-URL path
+        # (US /mip/, AU /bpp/) then positional fallback. Prefer JSON-LD for the core fields —
+        # it's cleaner/precise (exact ratingValue/reviewCount, normalized address incl. AU
+        # state+postcode) — while HTML keeps the extras JSON-LD lacks (categories/website/…).
+        j = ld_by_path.get(_norm_path(source_url)) or (ld[idx] if idx < len(ld) else None)
+        if j:
+            row["name"] = j.get("name") or row["name"]
+            row["phone"] = j.get("phone") or row["phone"]
+            row["area"] = j.get("street") or row["area"]
+            row["city"] = j.get("city") or row["city"]
+            row["state"] = j.get("state") or row["state"]
+            row["pincode"] = j.get("pincode") or row["pincode"]
+            row["rating"] = j.get("rating") or row["rating"]
+            row["reviews_count"] = j.get("reviews_count") or row["reviews_count"]
+            row["source_url"] = row["source_url"] or j.get("source_url")
+            if j.get("hours"):
+                row["hours"] = j["hours"]
+
+        out.append(row)
     return out

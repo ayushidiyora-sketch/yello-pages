@@ -1,10 +1,15 @@
 """Home Depot Products Scraper — product listings from a homedepot.com URL.
 
+Data comes from Home Depot's own internal GraphQL API (federation-gateway, `searchModel` operation) —
+the same free, key-less endpoint the site's frontend uses — instead of parsing page HTML. The HTML
+page parser (ld+json -> embedded GraphQL blob -> DOM) is kept as a non-breaking fallback for when the
+API yields nothing (e.g. a /p/ product-detail URL, which the search API doesn't cover).
+
 homedepot.com is protected by Akamai Bot Manager: it returns a JS sensor "challenge" page to every
 free/datacenter proxy (and to the bare real IP via curl), so it CANNOT be scraped on the free tier —
-it needs a paid residential PROXY_URL. PROXY-ONLY: the real IP is never used. The product grid on a
-`/b/` browse page is loaded from Home Depot's GraphQL, so the parser is best-effort (verifiable only
-once a real page loads through a residential proxy).
+both the GraphQL API and the HTML page need a paid residential PROXY_URL. PROXY-ONLY: the real IP is
+never used. With a residential proxy set, the API returns clean structured products; the minimal
+`searchModel` query is best-effort against the live schema and safely falls back to HTML if rejected.
 """
 import asyncio
 import json
@@ -62,6 +67,118 @@ def _get(url: str):
             break
     raise RuntimeError("homedepot.com blocks free proxies (Akamai Bot Manager) — set a paid "
                        "residential PROXY_URL to scrape it. No real IP was used.")
+
+
+# ---------------- Home Depot's free internal GraphQL API (federation-gateway) ----------------
+# homedepot.com's own frontend loads the product grid from this GraphQL endpoint (no key — just the
+# same Akamai-gated proxy the HTML page needs). We POST the `searchModel` operation and read the
+# structured product objects directly, instead of regex-scraping them out of the page HTML.
+GQL_URL = "https://www.homedepot.com/federation-gateway/graphql"
+
+_GQL_HEADERS = {
+    "content-type": "application/json",
+    "accept": "application/json",
+    "apollographql-client-name": "general-merchandise",
+    "apollographql-client-version": "0.0.0",
+    "x-experience-name": "general-merchandise",
+    "x-debug": "false",
+    "x-hd-dc": "origin",
+    "origin": "https://www.homedepot.com",
+}
+
+# Minimal searchModel query — only the fields `_from_product_obj` consumes, to reduce the chance of a
+# schema-mismatch rejection. Pagination via startIndex/pageSize; navParam drives /b/ browse pages.
+_SEARCH_QUERY = (
+    "query searchModel($keyword: String, $navParam: String, $storeId: String, "
+    "$startIndex: Int, $pageSize: Int) {"
+    " searchModel(keyword: $keyword, navParam: $navParam, storeId: $storeId, "
+    "startIndex: $startIndex, pageSize: $pageSize) {"
+    " searchReport { totalProducts startIndex pageSize }"
+    " products {"
+    " identifiers { canonicalUrl brandName itemId modelNumber productLabel storeSkuNumber }"
+    " pricing { value original }"
+    " reviews { ratingsReviews { averageRating totalReviews } }"
+    " media { images { url } }"
+    " availabilityType { type } } } }"
+)
+
+
+def _api_params(q: str):
+    """Map a query to GraphQL inputs: a /b/ browse URL -> navParam (N-...); a /s/ URL or bare
+    keyword -> keyword. Returns (keyword, navParam); both None for a /p/ detail URL (HTML handles it)."""
+    from urllib.parse import unquote
+    q = (q or "").strip()
+    if q.lower().startswith("http"):
+        m = re.search(r"/(N-[\w]+)", q)
+        if m:
+            return None, m.group(1)
+        m = re.search(r"/s/([^/?#]+)", q)
+        if m:
+            return unquote(m.group(1)).replace("+", " "), None
+        return None, None  # /p/ product detail or unknown -> let HTML fallback handle it
+    return q, None
+
+
+def _api_post(variables: dict):
+    """POST the searchModel operation through a proxy — NEVER the real IP."""
+    body = {"operationName": "searchModel", "variables": variables, "query": _SEARCH_QUERY}
+    url = GQL_URL + "?opname=searchModel"
+    kw = dict(impersonate="chrome", json=body, headers=_GQL_HEADERS,
+              timeout=settings.REQUEST_TIMEOUT, verify=False)
+    proxy = settings.PROXY_URL.strip()
+    if proxy:
+        return cffi.post(url, proxies={"http": proxy, "https": proxy}, **kw)
+    from . import yp_us
+    yp_us.ensure_pool({"search_terms": "x", "geo_location_terms": "y", "page": "1"}, 3)
+    seen = set()
+    for px in list(yp_us._GOOD) + yp_us._fetch_candidates():
+        if px in seen:
+            continue
+        seen.add(px)
+        try:
+            r = cffi.post(url, proxies={"http": px, "https": px}, **{**kw, "timeout": 8})
+            if r is not None and r.status_code == 200 and '"products"' in (r.text or ""):
+                return r
+        except Exception:
+            pass
+        if len(seen) >= 4:
+            break
+    return None
+
+
+def _api_search(query: str, limit: int | None) -> list[dict]:
+    """PRIMARY path: pull products from Home Depot's GraphQL API. Returns [] on any failure so the
+    caller falls back to the HTML page parser (non-breaking)."""
+    keyword, nav_param = _api_params(query)
+    if not keyword and not nav_param:
+        return []
+    rows, start, page_size = [], 0, 24
+    for _page in range(20):
+        variables = {"keyword": keyword, "navParam": nav_param, "storeId": "121",
+                     "startIndex": start, "pageSize": page_size}
+        try:
+            r = _api_post(variables)
+        except Exception:
+            break
+        if r is None or r.status_code != 200:
+            break
+        try:
+            sm = (((r.json() or {}).get("data") or {}).get("searchModel")) or {}
+        except Exception:
+            break
+        products = sm.get("products") or []
+        if not products:
+            break
+        for p in products:
+            if isinstance(p, dict):
+                row = _from_product_obj(query, p)
+                if row.get("name"):
+                    rows.append(row)
+        total = _num((sm.get("searchReport") or {}).get("totalProducts"))
+        start += page_size
+        if (limit and len(rows) >= limit) or (total and start >= int(float(total))):
+            break
+    return rows
 
 
 def _to_url(q: str, page: int = 1) -> str:
@@ -201,7 +318,8 @@ def _parse(html: str, query: str) -> list[dict]:
     return out
 
 
-def search_sync(query: str, limit: int | None = None) -> list[dict]:
+def _html_search(query: str, limit: int | None) -> list[dict]:
+    """FALLBACK: scrape the HTML page and parse it (ld+json -> embedded GraphQL blob -> DOM)."""
     rows, page = [], 1
     while True:
         page_rows = _parse(_get(_to_url(query, page)).text, query)
@@ -211,6 +329,14 @@ def search_sync(query: str, limit: int | None = None) -> list[dict]:
         if (limit and len(rows) >= limit) or "/p/" in query.lower() or page >= 20:
             break
         page += 1
+    return rows
+
+
+def search_sync(query: str, limit: int | None = None) -> list[dict]:
+    # PRIMARY: Home Depot's free internal GraphQL API. Fall back to HTML only if it yields nothing.
+    rows = _api_search(query, limit)
+    if not rows:
+        rows = _html_search(query, limit)
     return rows[:limit] if limit else rows
 
 

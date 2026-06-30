@@ -10,10 +10,12 @@ A query is an Airbnb room URL (/rooms/<id>) or a bare listing id. Each query yie
 `limit` reviews. `sort` orders them: most_recent | highest | lowest.
 """
 import asyncio
+import base64
 import json
 import re
 import threading
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs, urlencode
 
 from bs4 import BeautifulSoup
 from curl_cffi import requests as cffi
@@ -25,6 +27,13 @@ _AB_TIMEOUT = 15
 _GOOD_PROXY = None          # last proxy that passed airbnb.com — reused before re-rotating
 _PIN_LOCK = threading.Lock()
 _SEED = {"search_terms": "x", "geo_location_terms": "y", "page": "1"}
+
+# Airbnb's public web API key (embedded in every page) + the StaysPdpReviewsQuery operation,
+# captured once from a real-IP browser render. The reviews API is free-callable through the proxy
+# pool; only the persisted-query hash + variables come from the page, so we capture them once.
+_API_KEY = "d306zoyjsyarp7ifhu67rjxn52tv0t20"
+_OP = {"hash": None, "variables": None, "locale": "en", "currency": "USD"}
+_OP_LOCK = threading.Lock()
 
 _ID_IN_URL = re.compile(r"/rooms/(?:plus/)?(\d+)")
 
@@ -294,19 +303,149 @@ def _parse_rendered(html: str, query: str) -> list[dict]:
     return out
 
 
+# ---------------- internal reviews API (StaysPdpReviewsQuery) ----------------
+
+def _capture_op(url: str) -> dict | None:
+    """Render the room page on the REAL IP (headless Chrome) and intercept the page's own
+    StaysPdpReviewsQuery request — its URL carries the live persisted-query hash + variables. We do
+    this ONCE; afterwards reviews are fetched via the free-proxy API. Returns {hash, variables,
+    locale, currency, listing_name} or None."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return None
+    cap: dict = {}
+    try:
+        with sync_playwright() as p:
+            br = p.chromium.launch(channel="chrome", headless=True,
+                                   args=["--no-sandbox", "--disable-blink-features=AutomationControlled"])
+            pg = br.new_context(locale="en-US").new_page()
+
+            def on_req(req):
+                u = req.url
+                if "StaysPdpReviewsQuery" in u and "hash" not in cap:
+                    m = re.search(r"/StaysPdpReviewsQuery/([a-f0-9]{64})", u)
+                    qs = parse_qs(urlparse(u).query)
+                    if m and qs.get("variables"):
+                        try:
+                            cap["hash"] = m.group(1)
+                            cap["variables"] = json.loads(qs["variables"][0])
+                            cap["locale"] = (qs.get("locale") or ["en"])[0]
+                            cap["currency"] = (qs.get("currency") or ["USD"])[0]
+                        except Exception:
+                            cap.clear()
+
+            pg.on("request", on_req)
+            pg.goto(url, timeout=45000, wait_until="domcontentloaded")
+            for _ in range(10):
+                if "hash" in cap:
+                    break
+                pg.evaluate("window.scrollBy(0, document.body.scrollHeight/5)")
+                pg.wait_for_timeout(1000)
+            cap["listing_name"] = (pg.title() or "").split(" - ")[0].strip()
+            br.close()
+    except Exception:   
+        return None
+    return cap if cap.get("hash") else None
+
+
+def _api_url(listing_id: str, offset: int, limit: int) -> str | None:
+    with _OP_LOCK:
+        if not _OP.get("hash"):
+            return None
+        hsh, variables = _OP["hash"], json.loads(json.dumps(_OP["variables"]))
+        locale, currency = _OP.get("locale", "en"), _OP.get("currency", "USD")
+    variables["id"] = base64.b64encode(f"StayListing:{listing_id}".encode()).decode()
+    pr = variables.get("pdpReviewsRequest") or {}
+    pr.update({"offset": str(offset), "limit": limit, "first": limit})
+    variables["pdpReviewsRequest"] = pr
+    ext = {"persistedQuery": {"version": 1, "sha256Hash": hsh}}
+    qs = urlencode({"operationName": "StaysPdpReviewsQuery", "locale": locale, "currency": currency,
+                    "variables": json.dumps(variables, separators=(",", ":")),
+                    "extensions": json.dumps(ext, separators=(",", ":"))})
+    return f"{BASE}/api/v3/StaysPdpReviewsQuery/{hsh}?{qs}"
+
+
+def _api_json(listing_id: str, offset: int, limit: int):
+    """Fetch one page of reviews from the internal API through the free pool (NEVER the real IP).
+    Returns the parsed JSON, or None if blocked / the hash went stale (forces a re-capture)."""
+    global _GOOD_PROXY
+    url = _api_url(listing_id, offset, limit)
+    if not url:
+        return None
+    from . import yp_us
+    hdr = {"X-Airbnb-API-Key": _API_KEY, "accept": "application/json"}
+    yp_us.ensure_pool(_SEED, 6)
+    pinned = _GOOD_PROXY
+    cands = ([pinned] if pinned else []) + [
+        p for p in (list(yp_us._GOOD) + yp_us._fetch_candidates()) if p != pinned]
+    for px in cands[:12]:
+        try:
+            r = cffi.get(url, impersonate="chrome", headers=hdr,
+                         proxies={"http": px, "https": px}, timeout=_AB_TIMEOUT, verify=False)
+        except Exception:
+            continue
+        if r.status_code != 200:
+            continue
+        if "persistedquery" in r.text[:300].lower():       # stale hash → re-capture next time
+            with _OP_LOCK:
+                _OP["hash"] = None
+            return None
+        try:
+            data = r.json()
+        except Exception:
+            continue
+        with _PIN_LOCK:
+            _GOOD_PROXY = px
+        return data
+    return None
+
+
 # ---------------- scrape + run loop ----------------
 
 def search_sync(query: str, limit: int | None, sort: str) -> list[dict]:
     url = _room_url(query)
-    # Reviews load via JS, so render the page; parse the rendered DOM, else the embedded JSON.
-    html = _rendered_html(url)
-    rows = _parse_rendered(html, query) if html else []
+    listing_id = _listing_id(query) or _listing_id(url)
+    rows: list[dict] = []
+    listing_name = ""
+
+    # 1) Internal reviews API (free proxy). Capture the op (hash+variables) ONCE via a real-IP
+    #    browser render, then page through reviews via the free pool — no browser per call.
+    if listing_id:
+        if not _OP.get("hash"):
+            cap = _capture_op(url)
+            if cap:
+                with _OP_LOCK:
+                    _OP.update(cap)
+                listing_name = cap.get("listing_name") or ""
+        if _OP.get("hash"):
+            seen, offset, page = set(), 0, 24
+            while True:
+                data = _api_json(listing_id, offset, page)
+                if not data:
+                    break
+                batch = [r for r in (_row(rv, listing_id, listing_name, query)
+                                     for rv in _find_reviews(data)) if r]
+                fresh = [b for b in batch
+                         if (b["reviewer"], b["date"], b["comment"][:48]) not in seen]
+                for b in fresh:
+                    seen.add((b["reviewer"], b["date"], b["comment"][:48]))
+                rows += fresh
+                if not fresh or (limit and len(rows) >= limit) or len(batch) < page:
+                    break
+                offset += page
+
+    # 2) Fallback: rendered DOM / embedded JSON (paid proxy, or a lucky free proxy)
     if not rows:
-        plain = html or _get_text(url)
-        if plain:
-            rows = _parse(plain, query)
+        html = _rendered_html(url)
+        rows = _parse_rendered(html, query) if html else []
+        if not rows:
+            plain = html or _get_text(url)
+            if plain:
+                rows = _parse(plain, query)
     if not rows:
         return []
+
     s = SORT_PARAM.get(sort or "", "most_recent")
     if s == "highest":
         rows.sort(key=lambda r: float(r.get("rating") or 0), reverse=True)

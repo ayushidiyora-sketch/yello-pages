@@ -3,8 +3,9 @@
 Trustpilot is Cloudflare-protected: curl gets 403, so it needs a real browser. Company data is
 embedded in `__NEXT_DATA__` (`props.pageProps.businessUnits.businesses` for a category page, or
 `businessUnit` for a /review/ profile). PROXY-ONLY — the browser is routed through a proxy and the
-real IP is NEVER used: a paid (residential) PROXY_URL if set, otherwise the free pool (which can't
-pass Cloudflare / can't tunnel HTTPS for the browser → clear "blocked" error on the free tier).
+real IP is NEVER used: the dedicated TRUSTPILOT_PROXY_URL (else the global PROXY_URL). Cloudflare
+blocks datacenter IPs, so a residential proxy is needed for data; with no proxy (or a blocked one) the
+scraper raises a clear "did not load / blocked" error instead of ever touching the real IP.
 """
 import asyncio
 import json
@@ -65,21 +66,24 @@ def _proxy_opts(px: str) -> dict:
 
 
 def _proxies() -> list[str]:
-    """Proxy to route the browser through: a paid PROXY_URL (no real IP) if set; otherwise EMPTY ->
-    render directly on the real IP, since free proxies can't pass Trustpilot's Cloudflare and a
-    direct browser can. (User chose: Trustpilot works free via real IP, like France.)"""
-    paid = settings.PROXY_URL.strip()
-    return [paid] if paid else []
+    """Proxies to route the browser through — PROXY-ONLY, the real IP is NEVER used. The dedicated
+    TRUSTPILOT_PROXY_URL (else global PROXY_URL) is tried first, then a few rotating proxies.txt IPs as
+    fallback so a slow/blocked IP rotates. Trustpilot's Cloudflare clears on datacenter IPs given enough
+    time (the render polls ~24s), so datacenter works. Empty list -> render raises 'blocked', never direct."""
+    from . import yp_us
+    pin = settings.TRUSTPILOT_PROXY_URL.strip() or settings.PROXY_URL.strip()
+    rotating = [p for p in yp_us._plist_candidates(4) if p != pin]
+    return ([pin] if pin else []) + rotating
 
 
 def _render(url: str) -> str:
-    """Render `url`: through a paid PROXY_URL if set (no real IP), else directly on the real IP.
-    Returns the HTML once the Next.js data loaded; raises if it didn't."""
+    """Render `url` through the configured proxy (never the real IP). Returns the HTML once the Next.js
+    data loaded; raises if it didn't (or if no proxy is configured)."""
     return _run(lambda browser: _render_through(browser, url, _proxies()))
 
 
 def _render_through(browser, url: str, proxies: list[str]) -> str:
-    attempts = proxies or [None]   # None -> direct (real IP) when no paid proxy
+    attempts = proxies   # PROXY-ONLY: no real-IP fallback — empty list -> raises below, never direct
     for px in attempts:
         kw = {"locale": "en-US", "user_agent": _UA, "viewport": {"width": 1366, "height": 900}}
         if px:
@@ -88,10 +92,13 @@ def _render_through(browser, url: str, proxies: list[str]) -> str:
         try:
             pg = ctx.new_page()
             pg.goto(url, timeout=35000, wait_until="domcontentloaded")
-            pg.wait_for_timeout(2500)
-            html = pg.content()
-            if "__NEXT_DATA__" in html and "businessUnit" in html:
-                return html
+            # Cloudflare's JS challenge takes ~6-12s to clear (even on datacenter IPs), so poll instead of
+            # checking once — give it up to ~24s before moving to the next proxy.
+            for _ in range(8):
+                pg.wait_for_timeout(3000)
+                html = pg.content()
+                if "__NEXT_DATA__" in html and "businessUnit" in html:
+                    return html
         except Exception:
             pass
         finally:

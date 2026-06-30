@@ -7,48 +7,64 @@
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "emails_contacts"
  },
  {
   "no": "2",
   "name": "Leads & Contacts Enrichment",
   "brand": "Multi-source",
-  "description": "Finds emails, social links, phones, and other contacts from websites",
+  "description": "Finds contacts for each company — emails, phone numbers, full names, job titles, and social links",
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "leads_enrichment"
  },
  {
   "no": "3",
   "name": "Email Address Verifier",
   "brand": "Multi-source",
-  "description": "Validates emails, checks deliverability, filters out blacklists, spam traps, and complainers, while significantly reducing your bounce rate",
+  "description": "Validates emails: format, disposable-domain and domain-level (MX) deliverability checks to reduce your bounce rate",
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "email_verifier"
+ },
+ {
+  "no": "3b",
+  "name": "Disposable Email Checker",
+  "brand": "Multi-source",
+  "description": "Checks origins of email addresses (disposable, free, or corporate)",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": true,
+  "ui": "disposable_email"
  },
  {
   "no": "4",
   "name": "Company Insights",
   "brand": "Multi-source",
-  "description": "Finds company details such as revenue, size, founding year, public status, etc",
+  "description": "Finds company firmographics from the website — public status, employee count, tech-stack signals, and site meta",
   "tags": [
    "Businesses & POI",
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "company_insights"
  },
  {
   "no": "5",
   "name": "Phone Numbers Enricher",
   "brand": "Multi-source",
-  "description": "Returns phones carrier data (name/type), validates phones, ensures messages deliverability",
+  "description": "Validates phone numbers and returns line type, carrier, country and location (offline libphonenumber)",
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "phone_enricher"
  },
  {
   "no": "6",
@@ -58,18 +74,20 @@
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "phone_identity"
  },
  {
   "no": "7",
   "name": "SimilarWeb Scraper",
   "brand": "Multi-source",
-  "description": "Provides web data for domains including traffic statistics, engagement metrics, and audience insights",
+  "description": "Traffic, rank, engagement and audience data per domain (SimilarWeb internal API; residential-only)",
   "tags": [
    "Businesses & POI",
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "similarweb"
  },
  {
   "no": "8",
@@ -90,7 +108,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "builtwith"
  },
  {
   "no": "10",
@@ -100,7 +119,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "fastbg_addresses"
  },
  {
   "no": "11",
@@ -110,7 +130,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_companies"
  },
  {
   "no": "12",
@@ -120,7 +141,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_profiles"
  },
  {
   "no": "13",
@@ -130,7 +152,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "linkedin_posts"
  },
  {
   "no": "14",
@@ -154,19 +177,10 @@
   "live": true,
   "ui": "trustpilot_search"
  },
- {
-  "no": "16",
-  "name": "Trustpilot Reviews Sentiment Analysis",
-  "brand": "Trustpilot",
-  "description": "",
-  "tags": [
-   "Reviews & Comments"
-  ],
-  "live": false
- },
+
  {
   "no": "17",
-  "name": "Trustpilot Reviews Summary",
+  "name": "Trustpilot Reviews Scraper",
   "brand": "Trustpilot",
   "description": "Returns reviews from a list of businesses",
   "tags": [
@@ -183,7 +197,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "whitepages_addresses"
  },
  {
   "no": "19",
@@ -204,7 +219,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "geocoding"
  },
  {
   "no": "21",
@@ -214,7 +230,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "reverse_geocoding"
  },
  {
   "no": "22",
@@ -224,7 +241,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "screenshoter"
  },
  {
   "no": "23",
@@ -234,7 +252,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "zoominfo"
  },
  {
   "no": "24",
@@ -244,7 +263,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "domain_info"
  },
  {
   "no": "25",
@@ -254,7 +274,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gflights"
  },
  {
   "no": "26",
@@ -264,7 +285,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_autocomplete"
  },
  {
   "no": "27",
@@ -274,7 +296,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gsearch_autocomplete"
  },
  {
   "no": "28",
@@ -284,7 +307,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "yahoo_search"
  },
  {
   "no": "29",
@@ -294,7 +318,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "eventbrite"
  },
  {
   "no": "30",
@@ -304,7 +329,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "meetup"
  },
  {
   "no": "31",
@@ -314,7 +340,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_companies"
  },
  {
   "no": "32",
@@ -324,7 +351,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_hashtags"
  },
  {
   "no": "33",
@@ -334,7 +362,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_search"
  },
  {
   "no": "34",
@@ -344,7 +373,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_videos"
  },
  {
   "no": "35",
@@ -354,7 +384,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_comments"
  },
  {
   "no": "36",
@@ -382,11 +413,12 @@
   "no": "38",
   "name": "Asos Products Scraper",
   "brand": "Asos",
-  "description": "",
+  "description": "Returns product listings from ASOS",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "asos_products"
  },
  {
   "no": "39",
@@ -396,7 +428,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "appstore_reviews"
  },
  {
   "no": "40",
@@ -406,7 +439,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "airbnb_search"
  },
  {
   "no": "41",
@@ -504,11 +538,12 @@
   "no": "50",
   "name": "BestBuy Products Scraper",
   "brand": "BestBuy",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "bestbuy_products"
  },
  {
   "no": "51",
@@ -648,7 +683,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_search"
  },
  {
   "no": "65",
@@ -658,17 +694,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_reviews"
  },
  {
   "no": "66",
   "name": "Booking Reviews Monitoring",
   "brand": "Booking",
-  "description": "",
+  "description": "Recurring hotel-review scan with email alerts",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_monitoring"
  },
  {
   "no": "67",
@@ -710,7 +748,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "booking_prices"
  },
  {
   "no": "71",
@@ -814,7 +853,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps"
  },
  {
   "no": "81",
@@ -824,17 +864,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_reviews"
  },
  {
   "no": "82",
   "name": "Google Maps Reviews Monitoring",
   "brand": "Google",
-  "description": "",
+  "description": "Automated data collection with regular email reports",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_monitoring"
  },
  {
   "no": "83",
@@ -856,7 +898,8 @@
    "Businesses & POI",
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_domains"
  },
  {
   "no": "85",
@@ -866,7 +909,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_contrib"
  },
  {
   "no": "86",
@@ -876,7 +920,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_photos"
  },
  {
   "no": "87",
@@ -886,17 +931,19 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_traffic"
  },
  {
   "no": "88",
   "name": "Google Maps Directory Places",
   "brand": "Google",
-  "description": "",
+  "description": "Returns search results",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "gmaps_directory"
  },
  {
   "no": "89",
@@ -906,7 +953,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gnews"
  },
  {
   "no": "90",
@@ -916,7 +964,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gimages"
  },
  {
   "no": "91",
@@ -926,7 +975,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gvideos"
  },
  {
   "no": "92",
@@ -936,7 +986,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gevents"
  },
  {
   "no": "93",
@@ -946,7 +997,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gsjobs"
  },
  {
   "no": "94",
@@ -956,27 +1008,30 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gcareers"
  },
  {
   "no": "95",
   "name": "Google Search Shopping Scraper",
   "brand": "Google",
-  "description": "يرجع نتائج البحث",
+  "description": "Returns search results",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "gshop"
  },
  {
   "no": "96",
   "name": "Google Trends Scraper",
   "brand": "Google",
-  "description": "Returns data from a list of businesses",
+  "description": "Returns Google Trends interest-by-region for your search terms (by country, timeframe, and COUNTRY/REGION/CITY/DMA resolution).",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "gtrends"
  },
  {
   "no": "97",
@@ -986,17 +1041,19 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gplay"
  },
  {
   "no": "98",
   "name": "Google Play Reviews Monitoring",
   "brand": "Google",
-  "description": "",
+  "description": "Automated data collection with regular email reports",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gplay_monitoring"
  },
  {
   "no": "99",
@@ -1006,7 +1063,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "gshop_reviews"
  },
  {
   "no": "100",
@@ -1353,16 +1411,7 @@
   ],
   "live": false
  },
- {
-  "no": "134",
-  "name": "Trustpilot Reviews Scraper",
-  "brand": "Trustpilot",
-  "description": "Returns reviews from a list of businesses",
-  "tags": [
-   "Reviews & Comments"
-  ],
-  "live": false
- },
+
  {
   "no": "135",
   "name": "Trustpilot Reviews Monitoring",
@@ -1463,17 +1512,19 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "yt_search"
  },
  {
   "no": "145",
   "name": "YouTube Video Scraper",
   "brand": "Youtube",
-  "description": "",
+  "description": "Returns a channel's videos or shorts from a list of channel URLs or @handles",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "youtube_video"
  },
  {
   "no": "146",
@@ -1513,7 +1564,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_business"
  },
  {
   "no": "150",
@@ -1523,7 +1575,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_reviews"
  },
  {
   "no": "151",
@@ -1533,7 +1586,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "yelp_photos"
  },
  {
   "no": "152",
@@ -1573,7 +1627,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "zillow_transactions"
  },
  {
   "no": "156",
@@ -1583,7 +1638,8 @@
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "email_finder"
  },
  {
   "no": "157",
@@ -1613,27 +1669,20 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "ai_universal"
  },
- {
-  "no": "160",
-  "name": "WhatsApp Checker",
-  "brand": "Bing",
-  "description": "",
-  "tags": [
-   "Leads & Contacts"
-  ],
-  "live": false
- },
+
  {
   "no": "161",
   "name": "Bing Maps Scraper",
   "brand": "Bing",
-  "description": "Returns search results",
+  "description": "Returns local business listings from Bing Maps by category + location.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "bingmaps"
  },
  {
   "no": "162",
@@ -1643,107 +1692,118 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "streeteasy"
  },
  {
   "no": "163",
   "name": "Uber Eats Scraper",
   "brand": "Uber",
-  "description": "",
+  "description": "Returns restaurant data from ubereats.com store, category, and city pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "ubereats"
  },
  {
   "no": "164",
   "name": "Deliveroo Scraper",
   "brand": "Deliveroo",
-  "description": "",
+  "description": "Returns restaurant data from deliveroo.co.uk menu and restaurant-list pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "deliveroo"
  },
  {
   "no": "165",
   "name": "Deliveroo Reviews Scraper",
   "brand": "Deliveroo",
-  "description": "",
+  "description": "Returns restaurant reviews from deliveroo.co.uk by store URL or id.",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "deliveroo_reviews"
  },
  {
   "no": "166",
   "name": "Zoominfo Scraper",
   "brand": "Zoom",
-  "description": "",
+  "description": "Returns company profiles from zoominfo.com company pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "zoominfo_scraper"
  },
  {
   "no": "167",
   "name": "Crunchbase Search Scraper",
   "brand": "Crunchbase",
-  "description": "",
+  "description": "Finds companies on crunchbase.com by name, domain, or URL.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "crunchbase_search"
  },
  {
   "no": "168",
   "name": "Crunchbase Scraper",
   "brand": "Crunchbase",
-  "description": "",
+  "description": "Returns company profiles from crunchbase.com organization pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "crunchbase"
  },
  {
   "no": "169",
   "name": "OLX Scraper",
   "brand": "OLX",
-  "description": "",
+  "description": "Returns product listings from a list of OLX search URLs",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "olx"
  },
  {
   "no": "170",
   "name": "Apollo Scraper",
   "brand": "Apollo",
-  "description": "",
+  "description": "Returns people/companies from Apollo.io search URLs",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "apollo"
  },
  {
   "no": "171",
   "name": "Feedback Company Scraper",
   "brand": "Feedback Company",
-  "description": "",
+  "description": "Returns company profiles (rating, review count, contact) from feedbackcompany.com.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "feedbackcompany_company"
  },
  {
   "no": "172",
   "name": "Feedback Company Reviews Scraper",
   "brand": "Feedback Company",
-  "description": "",
+  "description": "Returns customer reviews from feedbackcompany.com by company id or reviews URL.",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "feedbackcompany"
  },
  {
   "no": "173",
@@ -1753,156 +1813,172 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "yt_transcripts"
  },
  {
   "no": "174",
   "name": "Willhaben Scraper",
   "brand": "Willhaben",
-  "description": "",
+  "description": "Returns classified listings from willhaben.at search and detail pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "willhaben"
  },
  {
   "no": "175",
   "name": "Mobilede Scraper",
   "brand": "Mobilede",
-  "description": "",
+  "description": "Returns vehicle listings from mobile.de search and detail pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "mobilede"
  },
  {
   "no": "176",
   "name": "Immowelt Scraper",
   "brand": "Immowelt",
-  "description": "",
+  "description": "Returns property listings from immowelt.de classified-search and expose pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "immowelt"
  },
  {
   "no": "177",
   "name": "Allegro Scraper",
   "brand": "Allegro",
-  "description": "",
+  "description": "Returns products from allegro.pl listing/category and offer pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "allegro"
  },
  {
   "no": "178",
   "name": "Craigslist Scraper",
   "brand": "Craigslist",
-  "description": "",
+  "description": "Returns listings from craigslist.org search and listing pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "craigslist"
  },
  {
   "no": "179",
   "name": "1688 Search Scraper",
   "brand": "1688 Search",
-  "description": "",
+  "description": "Returns wholesale product offers from 1688.com search (Alibaba China).",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "s1688"
  },
  {
   "no": "180",
   "name": "Glassdoor Company Jobs",
   "brand": "Glassdoor",
-  "description": "",
+  "description": "Returns all open jobs for a company from a list of Glassdoor company URLs",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "glassdoor_company_jobs"
  },
  {
   "no": "181",
   "name": "Upwork Jobs",
   "brand": "Upwork",
-  "description": "",
+  "description": "Returns job listings from Upwork search URLs",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "upwork"
  },
  {
   "no": "182",
   "name": "Offerup Scraper",
   "brand": "Offerup",
-  "description": "",
+  "description": "Returns marketplace listings from offerup.com item, explore, and search pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "offerup"
  },
  {
   "no": "183",
   "name": "Angi Scraper",
   "brand": "Angi",
-  "description": "",
+  "description": "Returns home-service companies from angi.com listing and near-me search pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "angi"
  },
  {
   "no": "184",
   "name": "Feefo Reviews Scraper",
   "brand": "Feefo",
-  "description": "",
+  "description": "Returns merchant service reviews from feefo.com (via Feefo's public reviews API).",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "feefo_reviews"
  },
  {
   "no": "185",
   "name": "Thuisbezorgd Reviews Scraper",
   "brand": "Thuisbezorgd",
-  "description": "",
+  "description": "Returns restaurant reviews from thuisbezorgd.nl menu pages (Netherlands).",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "thuisbezorgd_reviews"
  },
  {
   "no": "186",
   "name": "Product Hunt Profiles Scraper",
   "brand": "Product Hunt",
-  "description": "",
+  "description": "Returns public user profiles from producthunt.com (name, headline, followers, products).",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "producthunt_profiles"
  },
  {
   "no": "187",
   "name": "Kununu Reviews Scraper",
   "brand": "Kununu",
-  "description": "",
+  "description": "Returns employer reviews from kununu.com company pages (DACH region).",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "kununu_reviews"
  },
  {
   "no": "188",
   "name": "AI Scraper",
   "brand": "AI",
-  "description": "",
+  "description": "Extracts the structured data you describe from any web page using AI (Claude).",
   "tags": [
    "Other"
   ],
-  "live": false
+  "live": true,
+  "ui": "aiscraper"
  }
 ]

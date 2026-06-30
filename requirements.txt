@@ -15,3 +15,5 @@ dnspython==2.7.0
 openpyxl==3.1.5
 python-multipart==0.0.32
 playwright==1.60.0   # Amazon Reviews scraper (headless Chrome; uses installed Chrome via channel="chrome")
+youtube-transcript-api
+anthropic
