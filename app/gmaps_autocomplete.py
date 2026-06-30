@@ -15,10 +15,36 @@ from . import yp_us
 from .scraper import STOP_REQUESTS
 
 SUGGEST_URL = "https://www.google.com/complete/search"
+# Google Input Tools - transliterates a Latin query into a language's native script (e.g. Latin
+# "surat" -> Gujarati script), so a non-Latin language returns native-script suggestions, not Latin.
+INPUTTOOLS_URL = "https://inputtools.google.com/request"
 
 GMA_COLUMNS = ["query", "suggestion", "position", "coordinates"]
 
 _LATLNG = re.compile(r"@?(-?\d+\.\d+),\s*(-?\d+\.\d+)")
+
+
+def _translit(q: str, language: str) -> str:
+    """If `language` uses a non-Latin script and `q` was typed in Latin, transliterate it to that
+    script via Google Input Tools (e.g. gu + 'surat' -> the Gujarati spelling). Otherwise return `q`
+    unchanged - English / Latin-script languages and already-native-script input are left as-is."""
+    lang = (language or "").lower().split("-")[0]
+    if not lang or lang == "en" or not q.isascii():
+        return q
+    try:
+        params = {"text": q, "itc": f"{lang}-t-i0-und", "num": "1", "cp": "0", "cs": "1",
+                  "ie": "utf-8", "oe": "utf-8", "app": "gmaps"}
+        r = yp_us.pooled_get(INPUTTOOLS_URL, params, timeout=10)
+        if r is not None and r.status_code == 200:
+            data = json.loads(r.text)
+            if isinstance(data, list) and data and data[0] == "SUCCESS":
+                cand = data[1][0][1]
+                # only use it when it actually produced native (non-Latin) script
+                if cand and isinstance(cand[0], str) and not cand[0].isascii():
+                    return cand[0]
+    except Exception:
+        pass
+    return q
 
 
 def _suggestions(text: str) -> list[str]:
@@ -43,7 +69,9 @@ def search_sync(query: str, coordinates: str = "", language: str = "en", region:
     q = (query or "").strip()
     if not q:
         return []
-    params = {"client": "firefox", "q": q, "hl": language or "en", "gl": (region or "us").lower()}
+    # Latin query + non-Latin language -> transliterate so suggestions come back in that script.
+    qq = _translit(q, language)
+    params = {"client": "firefox", "q": qq, "hl": language or "en", "gl": (region or "us").lower()}
     r = yp_us.pooled_get(SUGGEST_URL, params, timeout=15)
     if r is None or r.status_code != 200:
         raise RuntimeError("Google's suggest endpoint did not respond — the free proxy pool may be "
