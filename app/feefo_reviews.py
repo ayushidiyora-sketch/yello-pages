@@ -41,7 +41,10 @@ def _merchant_id(query: str) -> str:
 
 
 def _api_url(merchant: str, page: int, sort: str) -> str:
-    params = {"merchant_identifier": merchant, "page_size": str(PAGE_SIZE), "page": str(page)}
+    # since_period=all: without it Feefo defaults to the last ~12 months and returns only the few
+    # recent reviews — "all" gives the merchant's full review history (matches the website's count).
+    params = {"merchant_identifier": merchant, "since_period": "all",
+              "page_size": str(PAGE_SIZE), "page": str(page)}
     val = SORT_PARAM.get(sort or "", "")
     if val:
         params["sort"] = val
