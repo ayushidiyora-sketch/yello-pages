@@ -33,6 +33,17 @@
   "ui": "email_verifier"
  },
  {
+  "no": "3b",
+  "name": "Disposable Email Checker",
+  "brand": "Multi-source",
+  "description": "Checks origins of email addresses (disposable, free, or corporate)",
+  "tags": [
+   "Leads & Contacts"
+  ],
+  "live": true,
+  "ui": "disposable_email"
+ },
+ {
   "no": "4",
   "name": "Company Insights",
   "brand": "Multi-source",
@@ -63,18 +74,20 @@
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "phone_identity"
  },
  {
   "no": "7",
   "name": "SimilarWeb Scraper",
   "brand": "Multi-source",
-  "description": "Provides web data for domains including traffic statistics, engagement metrics, and audience insights",
+  "description": "Traffic, rank, engagement and audience data per domain (SimilarWeb internal API; residential-only)",
   "tags": [
    "Businesses & POI",
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "similarweb"
  },
  {
   "no": "8",
@@ -95,7 +108,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "builtwith"
  },
  {
   "no": "10",
@@ -105,7 +119,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "fastbg_addresses"
  },
  {
   "no": "11",
@@ -191,7 +206,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "whitepages_addresses"
  },
  {
   "no": "19",
@@ -212,7 +228,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "geocoding"
  },
  {
   "no": "21",
@@ -222,7 +239,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "reverse_geocoding"
  },
  {
   "no": "22",
@@ -232,7 +250,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "screenshoter"
  },
  {
   "no": "23",
@@ -242,7 +261,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "zoominfo"
  },
  {
   "no": "24",
@@ -252,7 +272,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "domain_info"
  },
  {
   "no": "25",
@@ -295,7 +316,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "yahoo_search"
  },
  {
   "no": "29",
@@ -305,7 +327,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "eventbrite"
  },
  {
   "no": "30",
@@ -315,7 +338,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "meetup"
  },
  {
   "no": "31",
@@ -336,7 +360,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_hashtags"
  },
  {
   "no": "33",
@@ -346,7 +371,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_search"
  },
  {
   "no": "34",
@@ -356,7 +382,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_videos"
  },
  {
   "no": "35",
@@ -366,7 +393,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "tiktok_comments"
  },
  {
   "no": "36",
@@ -394,11 +422,12 @@
   "no": "38",
   "name": "Asos Products Scraper",
   "brand": "Asos",
-  "description": "",
+  "description": "Returns product listings from ASOS",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "asos_products"
  },
  {
   "no": "39",
@@ -408,7 +437,8 @@
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "appstore_reviews"
  },
  {
   "no": "40",

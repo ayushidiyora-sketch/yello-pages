@@ -362,6 +362,129 @@ class PhoneEnricherRequest(BaseModel):
     limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/number); kept for UI parity
 
 
+class PhoneIdentityRequest(BaseModel):
+    # each line: a US phone number — returns the owner name + address
+    queries: list[str] = Field(..., min_length=1, examples=[["+1 281 236 8208", "1 281 236 2248"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/number); kept for UI parity
+
+
+class SimilarWebRequest(BaseModel):
+    # each line: a domain or URL — returns SimilarWeb traffic/rank/engagement
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "github.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class GeocodingRequest(BaseModel):
+    # each line: a human-readable address
+    queries: list[str] = Field(..., min_length=1, examples=[["321 California Ave, Palo Alto, CA 94306"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/address); kept for UI parity
+
+
+class BuiltWithRequest(BaseModel):
+    # each line: a domain or URL — returns the site's tech stack
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "shopify.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class DisposableEmailRequest(BaseModel):
+    # each line: an email address — classified disposable/free/corporate
+    queries: list[str] = Field(..., min_length=1, examples=[["a@mailinator.com", "b@gmail.com", "c@ibm.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/email); kept for UI parity
+
+
+class WhitepagesAddressesRequest(BaseModel):
+    # each line: a US address — returns location + best-effort residents
+    queries: list[str] = Field(..., min_length=1, examples=[["321 California Ave, Palo Alto, CA 94306"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/address); kept for UI parity
+
+
+class FastbgAddressesRequest(BaseModel):
+    # each line: a US address — returns location + best-effort residents
+    queries: list[str] = Field(..., min_length=1, examples=[["321 California Ave, Palo Alto, CA 94306"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/address); kept for UI parity
+
+
+class ReverseGeocodingRequest(BaseModel):
+    # each line: "lat,lon" coordinates
+    queries: list[str] = Field(..., min_length=1, examples=[["37.427074,-122.1439166"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/coord); kept for UI parity
+
+
+class DomainInfoRequest(BaseModel):
+    # each line: a domain or URL — returns WHOIS/RDAP registration data
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "github.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class YahooSearchRequest(BaseModel):
+    # each line: a search query or a yahoo.com search URL
+    queries: list[str] = Field(..., min_length=1, examples=[["python web scraping"]])
+    limit: Optional[int] = Field(100, ge=0, le=100, examples=[100])  # results/query; 0 = up to 100
+
+
+class ZoomInfoRequest(BaseModel):
+    # each line: a domain or URL — ZoomInfo company lookup (paid/blocked source)
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class AppStoreReviewsRequest(BaseModel):
+    # each line: an apps.apple.com URL or id<digits> / numeric app id
+    queries: list[str] = Field(..., min_length=1, examples=[["id686449807"]])
+    limit: Optional[int] = Field(100, ge=0, le=500, examples=[100])  # reviews/app; 0 = up to 500
+
+
+class AsosProductsRequest(BaseModel):
+    # each line: an ASOS search/category URL or a keyword
+    queries: list[str] = Field(..., min_length=1, examples=[["blue jeans"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # products/query; 0 = all
+
+
+class EventbriteRequest(BaseModel):
+    # each line: an Eventbrite event URL or numeric event id
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.eventbrite.com/e/1417752679429"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # events/query; 0 = all
+
+
+class MeetupRequest(BaseModel):
+    # each line: a Meetup event/find URL or a keyword
+    queries: list[str] = Field(..., min_length=1, examples=[["concert"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # events/query; 0 = all
+
+
+class TikTokVideosRequest(BaseModel):
+    # each line: a TikTok video URL or numeric id
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.tiktok.com/@user/video/123"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/video); kept for UI parity
+
+
+class TikTokHashtagsRequest(BaseModel):
+    # each line: a hashtag, #hashtag, or hashtag URL
+    queries: list[str] = Field(..., min_length=1, examples=[["squidgame"]])
+    limit: Optional[int] = Field(100, ge=0, examples=[100])  # videos/query (API-gated)
+
+
+class TikTokSearchRequest(BaseModel):
+    # each line: a TikTok search query
+    queries: list[str] = Field(..., min_length=1, examples=[["squid game"]])
+    limit: Optional[int] = Field(100, ge=0, examples=[100])  # results/query (API-gated)
+
+
+class TikTokCommentsRequest(BaseModel):
+    # each line: a TikTok video URL or numeric id
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.tiktok.com/@user/video/123"]])
+    limit: Optional[int] = Field(100, ge=0, examples=[100])  # comments/video (API-gated)
+
+
+class ScreenshoterRequest(BaseModel):
+    # each line: a URL to screenshot
+    queries: list[str] = Field(..., min_length=1, examples=[["https://outscraper.com"]])
+    image_format: str = Field("png", examples=["png"])   # png | jpeg | pdf (webp -> png)
+    width: int = Field(1200, ge=200, le=3840, examples=[1200])
+    height: int = Field(800, ge=200, le=4320, examples=[800])
+    full_page: bool = Field(False, examples=[False])
+
+
 class YelpBusinessRequest(BaseModel):
     # each line: a yelp.com /search URL or a "Category | Location" pair (built from cats x locations)
     queries: list[str] = Field(..., min_length=1, examples=[["Plumbing | San Francisco, CA"]])
