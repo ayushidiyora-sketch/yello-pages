@@ -223,6 +223,81 @@ class PhoneEnricherRequest(BaseModel):
     limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/number); kept for UI parity
 
 
+class PhoneIdentityRequest(BaseModel):
+    # each line: a US phone number — returns the owner name + address
+    queries: list[str] = Field(..., min_length=1, examples=[["+1 281 236 8208", "1 281 236 2248"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/number); kept for UI parity
+
+
+class SimilarWebRequest(BaseModel):
+    # each line: a domain or URL — returns SimilarWeb traffic/rank/engagement
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "github.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class GeocodingRequest(BaseModel):
+    # each line: a human-readable address
+    queries: list[str] = Field(..., min_length=1, examples=[["321 California Ave, Palo Alto, CA 94306"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/address); kept for UI parity
+
+
+class BuiltWithRequest(BaseModel):
+    # each line: a domain or URL — returns the site's tech stack
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "shopify.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class DisposableEmailRequest(BaseModel):
+    # each line: an email address — classified disposable/free/corporate
+    queries: list[str] = Field(..., min_length=1, examples=[["a@mailinator.com", "b@gmail.com", "c@ibm.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/email); kept for UI parity
+
+
+class WhitepagesAddressesRequest(BaseModel):
+    # each line: a US address — returns location + best-effort residents
+    queries: list[str] = Field(..., min_length=1, examples=[["321 California Ave, Palo Alto, CA 94306"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/address); kept for UI parity
+
+
+class FastbgAddressesRequest(BaseModel):
+    # each line: a US address — returns location + best-effort residents
+    queries: list[str] = Field(..., min_length=1, examples=[["321 California Ave, Palo Alto, CA 94306"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/address); kept for UI parity
+
+
+class ReverseGeocodingRequest(BaseModel):
+    # each line: "lat,lon" coordinates
+    queries: list[str] = Field(..., min_length=1, examples=[["37.427074,-122.1439166"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/coord); kept for UI parity
+
+
+class DomainInfoRequest(BaseModel):
+    # each line: a domain or URL — returns WHOIS/RDAP registration data
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com", "github.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class YahooSearchRequest(BaseModel):
+    # each line: a search query or a yahoo.com search URL
+    queries: list[str] = Field(..., min_length=1, examples=[["python web scraping"]])
+    limit: Optional[int] = Field(100, ge=0, le=100, examples=[100])  # results/query; 0 = up to 100
+
+
+class ZoomInfoRequest(BaseModel):
+    # each line: a domain or URL — ZoomInfo company lookup (paid/blocked source)
+    queries: list[str] = Field(..., min_length=1, examples=[["stripe.com"]])
+    limit: Optional[int] = Field(0, ge=0, examples=[0])  # unused (1 row/domain); kept for UI parity
+
+
+class ScreenshoterRequest(BaseModel):
+    # each line: a URL to screenshot
+    queries: list[str] = Field(..., min_length=1, examples=[["https://outscraper.com"]])
+    image_format: str = Field("png", examples=["png"])   # png | jpeg | pdf (webp -> png)
+    width: int = Field(1200, ge=200, le=3840, examples=[1200])
+    height: int = Field(800, ge=200, le=4320, examples=[800])
+    full_page: bool = Field(False, examples=[False])
+
+
 class YelpBusinessRequest(BaseModel):
     # each line: a yelp.com /search URL or a "Category | Location" pair (built from cats x locations)
     queries: list[str] = Field(..., min_length=1, examples=[["Plumbing | San Francisco, CA"]])

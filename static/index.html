@@ -2577,6 +2577,414 @@
   <div id="peResults"></div>
   </div><!-- /phoneEnricherView -->
 
+  <div id="phoneIdentityView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>US phone numbers <span class="req">*</span></label>
+        <textarea id="piInput" placeholder="+1 281 236 8208&#10;1 281 236 2248"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="piFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="piFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('piFile').click()">⬆ Upload file</button>
+          <span class="hint" id="piFileName"></span>
+        </div>
+        <span class="hint">Returns the owner's name &amp; address behind a US phone number (reverse lookup via thatsthem, through the proxy pool — real IP never used). Best-effort: unlisted numbers or a rate-limited proxy yield empty owner fields. One row per number.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="piStartBtn" onclick="piStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="piStopBtn" onclick="piStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="piStatus"></div>
+  <div class="bar" id="piBar"><i></i></div>
+  <div class="resbar" id="piResbar" style="display:none">
+    <div class="count" id="piCount"></div>
+    <div class="resbar-controls">
+      <a id="piDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="piDownloadXlsx" style="display:none" onclick="piDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="piResults"></div>
+  </div><!-- /phoneIdentityView -->
+
+  <div id="similarwebView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Domains or URLs <span class="req">*</span></label>
+        <textarea id="swInput" placeholder="stripe.com&#10;https://github.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="swFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="swFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('swFile').click()">⬆ Upload file</button>
+          <span class="hint" id="swFileName"></span>
+        </div>
+        <span class="hint">Traffic, global/country rank, engagement (visits, bounce rate, pages/visit, avg duration) &amp; top countries per domain, from SimilarWeb's internal JSON API through the proxy pool. <b>Residential-only:</b> SimilarWeb blocks datacenter IPs (403) — on the free pool rows return a "blocked" status. One row per domain.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="swStartBtn" onclick="swStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="swStopBtn" onclick="swStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="swStatus"></div>
+  <div class="bar" id="swBar"><i></i></div>
+  <div class="resbar" id="swResbar" style="display:none">
+    <div class="count" id="swCount"></div>
+    <div class="resbar-controls">
+      <a id="swDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="swDownloadXlsx" style="display:none" onclick="swDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="swResults"></div>
+  </div><!-- /similarwebView -->
+
+  <div id="geocodingView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Addresses <span class="req">*</span></label>
+        <textarea id="geoInput" placeholder="321 California Ave, Palo Alto, CA 94306&#10;Central Park, NY"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="geoFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="geoFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('geoFile').click()">⬆ Upload file</button>
+          <span class="hint" id="geoFileName"></span>
+        </div>
+        <span class="hint">Translates each address into coordinates (lat/lon) + matched place, via OpenStreetMap through the proxy pool. One row per address.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="geoStartBtn" onclick="geoStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="geoStopBtn" onclick="geoStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="geoStatus"></div>
+  <div class="bar" id="geoBar"><i></i></div>
+  <div class="resbar" id="geoResbar" style="display:none">
+    <div class="count" id="geoCount"></div>
+    <div class="resbar-controls">
+      <a id="geoDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="geoDownloadXlsx" style="display:none" onclick="geoDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="geoResults"></div>
+  </div><!-- /geocodingView -->
+
+  <div id="builtwithView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Domains or URLs <span class="req">*</span></label>
+        <textarea id="bwInput" placeholder="stripe.com&#10;https://shopify.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="bwFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bwFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('bwFile').click()">⬆ Upload file</button>
+          <span class="hint" id="bwFileName"></span>
+        </div>
+        <span class="hint">Detects a website's tech stack — CMS, ecommerce, JS frameworks, analytics, marketing, CDN &amp; server — from its HTML/headers through the proxy pool. Works on the free pool. One row per domain.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="bwStartBtn" onclick="bwStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="bwStopBtn" onclick="bwStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="bwStatus"></div>
+  <div class="bar" id="bwBar"><i></i></div>
+  <div class="resbar" id="bwResbar" style="display:none">
+    <div class="count" id="bwCount"></div>
+    <div class="resbar-controls">
+      <a id="bwDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="bwDownloadXlsx" style="display:none" onclick="bwDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="bwResults"></div>
+  </div><!-- /builtwithView -->
+
+  <div id="disposableEmailView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Email addresses <span class="req">*</span></label>
+        <textarea id="deInput" placeholder="a@mailinator.com&#10;b@gmail.com&#10;c@ibm.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="deFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="deFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('deFile').click()">⬆ Upload file</button>
+          <span class="hint" id="deFileName"></span>
+        </div>
+        <span class="hint">Classifies each email's domain as <b>disposable</b> (temp-mail), <b>free</b> (gmail/yahoo/…) or <b>corporate</b>. Offline — instant, no network. One row per email.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="deStartBtn" onclick="deStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="deStopBtn" onclick="deStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="deStatus"></div>
+  <div class="bar" id="deBar"><i></i></div>
+  <div class="resbar" id="deResbar" style="display:none">
+    <div class="count" id="deCount"></div>
+    <div class="resbar-controls">
+      <a id="deDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="deDownloadXlsx" style="display:none" onclick="deDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="deResults"></div>
+  </div><!-- /disposableEmailView -->
+
+  <div id="whitepagesAddrView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Addresses <span class="req">*</span></label>
+        <textarea id="waInput" placeholder="321 California Ave, Palo Alto, CA 94306"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="waFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="waFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('waFile').click()">⬆ Upload file</button>
+          <span class="hint" id="waFileName"></span>
+        </div>
+        <span class="hint">Geocoded location (lat/lon, works on the free pool) + best-effort residents (reverse-address via thatsthem). <b>Residents are residential-only</b> — datacenter IPs are rate-limited, so the residents column is usually empty on the free pool. One row per address.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="waStartBtn" onclick="waStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="waStopBtn" onclick="waStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="waStatus"></div>
+  <div class="bar" id="waBar"><i></i></div>
+  <div class="resbar" id="waResbar" style="display:none">
+    <div class="count" id="waCount"></div>
+    <div class="resbar-controls">
+      <a id="waDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="waDownloadXlsx" style="display:none" onclick="waDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="waResults"></div>
+  </div><!-- /whitepagesAddrView -->
+
+  <div id="fastbgAddrView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Addresses <span class="req">*</span></label>
+        <textarea id="fbInput" placeholder="321 California Ave, Palo Alto, CA 94306"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="fbFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="fbFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('fbFile').click()">⬆ Upload file</button>
+          <span class="hint" id="fbFileName"></span>
+        </div>
+        <span class="hint">Geocoded location (lat/lon, works on the free pool) + best-effort residents (fastbackgroundcheck.com). <b>Residents are residential-only</b> — fastbackgroundcheck blocks datacenter IPs (403), so the residents column is usually empty on the free pool. One row per address.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="fbStartBtn" onclick="fbStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="fbStopBtn" onclick="fbStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="fbStatus"></div>
+  <div class="bar" id="fbBar"><i></i></div>
+  <div class="resbar" id="fbResbar" style="display:none">
+    <div class="count" id="fbCount"></div>
+    <div class="resbar-controls">
+      <a id="fbDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="fbDownloadXlsx" style="display:none" onclick="fbDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="fbResults"></div>
+  </div><!-- /fastbgAddrView -->
+
+  <div id="reverseGeoView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Coordinates (lat,lon) <span class="req">*</span></label>
+        <textarea id="rgInput" placeholder="37.427074,-122.1439166&#10;40.7449819,-74.0271321"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="rgFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="rgFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('rgFile').click()">⬆ Upload file</button>
+          <span class="hint" id="rgFileName"></span>
+        </div>
+        <span class="hint">Translates "lat,lon" coordinates into a human-readable address, via OpenStreetMap through the proxy pool. One row per coordinate pair.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="rgStartBtn" onclick="rgStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="rgStopBtn" onclick="rgStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="rgStatus"></div>
+  <div class="bar" id="rgBar"><i></i></div>
+  <div class="resbar" id="rgResbar" style="display:none">
+    <div class="count" id="rgCount"></div>
+    <div class="resbar-controls">
+      <a id="rgDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="rgDownloadXlsx" style="display:none" onclick="rgDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="rgResults"></div>
+  </div><!-- /reverseGeoView -->
+
+  <div id="domainInfoView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Domains or URLs <span class="req">*</span></label>
+        <textarea id="diInput" placeholder="stripe.com&#10;https://github.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="diFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="diFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('diFile').click()">⬆ Upload file</button>
+          <span class="hint" id="diFileName"></span>
+        </div>
+        <span class="hint">WHOIS/registration data per domain — registrar, creation/updated/expiry dates, nameservers &amp; status — via RDAP through the proxy pool. Registrant is often redacted (GDPR). One row per domain.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="diStartBtn" onclick="diStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="diStopBtn" onclick="diStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="diStatus"></div>
+  <div class="bar" id="diBar"><i></i></div>
+  <div class="resbar" id="diResbar" style="display:none">
+    <div class="count" id="diCount"></div>
+    <div class="resbar-controls">
+      <a id="diDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="diDownloadXlsx" style="display:none" onclick="diDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="diResults"></div>
+  </div><!-- /domainInfoView -->
+
+  <div id="yahooSearchView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Search queries or URLs <span class="req">*</span></label>
+        <textarea id="ysInput" placeholder="python web scraping&#10;site:example.com contact"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ysFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ysFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ysFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ysFileName"></span>
+        </div>
+        <span class="hint">Organic web results from Yahoo (title, URL, description) through the proxy pool — works on the free pool. One row per result.</span>
+      </div>
+      <div class="field">
+        <label>Limit per one query</label>
+        <input id="ysLimit" type="number" min="1" max="100" placeholder="100" value="100">
+        <span class="hint">Up to 100 (0 = 100).</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ysStartBtn" onclick="ysStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ysStopBtn" onclick="ysStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="ysStatus"></div>
+  <div class="bar" id="ysBar"><i></i></div>
+  <div class="resbar" id="ysResbar" style="display:none">
+    <div class="count" id="ysCount"></div>
+    <div class="resbar-controls">
+      <a id="ysDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ysDownloadXlsx" style="display:none" onclick="ysDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ysResults"></div>
+  </div><!-- /yahooSearchView -->
+
+  <div id="zoominfoView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>Domains or URLs <span class="req">*</span></label>
+        <textarea id="ziInput" placeholder="stripe.com&#10;https://company2.com"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ziFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ziFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ziFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ziFileName"></span>
+        </div>
+        <span class="hint">ZoomInfo company lookup by domain. <b>ZoomInfo is a paid, anti-bot-protected B2B database</b> with no free source — datacenter IPs are blocked (403), so rows return a "blocked" status. Needs a residential proxy + a ZoomInfo account. One row per domain.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ziStartBtn" onclick="ziStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ziStopBtn" onclick="ziStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="ziStatus"></div>
+  <div class="bar" id="ziBar"><i></i></div>
+  <div class="resbar" id="ziResbar" style="display:none">
+    <div class="count" id="ziCount"></div>
+    <div class="resbar-controls">
+      <a id="ziDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+      <button class="btn-ghost" type="button" id="ziDownloadXlsx" style="display:none" onclick="ziDownloadExcel()">⬇ Download Excel</button>
+    </div>
+  </div>
+  <div id="ziResults"></div>
+  </div><!-- /zoominfoView -->
+
+  <div id="screenshoterView" style="display:none">
+  <div class="panel">
+    <div class="grid">
+      <div class="field full">
+        <label>URLs <span class="req">*</span></label>
+        <textarea id="ssInput" placeholder="https://outscraper.com&#10;https://stripe.com/pricing"></textarea>
+        <div class="upload-row">
+          <span>or select a CSV / XLSX / TXT / Parquet file</span>
+          <input type="file" id="ssFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ssFilePicked()">
+          <button type="button" class="btn-upload" onclick="document.getElementById('ssFile').click()">⬆ Upload file</button>
+          <span class="hint" id="ssFileName"></span>
+        </div>
+        <span class="hint">Renders each URL in a headless browser (through the proxy pool when available) and captures it. WEBP isn't supported by the engine → falls back to PNG. One row per URL.</span>
+      </div>
+      <div class="field">
+        <label>Image format</label>
+        <select id="ssFormat">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="pdf">PDF</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Width (px)</label>
+        <input id="ssWidth" type="number" min="200" max="3840" value="1200">
+      </div>
+      <div class="field">
+        <label>Height (px)</label>
+        <input id="ssHeight" type="number" min="200" max="4320" value="800">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:8px"><input id="ssFullPage" type="checkbox"> Full page</label>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="ssStartBtn" onclick="ssStart()">⬇ Get Data</button>
+      <button class="btn-stop" id="ssStopBtn" onclick="ssStop()" disabled>■ Stop</button>
+    </div>
+  </div>
+  <div class="status" id="ssStatus"></div>
+  <div class="bar" id="ssBar"><i></i></div>
+  <div class="resbar" id="ssResbar" style="display:none">
+    <div class="count" id="ssCount"></div>
+    <div class="resbar-controls">
+      <a id="ssDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a>
+    </div>
+  </div>
+  <div id="ssResults"></div>
+  </div><!-- /screenshoterView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -4603,7 +5011,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -4791,6 +5199,18 @@ function selectService(s, keep, fromHistory){
   document.getElementById('emailVerifierView').style.display = vt==='email_verifier' ? '' : 'none';
   document.getElementById('companyInsightsView').style.display = vt==='company_insights' ? '' : 'none';
   document.getElementById('phoneEnricherView').style.display = vt==='phone_enricher' ? '' : 'none';
+  document.getElementById('phoneIdentityView').style.display = vt==='phone_identity' ? '' : 'none';
+  document.getElementById('similarwebView').style.display = vt==='similarweb' ? '' : 'none';
+  document.getElementById('geocodingView').style.display = vt==='geocoding' ? '' : 'none';
+  document.getElementById('builtwithView').style.display = vt==='builtwith' ? '' : 'none';
+  document.getElementById('disposableEmailView').style.display = vt==='disposable_email' ? '' : 'none';
+  document.getElementById('whitepagesAddrView').style.display = vt==='whitepages_addresses' ? '' : 'none';
+  document.getElementById('fastbgAddrView').style.display = vt==='fastbg_addresses' ? '' : 'none';
+  document.getElementById('reverseGeoView').style.display = vt==='reverse_geocoding' ? '' : 'none';
+  document.getElementById('domainInfoView').style.display = vt==='domain_info' ? '' : 'none';
+  document.getElementById('yahooSearchView').style.display = vt==='yahoo_search' ? '' : 'none';
+  document.getElementById('zoominfoView').style.display = vt==='zoominfo' ? '' : 'none';
+  document.getElementById('screenshoterView').style.display = vt==='screenshoter' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -4878,6 +5298,18 @@ function viewType(s){
   if(s.ui === 'email_verifier') return 'email_verifier';
   if(s.ui === 'company_insights') return 'company_insights';
   if(s.ui === 'phone_enricher') return 'phone_enricher';
+  if(s.ui === 'phone_identity') return 'phone_identity';
+  if(s.ui === 'similarweb') return 'similarweb';
+  if(s.ui === 'geocoding') return 'geocoding';
+  if(s.ui === 'builtwith') return 'builtwith';
+  if(s.ui === 'disposable_email') return 'disposable_email';
+  if(s.ui === 'whitepages_addresses') return 'whitepages_addresses';
+  if(s.ui === 'fastbg_addresses') return 'fastbg_addresses';
+  if(s.ui === 'reverse_geocoding') return 'reverse_geocoding';
+  if(s.ui === 'domain_info') return 'domain_info';
+  if(s.ui === 'yahoo_search') return 'yahoo_search';
+  if(s.ui === 'zoominfo') return 'zoominfo';
+  if(s.ui === 'screenshoter') return 'screenshoter';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -11661,6 +12093,104 @@ _enrichSvc('ev',{api:'/api/email-verifier', columns:EV_COLUMNS, noun:'email', no
 _enrichSvc('ci',{api:'/api/company-insights', columns:CI_COLUMNS, noun:'company', nounP:'companies', verb:'Analyzing', sheet:'company-insights', sheetTab:'Companies'});
 const PE_COLUMNS=["phone","valid","type","carrier","location","country","country_code","e164","international","national"];
 _enrichSvc('pe',{api:'/api/phone-enricher', columns:PE_COLUMNS, noun:'number', nounP:'numbers', verb:'Enriching', sheet:'phone-enricher', sheetTab:'Phones'});
+const PI_COLUMNS=["phone","owner_name","address","found"];
+_enrichSvc('pi',{api:'/api/phone-identity', columns:PI_COLUMNS, noun:'number', nounP:'numbers', verb:'Looking up', sheet:'phone-identity', sheetTab:'Owners'});
+const SW_COLUMNS=["domain","site_name","category","global_rank","country_code","country_rank","total_visits","bounce_rate","pages_per_visit","avg_visit_duration","top_countries","status"];
+_enrichSvc('sw',{api:'/api/similarweb', columns:SW_COLUMNS, noun:'domain', nounP:'domains', verb:'Fetching', sheet:'similarweb', sheetTab:'SimilarWeb'});
+const GEO_COLUMNS=["address","lat","lon","matched_address","type","class","importance","osm_type","osm_id"];
+_enrichSvc('geo',{api:'/api/geocoding', columns:GEO_COLUMNS, noun:'address', nounP:'addresses', verb:'Geocoding', sheet:'geocoding', sheetTab:'Geocoding'});
+const BW_COLUMNS=["domain","cms","ecommerce","javascript","analytics","cdn","marketing","server","technologies"];
+_enrichSvc('bw',{api:'/api/builtwith', columns:BW_COLUMNS, noun:'domain', nounP:'domains', verb:'Detecting', sheet:'builtwith', sheetTab:'BuiltWith'});
+const DE_COLUMNS=["email","domain","type","disposable","free","corporate"];
+_enrichSvc('de',{api:'/api/disposable-email', columns:DE_COLUMNS, noun:'email', nounP:'emails', verb:'Checking', sheet:'disposable-email', sheetTab:'Emails'});
+const AR_COLUMNS=["address","lat","lon","matched_address","residents","status"];
+_enrichSvc('wa',{api:'/api/whitepages-addresses', columns:AR_COLUMNS, noun:'address', nounP:'addresses', verb:'Looking up', sheet:'whitepages-addresses', sheetTab:'Addresses'});
+_enrichSvc('fb',{api:'/api/fastbg-addresses', columns:AR_COLUMNS, noun:'address', nounP:'addresses', verb:'Looking up', sheet:'fastbg-addresses', sheetTab:'Addresses'});
+const RG_COLUMNS=["query","lat","lon","address","type","class","osm_type","osm_id"];
+_enrichSvc('rg',{api:'/api/reverse-geocoding', columns:RG_COLUMNS, noun:'coordinate', nounP:'coordinates', verb:'Reverse-geocoding', sheet:'reverse-geocoding', sheetTab:'ReverseGeo'});
+const DI_COLUMNS=["domain","registrar","created","updated","expires","status","nameservers","registrant"];
+_enrichSvc('di',{api:'/api/domain-info', columns:DI_COLUMNS, noun:'domain', nounP:'domains', verb:'Looking up', sheet:'domain-info', sheetTab:'DomainInfo'});
+const YS_COLUMNS=["query","position","title","url","description"];
+_enrichSvc('ys',{api:'/api/yahoo-search', columns:YS_COLUMNS, noun:'result', nounP:'results', verb:'Searching', sheet:'yahoo-search', sheetTab:'Yahoo'});
+const ZI_COLUMNS=["domain","company_name","zoominfo_url","status"];
+_enrichSvc('zi',{api:'/api/zoominfo', columns:ZI_COLUMNS, noun:'domain', nounP:'domains', verb:'Looking up', sheet:'zoominfo', sheetTab:'ZoomInfo'});
+
+// ===== WebPage Screenshoter (custom: extra options + image rendering) =====
+let ssTimer=null, ssJob=null, _ssRows=[], _ssDlUrl=null;
+const SS_COLUMNS=["url","status","format","width","height","full_page","screenshot"];
+async function ssFilePicked(){
+  const f=document.getElementById('ssFile').files[0]; const nameEl=document.getElementById('ssFileName');
+  if(!f){ nameEl.textContent=''; return; }
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const append=(lines)=>{ const ta=document.getElementById('ssInput'); const merged=(ta.value?ta.value.split(/\r?\n/):[]).concat(lines).map(s=>s.trim()).filter(Boolean); ta.value=[...new Set(merged)].join('\n'); nameEl.textContent='Loaded '+lines.length+' URL'+(lines.length===1?'':'s')+' from '+f.name; };
+  try{
+    if(ext==='xlsx'){ if(typeof XLSX==='undefined'){ nameEl.textContent='Excel library not loaded.'; return; } const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}); append(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).map(r=>String(r[0]??'').trim()).filter(Boolean)); }
+    else if(ext==='parquet'){ nameEl.textContent='Parquet can’t be read in-browser — paste URLs or use CSV/TXT/XLSX.'; }
+    else { const text=await f.text(); append(text.split(/\r?\n/).map(l=>l.split(',')[0].trim()).filter(Boolean)); }
+  }catch(e){ nameEl.textContent='Could not read '+f.name; }
+}
+function ssSetRunning(on){ document.getElementById('ssStartBtn').disabled=on; document.getElementById('ssStopBtn').disabled=!on; ['ssInput','ssFormat','ssWidth','ssHeight','ssFullPage'].forEach(id=>document.getElementById(id).disabled=on); }
+async function ssStart(){
+  const typed=document.getElementById('ssInput').value.trim();
+  const queries=typed?typed.split(/\r?\n/).map(s=>s.trim()).filter(Boolean):[];
+  if(!queries.length){ alert('Enter at least one URL (one per line), or upload a file.'); return; }
+  const body={queries, image_format:document.getElementById('ssFormat').value,
+    width:parseInt(document.getElementById('ssWidth').value,10)||1200,
+    height:parseInt(document.getElementById('ssHeight').value,10)||800,
+    full_page:document.getElementById('ssFullPage').checked};
+  let r; try{ r=await fetch('/api/screenshoter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+  catch(e){ alert('Could not reach the server.'); return; }
+  if(!r.ok){ alert('Failed to start: '+(await r.text())); return; }
+  ssJob=(await r.json()).job_id; _ssRows=[];
+  document.getElementById('ssResbar').style.display='none'; document.getElementById('ssResults').innerHTML=''; document.getElementById('ssCount').textContent='';
+  document.getElementById('ssBar').style.display='block'; document.querySelector('#ssBar>i').style.width='30%';
+  ssSetRunning(true); if(ssTimer) clearInterval(ssTimer); ssTimer=setInterval(()=>ssPoll(ssJob),2000); ssPoll(ssJob);
+}
+async function ssStop(){ if(ssJob){ document.getElementById('ssStopBtn').disabled=true; await fetch('/api/stop/'+ssJob,{method:'POST'}); } }
+async function ssPoll(job_id){
+  const s=await (await fetch('/api/status/'+job_id)).json(); const el=document.getElementById('ssStatus'); const got=s.total_scraped||0;
+  if(s.status==='running'){ el.className='status running'; el.innerHTML='<span class="spin"></span> Capturing… '+got+' page'+(got===1?'':'s'); }
+  else { clearInterval(ssTimer); ssSetRunning(false); document.getElementById('ssBar').style.display='none';
+    if(s.status==='done'||s.status==='stopped'){ el.className='status '+s.status; el.textContent=(s.status==='done'?'✅ Done':'⏹ Stopped')+' — '+got+' page'+(got===1?'':'s'); ssShowResults(job_id, s.note||''); }
+    else if(s.status==='error'){ el.className='status error'; el.textContent='❌ Error: '+(s.error||'unknown'); }
+  }
+}
+async function ssShowResults(job_id, note){
+  _ssRows=await (await fetch('/api/screenshoter/results/'+job_id+'?limit=5000')).json();
+  const resbar=document.getElementById('ssResbar');
+  if(!_ssRows.length){ document.getElementById('ssResults').innerHTML=''; document.getElementById('ssCount').innerHTML='<span class="empty">'+esc(note||'No screenshots — the pages may have failed to load; try again.')+'</span>'; resbar.style.display='flex'; document.getElementById('ssDownload').style.display='none'; return; }
+  resbar.style.display='flex'; ssRender();
+  document.getElementById('ssCount').textContent='Showing '+_ssRows.length+' capture'+(_ssRows.length===1?'':'s')+'.';
+  ssUpdateDownload();
+}
+function ssRender(){
+  let h='';
+  _ssRows.forEach((r)=>{
+    const ok=r.status==='ok'&&r.screenshot;
+    const isPdf=(r.format==='pdf');
+    const media=ok?(isPdf
+      ? `<a href="${esc(r.screenshot)}" target="_blank" style="display:inline-block;padding:24px 18px;background:#f5f5f5;border-radius:8px;color:#c00;text-decoration:none">📄 Open PDF</a>`
+      : `<a href="${esc(r.screenshot)}" target="_blank"><img src="${esc(r.screenshot)}" loading="lazy" style="max-width:280px;max-height:200px;border:1px solid #e0e0e0;border-radius:8px;object-fit:cover;object-position:top"></a>`)
+      : `<span style="color:#c5221f;font-size:13px">${esc(r.status||'failed')}</span>`;
+    h+=`<div style="border:1px solid #e0e0e0;border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:none">${media}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600"><a href="${esc(r.url)}" target="_blank" style="color:#1a73e8;text-decoration:none">${esc(r.url)}</a></div>
+        <div style="font-size:13px;color:#5f6368;margin-top:4px">${esc(r.format)} · ${esc(String(r.width))}×${esc(String(r.height))}${r.full_page?' · full page':''}</div>
+        ${ok?`<a href="${esc(r.screenshot)}" download style="font-size:13px;color:#1a73e8;text-decoration:none">⬇ Download ${esc(r.format)}</a>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('ssResults').innerHTML=h;
+}
+function ssUpdateDownload(){
+  const dl=document.getElementById('ssDownload');
+  if(!_ssRows.length){ dl.style.display='none'; return; }
+  if(_ssDlUrl) URL.revokeObjectURL(_ssDlUrl);
+  const rows=_ssRows.map(r=>{ const o={}; for(const c of SS_COLUMNS) o[c]=r[c]??''; return o; });
+  _ssDlUrl=URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}));
+  dl.href=_ssDlUrl; dl.setAttribute('download','screenshots.json'); dl.style.display='inline-block';
+}
 /* ---------- end YouTube Search ---------- */
 
 /* ---------- Google Play Reviews Monitoring ---------- */
