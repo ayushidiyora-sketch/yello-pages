@@ -130,6 +130,145 @@ class AIScraperRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class CraigslistRequest(BaseModel):
+    # one per line: a craigslist.org search URL or a single listing URL.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://newyork.craigslist.org/search/sss?query=toaster"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class AllegroRequest(BaseModel):
+    # one per line: an allegro.pl listing/category URL or a single offer (…/oferta/…) URL.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://allegro.pl/listing?string=robot%20sprzatajacy"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class ImmoweltRequest(BaseModel):
+    # one per line: an immowelt.de classified-search URL or a single expose (…/expose/…) URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.immowelt.de/classified-search?distributionTypes=Buy&estateTypes=House,Apartment&locations=POCODE254"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class MobiledeRequest(BaseModel):
+    # one per line: a mobile.de search URL or a single vehicle details (…/details.html?id=…) URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&s=Car&vc=Car"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class WillhabenRequest(BaseModel):
+    # one per line: a willhaben.at search/category URL or a single listing (…/d/…-<id>) URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.willhaben.at/iad/gebrauchtwagen/auto/audi-gebrauchtwagen"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class FeedbackCompanyRequest(BaseModel):
+    # one per line: a Feedback Company customer id (e.g. 15626) or a reviews URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.feedbackcompany.com/en-en/reviews/quooker-co-uk"]])
+    limit: int | None = Field(None, examples=[100])
+    sort: str = Field("newest", examples=["newest"])   # newest|oldest|highest|lowest
+
+
+class FeedbackCompanyCompanyRequest(BaseModel):
+    # one per line: a Feedback Company reviews URL (company profile is read from the page).
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.feedbackcompany.com/en-en/reviews/quooker-co-uk"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class CrunchbaseRequest(BaseModel):
+    # one per line: a crunchbase.com/organization/<slug> URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.crunchbase.com/organization/scala"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class CrunchbaseSearchRequest(BaseModel):
+    # one per line: a search term, domain, or URL (e.g. uber / uber.com / https://www.uber.com).
+    queries: list[str] = Field(..., min_length=1, examples=[["uber"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class ZoominfoRequest(BaseModel):
+    # one per line: a zoominfo.com/c/<slug>/<id> company URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.zoominfo.com/c/crafters-companion-ltd/41668339"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class DeliverooReviewsRequest(BaseModel):
+    # one per line: a deliveroo.co.uk store/menu URL or a bare restaurant id / UUID.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://deliveroo.co.uk/menu/London/waterloo-station/8278-burger-king-waterloo-station"]])
+    limit: int | None = Field(None, examples=[100])
+    sort: str = Field("highest", examples=["highest"])   # highest|lowest|newest|oldest
+
+
+class DeliverooRequest(BaseModel):
+    # one per line: a deliveroo restaurant/menu URL or a restaurant-list/search URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://deliveroo.co.uk/menu/London/waterloo-station/8278-burger-king-waterloo-station"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class UberEatsRequest(BaseModel):
+    # one per line: an ubereats.com store URL or a find-near-me / category / city listing URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.ubereats.com/category/oklahoma-city-ok/chinese"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class StreetEasyRequest(BaseModel):
+    # one per line: a streeteasy.com for-sale / for-rent search URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://streeteasy.com/for-sale/nyc/price:500000-1000000"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class BingMapsRequest(BaseModel):
+    # one per line: a local search (category + city/zip/country), e.g. "bars, NY, USA".
+    queries: list[str] = Field(..., min_length=1, examples=[["bars, NY, USA"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class UniversalAIRequest(BaseModel):
+    # one URL per line; Claude extracts the chosen attributes from each page.
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.apple.com/iphone/"]])
+    attributes: list[str] = Field(..., min_length=1,
+                                  examples=[["name", "price", "description", "rating", "reviews"]])
+    limit: int | None = Field(None, examples=[1])
+
+
+class EmailFinderRequest(BaseModel):
+    # one per line: "<full name> <company domain>", e.g. "John Doe company.com".
+    queries: list[str] = Field(..., min_length=1, examples=[["John Doe company.com"]])
+    limit: int | None = Field(None, examples=[0])
+
+
+class ZillowTransactionsRequest(BaseModel):
+    # one per line: a zillow.com/profile/<agent>/ URL.
+    queries: list[str] = Field(..., min_length=1, examples=[[
+        "https://www.zillow.com/profile/agent-name/"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class S1688Request(BaseModel):
+    # one per line: a 1688 search URL (s.1688.com/selloffer/offer_search.htm?keywords=…) or a keyword.
+    queries: list[str] = Field(..., min_length=1, examples=[["air pods"]])
+    limit: int | None = Field(None, examples=[100])
+
+
+class OfferupRequest(BaseModel):
+    # one per line: an offerup.com item-detail, explore, or search URL.
+    queries: list[str] = Field(..., min_length=1,
+                               examples=[["https://offerup.com/search?q=toaster"]])
+    limit: int | None = Field(None, examples=[100])
+
+
 class AngiRequest(BaseModel):
     # one per line: an angi.com company-list or near-me search URL.
     queries: list[str] = Field(..., min_length=1,

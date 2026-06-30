@@ -18,6 +18,26 @@ producthunt_profiles = db["producthunt_profiles"]  # one doc per scraped Product
 thuisbezorgd_reviews = db["thuisbezorgd_reviews"]  # one doc per scraped Thuisbezorgd restaurant review
 feefo_reviews = db["feefo_reviews"]  # one doc per scraped Feefo merchant review
 angi_results = db["angi_results"]  # one doc per scraped Angi company listing
+offerup_results = db["offerup_results"]  # one doc per scraped OfferUp listing
+s1688_results = db["s1688_results"]  # one doc per scraped 1688.com offer
+craigslist_results = db["craigslist_results"]  # one doc per scraped Craigslist listing
+allegro_results = db["allegro_results"]  # one doc per scraped Allegro product
+immowelt_results = db["immowelt_results"]  # one doc per scraped Immowelt property listing
+mobilede_results = db["mobilede_results"]  # one doc per scraped Mobile.de vehicle listing
+willhaben_results = db["willhaben_results"]  # one doc per scraped Willhaben classified listing
+feedbackcompany_reviews = db["feedbackcompany_reviews"]  # one doc per scraped Feedback Company review
+feedbackcompany_companies = db["feedbackcompany_companies"]  # one doc per Feedback Company company profile
+crunchbase_results = db["crunchbase_results"]  # one doc per scraped Crunchbase organization profile
+crunchbase_search_results = db["crunchbase_search_results"]  # one doc per Crunchbase search match
+zoominfo_results = db["zoominfo_results"]  # one doc per scraped ZoomInfo company profile
+deliveroo_reviews = db["deliveroo_reviews"]  # one doc per scraped Deliveroo restaurant review
+deliveroo_results = db["deliveroo_results"]  # one doc per scraped Deliveroo restaurant
+ubereats_results = db["ubereats_results"]  # one doc per scraped Uber Eats restaurant
+streeteasy_results = db["streeteasy_results"]  # one doc per scraped StreetEasy listing
+bingmaps_results = db["bingmaps_results"]  # one doc per scraped Bing Maps business
+ai_universal_results = db["ai_universal_results"]  # one doc per row (Universal AI-Powered Scraper, dynamic attrs)
+email_finder_results = db["email_finder_results"]  # one doc per found email (Email Addresses Finder)
+zillow_transactions_results = db["zillow_transactions_results"]  # one doc per Zillow agent transaction
 gjobs = db["gjobs"]            # one doc per scraped Glassdoor job
 gcompanies = db["gcompanies"]  # one doc per Glassdoor company (Company Search)
 gdreviews = db["gdreviews"]    # one doc per scraped Glassdoor company review
@@ -159,3 +179,21 @@ async def ensure_indexes():
     await upwork_results.create_index("job_id")
     await youtube_videos_results.create_index("job_id")
     await glassdoor_company_jobs_results.create_index("job_id")
+    await craigslist_results.create_index("job_id")
+    await allegro_results.create_index("job_id")
+    await immowelt_results.create_index("job_id")
+    await mobilede_results.create_index("job_id")
+    await willhaben_results.create_index("job_id")
+    await feedbackcompany_reviews.create_index("job_id")
+    await feedbackcompany_companies.create_index("job_id")
+    await crunchbase_results.create_index("job_id")
+    await crunchbase_search_results.create_index("job_id")
+    await zoominfo_results.create_index("job_id")
+    await deliveroo_reviews.create_index("job_id")
+    await deliveroo_results.create_index("job_id")
+    await ubereats_results.create_index("job_id")
+    await streeteasy_results.create_index("job_id")
+    await bingmaps_results.create_index("job_id")
+    await ai_universal_results.create_index("job_id")
+    await email_finder_results.create_index("job_id")
+    await zillow_transactions_results.create_index("job_id")

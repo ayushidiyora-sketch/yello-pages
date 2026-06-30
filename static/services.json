@@ -1615,7 +1615,8 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "zillow_transactions"
  },
  {
   "no": "156",
@@ -1625,7 +1626,8 @@
   "tags": [
    "Leads & Contacts"
   ],
-  "live": false
+  "live": true,
+  "ui": "email_finder"
  },
  {
   "no": "157",
@@ -1655,7 +1657,8 @@
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "ai_universal"
  },
  {
   "no": "160",
@@ -1671,11 +1674,12 @@
   "no": "161",
   "name": "Bing Maps Scraper",
   "brand": "Bing",
-  "description": "Returns search results",
+  "description": "Returns local business listings from Bing Maps by category + location.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "bingmaps"
  },
  {
   "no": "162",
@@ -1685,67 +1689,74 @@
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "streeteasy"
  },
  {
   "no": "163",
   "name": "Uber Eats Scraper",
   "brand": "Uber",
-  "description": "",
+  "description": "Returns restaurant data from ubereats.com store, category, and city pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "ubereats"
  },
  {
   "no": "164",
   "name": "Deliveroo Scraper",
   "brand": "Deliveroo",
-  "description": "",
+  "description": "Returns restaurant data from deliveroo.co.uk menu and restaurant-list pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "deliveroo"
  },
  {
   "no": "165",
   "name": "Deliveroo Reviews Scraper",
   "brand": "Deliveroo",
-  "description": "",
+  "description": "Returns restaurant reviews from deliveroo.co.uk by store URL or id.",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "deliveroo_reviews"
  },
  {
   "no": "166",
   "name": "Zoominfo Scraper",
   "brand": "Zoom",
-  "description": "",
+  "description": "Returns company profiles from zoominfo.com company pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "zoominfo"
  },
  {
   "no": "167",
   "name": "Crunchbase Search Scraper",
   "brand": "Crunchbase",
-  "description": "",
+  "description": "Finds companies on crunchbase.com by name, domain, or URL.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "crunchbase_search"
  },
  {
   "no": "168",
   "name": "Crunchbase Scraper",
   "brand": "Crunchbase",
-  "description": "",
+  "description": "Returns company profiles from crunchbase.com organization pages.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "crunchbase"
  },
  {
   "no": "169",
@@ -1773,21 +1784,23 @@
   "no": "171",
   "name": "Feedback Company Scraper",
   "brand": "Feedback Company",
-  "description": "",
+  "description": "Returns company profiles (rating, review count, contact) from feedbackcompany.com.",
   "tags": [
    "Businesses & POI"
   ],
-  "live": false
+  "live": true,
+  "ui": "feedbackcompany_company"
  },
  {
   "no": "172",
   "name": "Feedback Company Reviews Scraper",
   "brand": "Feedback Company",
-  "description": "",
+  "description": "Returns customer reviews from feedbackcompany.com by company id or reviews URL.",
   "tags": [
    "Reviews & Comments"
   ],
-  "live": false
+  "live": true,
+  "ui": "feedbackcompany"
  },
  {
   "no": "173",
@@ -1804,61 +1817,67 @@
   "no": "174",
   "name": "Willhaben Scraper",
   "brand": "Willhaben",
-  "description": "",
+  "description": "Returns classified listings from willhaben.at search and detail pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "willhaben"
  },
  {
   "no": "175",
   "name": "Mobilede Scraper",
   "brand": "Mobilede",
-  "description": "",
+  "description": "Returns vehicle listings from mobile.de search and detail pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "mobilede"
  },
  {
   "no": "176",
   "name": "Immowelt Scraper",
   "brand": "Immowelt",
-  "description": "",
+  "description": "Returns property listings from immowelt.de classified-search and expose pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "immowelt"
  },
  {
   "no": "177",
   "name": "Allegro Scraper",
   "brand": "Allegro",
-  "description": "",
+  "description": "Returns products from allegro.pl listing/category and offer pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "allegro"
  },
  {
   "no": "178",
   "name": "Craigslist Scraper",
   "brand": "Craigslist",
-  "description": "",
+  "description": "Returns listings from craigslist.org search and listing pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "craigslist"
  },
  {
   "no": "179",
   "name": "1688 Search Scraper",
   "brand": "1688 Search",
-  "description": "",
+  "description": "Returns wholesale product offers from 1688.com search (Alibaba China).",
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "s1688"
  },
  {
   "no": "180",
@@ -1886,11 +1905,12 @@
   "no": "182",
   "name": "Offerup Scraper",
   "brand": "Offerup",
-  "description": "",
+  "description": "Returns marketplace listings from offerup.com item, explore, and search pages.",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "offerup"
  },
  {
   "no": "183",
