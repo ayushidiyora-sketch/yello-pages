@@ -35,6 +35,8 @@
     .sb-item.active{background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;font-weight:600}
     .sb-item .live{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.04em;
       background:#16a34a;color:#fff;padding:2px 6px;border-radius:20px;flex:0 0 auto}
+    .sb-item .sb-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex:0 0 auto;
+      box-shadow:0 0 5px rgba(34,197,94,.8)}   /* marks a service as done */
     .sb-empty{color:#7c89a8;font-size:13px;padding:14px 12px}
 
     .main{flex:1;min-width:0;padding:28px 32px;overflow-x:hidden}
@@ -6059,6 +6061,26 @@ function primaryTag(s){
   return TAG_ORDER.includes(t) ? t : (t || 'Other');
 }
 
+// Services marked done — a green dot is shown before the name in the sidebar.
+const DONE_SERVICES = new Set([
+  "Emails & Contacts Scraper","Leads & Contacts Enrichment","Email Address Verifier",
+  "Company Insights","Phone Numbers Enricher","Disposable Email Checker","BuiltWith Scraper",
+  "Linkedin Companies Scraper","Linkedin Profiles Scraper","Trustpilot Scraper",
+  "Trustpilot Search Scraper","Trustpilot Reviews Monitoring","Trustpilot Reviews Scraper",
+  "Whitepages Addresses Scraper","YouTube Channels Scraper","Geocoding","Reverse Geocoding",
+  "WebPage Screenshoter","Domain Information","Google Maps Autocomplete","Google Search Autocomplete",
+  "Yahoo Search Scraper","Eventbrite Scraper","Meetup Scraper","Glassdoor Company Search",
+  "TikTok Videos Scraper","Amazon Products Scraper","Amazon Reviews Scraper","Asos Products Scraper",
+  "AppStore Reviews Scraper","Airbnb Reviews Scraper","BBB Business Scraper","BBB Business Reviews Scraper",
+  "eBay Products Scraper","Google Search Scraper","Google Search News Scraper","Google Search Careers",
+  "Google Trends Scraper","Google Play Reviews Scraper","Google Play Reviews Monitoring",
+  "Glassdoor Job Scraper","Walmart Products Scraper","Walmart Reviews Scraper","YouTube Search Scraper",
+  "YouTube Video Scraper","Yellow Pages Search Scraper","Bing Maps Scraper","Uber Eats Scraper",
+  "OLX Scraper","Feedback Company Scraper","Feedback Company Reviews Scraper","YouTube Transcripts Scraper",
+  "Willhaben Scraper","Craigslist Scraper","Glassdoor Company Jobs","Offerup Scraper","Angi Scraper",
+  "Feefo Reviews Scraper","Product Hunt Profiles Scraper","Kununu Reviews Scraper",
+].map(n => n.toLowerCase()));
+
 function renderSidebar(){
   const box = document.getElementById('serviceList');
   const q = (document.getElementById('svcSearch').value || '').toLowerCase().trim();
@@ -6073,7 +6095,8 @@ function renderSidebar(){
     groups[g].forEach(s => {
       const it = document.createElement('div');
       it.className = 'sb-item' + (activeSvc && s.name === activeSvc.name ? ' active' : '');
-      it.innerHTML = esc(s.name) + (s.live ? '<span class="live">LIVE</span>' : '');
+      const dot = DONE_SERVICES.has(s.name.toLowerCase()) ? '<span class="sb-dot" title="Done"></span>' : '';
+      it.innerHTML = dot + esc(s.name) + (s.live ? '<span class="live">LIVE</span>' : '');
       it.title = s.name;
       it.onclick = () => selectService(s);
       box.appendChild(it);
