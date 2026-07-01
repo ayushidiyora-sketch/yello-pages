@@ -467,41 +467,45 @@
   "no": "43",
   "name": "BiggestBook Products Scraper",
   "brand": "BiggestBook",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "biggestbook_products"
  },
  {
   "no": "44",
   "name": "Vistaprint Products Scraper",
   "brand": "Vistaprint",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "vistaprint_products"
  },
  {
   "no": "45",
   "name": "Waxie Products Scraper",
   "brand": "Waxie",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "waxie_products"
  },
  {
   "no": "46",
   "name": "Otto Products Scraper",
   "brand": "Otto",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "otto_products"
  },
  {
   "no": "47",
@@ -518,11 +522,12 @@
   "no": "48",
   "name": "Newegg Products Scraper",
   "brand": "Newegg",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "newegg_products"
  },
  {
   "no": "49",

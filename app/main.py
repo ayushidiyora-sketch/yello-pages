@@ -35,6 +35,7 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  fastbackgroundcheck_addresses, reverse_geocoding, domain_info, yahoo_search, zoominfo,
                  screenshoter, eventbrite, meetup, tiktok_videos, tiktok_hashtags, tiktok_search,
                  tiktok_comments, appstore_reviews, asos_products,
+                 waxie_products, vistaprint_products, otto_products, newegg_products, biggestbook_products,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -71,7 +72,7 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      DomainInfoRequest, YahooSearchRequest, ZoomInfoRequest, ScreenshoterRequest,
                      EventbriteRequest, MeetupRequest, TikTokVideosRequest, TikTokHashtagsRequest,
                      TikTokSearchRequest, TikTokCommentsRequest, AppStoreReviewsRequest,
-                     AsosProductsRequest)
+                     AsosProductsRequest, ProductUrlsRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -112,7 +113,9 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                screenshoter as screenshoter_mod, eventbrite as eventbrite_mod, meetup as meetup_mod,
                tiktok_videos as tiktok_videos_mod, tiktok_hashtags as tiktok_hashtags_mod,
                tiktok_search as tiktok_search_mod, tiktok_comments as tiktok_comments_mod,
-               appstore_reviews as appstore_reviews_mod, asos as asos_mod)
+               appstore_reviews as appstore_reviews_mod, asos as asos_mod, waxie as waxie_mod,
+               vistaprint as vistaprint_mod, otto as otto_mod, newegg as newegg_mod,
+               biggestbook as biggestbook_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -574,6 +577,31 @@ async def _asr_rows(job_id):
 async def _asos_rows(job_id):
     rows = [d async for d in asos_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, asos_mod.AS_COLUMNS
+
+
+async def _waxie_rows(job_id):
+    rows = [d async for d in waxie_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, waxie_mod.WAXIE_COLUMNS
+
+
+async def _vistaprint_rows(job_id):
+    rows = [d async for d in vistaprint_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, vistaprint_mod.VISTA_COLUMNS
+
+
+async def _otto_rows(job_id):
+    rows = [d async for d in otto_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, otto_mod.OTTO_COLUMNS
+
+
+async def _newegg_rows(job_id):
+    rows = [d async for d in newegg_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, newegg_mod.NEWEGG_COLUMNS
+
+
+async def _biggestbook_rows(job_id):
+    rows = [d async for d in biggestbook_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, biggestbook_mod.BIGBOOK_COLUMNS
 
 
 async def _start_enrich_lim(kind, queries, lim, run_coro_fn, rows_fn):
@@ -3325,6 +3353,73 @@ async def asos_products_start(req: AsosProductsRequest):
 @app.get("/api/asos-products/results/{job_id}")
 async def asos_products_results(job_id: str, limit: int = 5000):
     rows = [d async for d in asos_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/waxie-products")
+async def waxie_products_start(req: ProductUrlsRequest):
+    """Waxie Products Scraper — product listings from shop.waxie.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("waxie_products", _clean_queries(req), lim, waxie_mod.run_job, _waxie_rows)
+
+
+@app.get("/api/waxie-products/results/{job_id}")
+async def waxie_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in waxie_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/vistaprint-products")
+async def vistaprint_products_start(req: ProductUrlsRequest):
+    """Vistaprint Products Scraper — product listings from vistaprint.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("vistaprint_products", _clean_queries(req), lim,
+                                   vistaprint_mod.run_job, _vistaprint_rows)
+
+
+@app.get("/api/vistaprint-products/results/{job_id}")
+async def vistaprint_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in vistaprint_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/otto-products")
+async def otto_products_start(req: ProductUrlsRequest):
+    """Otto Products Scraper — otto.de product listings (JSON-LD; residential-only, 403 on datacenter)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("otto_products", _clean_queries(req), lim, otto_mod.run_job, _otto_rows)
+
+
+@app.get("/api/otto-products/results/{job_id}")
+async def otto_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in otto_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/newegg-products")
+async def newegg_products_start(req: ProductUrlsRequest):
+    """Newegg Products Scraper — newegg.com product listings (JSON-LD; residential-only, 403 on datacenter)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("newegg_products", _clean_queries(req), lim, newegg_mod.run_job, _newegg_rows)
+
+
+@app.get("/api/newegg-products/results/{job_id}")
+async def newegg_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in newegg_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/biggestbook-products")
+async def biggestbook_products_start(req: ProductUrlsRequest):
+    """BiggestBook Products Scraper — biggestbook.com (JS/API-driven SPA; JSON-LD when present)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("biggestbook_products", _clean_queries(req), lim,
+                                   biggestbook_mod.run_job, _biggestbook_rows)
+
+
+@app.get("/api/biggestbook-products/results/{job_id}")
+async def biggestbook_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in biggestbook_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

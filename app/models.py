@@ -440,6 +440,13 @@ class AsosProductsRequest(BaseModel):
     limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # products/query; 0 = all
 
 
+class ProductUrlsRequest(BaseModel):
+    # each line: a product / category / search URL (shared by the retailer product scrapers:
+    # Waxie, Vistaprint, Otto, Newegg, BiggestBook)
+    queries: list[str] = Field(..., min_length=1, examples=[["https://www.example.com/product/123"]])
+    limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # products/query; 0 = all
+
+
 class EventbriteRequest(BaseModel):
     # each line: an Eventbrite event URL or numeric event id
     queries: list[str] = Field(..., min_length=1, examples=[["https://www.eventbrite.com/e/1417752679429"]])
