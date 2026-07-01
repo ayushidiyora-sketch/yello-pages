@@ -440,6 +440,13 @@ class AsosProductsRequest(BaseModel):
     limit: Optional[int] = Field(100, ge=0, le=2000, examples=[100])  # products/query; 0 = all
 
 
+class AppStoreSearchRequest(BaseModel):
+    # each line: an apps.apple.com search URL or a keyword
+    queries: list[str] = Field(..., min_length=1, examples=[["meditation", "photo editor"]])
+    limit: Optional[int] = Field(100, ge=0, le=200, examples=[100])  # results/query (Apple caps at 200)
+    media: str = Field("all", examples=["all"])   # all|software|movie|podcast|music|ebook|tvShow|…
+
+
 class ProductUrlsRequest(BaseModel):
     # each line: a product / category / search URL (shared by the retailer product scrapers:
     # Waxie, Vistaprint, Otto, Newegg, BiggestBook)

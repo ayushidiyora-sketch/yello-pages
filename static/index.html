@@ -4250,6 +4250,22 @@
   <div id="ipiResults"></div>
   </div><!-- /ipinfoView -->
 
+  <div id="appstoreSearchView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Search URLs or terms <span class="req">*</span></label>
+      <textarea id="apssInput" placeholder="meditation&#10;https://apps.apple.com/us/search?term=photo%20editor"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="apssFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="apssFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('apssFile').click()">⬆ Upload file</button>
+        <span class="hint" id="apssFileName"></span></div>
+      <span class="hint">App Store / iTunes search results via Apple's iTunes Search API, through the proxy pool. Country is read from the URL (/us/, /gb/, ...); media defaults to all. One row per result.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="apssLimit" type="number" min="1" max="200" placeholder="100" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="apssStartBtn" onclick="apssStart()">⬇ Get Data</button><button class="btn-stop" id="apssStopBtn" onclick="apssStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="apssStatus"></div><div class="bar" id="apssBar"><i></i></div>
+  <div class="resbar" id="apssResbar" style="display:none"><div class="count" id="apssCount"></div><div class="resbar-controls"><a id="apssDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="apssDownloadXlsx" style="display:none" onclick="apssDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="apssResults"></div>
+  </div><!-- /appstoreSearchView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -6276,7 +6292,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoScraperView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','appstoreReviewsView','asosProductsView','waxieView','vistaprintView','ottoView','neweggView','biggestbookView','cdwView','decathlonView','ulineView','menardsView','targetView','napaonlineView','grouponView','gemplersView','fergusonView','globalindustrialView','northerntoolView','ipinfoView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoScraperView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','appstoreReviewsView','asosProductsView','waxieView','vistaprintView','ottoView','neweggView','biggestbookView','cdwView','decathlonView','ulineView','menardsView','targetView','napaonlineView','grouponView','gemplersView','fergusonView','globalindustrialView','northerntoolView','ipinfoView','appstoreSearchView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -6562,6 +6578,7 @@ function selectService(s, keep, fromHistory){
   document.getElementById('globalindustrialView').style.display = vt==='globalindustrial_products' ? '' : 'none';
   document.getElementById('northerntoolView').style.display = vt==='northerntool_products' ? '' : 'none';
   document.getElementById('ipinfoView').style.display = vt==='ipinfo' ? '' : 'none';
+  document.getElementById('appstoreSearchView').style.display = vt==='appstore_search' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -6706,6 +6723,7 @@ function viewType(s){
   if(s.ui === 'globalindustrial_products') return 'globalindustrial_products';
   if(s.ui === 'northerntool_products') return 'northerntool_products';
   if(s.ui === 'ipinfo') return 'ipinfo';
+  if(s.ui === 'appstore_search') return 'appstore_search';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -16478,6 +16496,8 @@ _enrichSvc('gind',{api:'/api/globalindustrial-products', columns:PRODUCT_COLUMNS
 _enrichSvc('ntl',{api:'/api/northerntool-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'northerntool-products', sheetTab:'Northerntool'});
 const IPINFO_COLUMNS=["query","ip","city","region","country","country_code","zip","lat","lon","timezone","isp","org","as","status"];
 _enrichSvc('ipi',{api:'/api/ipinfo', columns:IPINFO_COLUMNS, noun:'IP', nounP:'IPs', verb:'Looking up', sheet:'ipinfo', sheetTab:'IPInfo'});
+const ASS_COLUMNS=["query","name","artist","kind","genre","price","rating","reviews","url"];
+_enrichSvc('apss',{api:'/api/appstore-search', columns:ASS_COLUMNS, noun:'result', nounP:'results', verb:'Searching', sheet:'appstore-search', sheetTab:'AppStore'});
 
 // ===== WebPage Screenshoter (custom: extra options + image rendering) =====
 let ssTimer=null, ssJob=null, _ssRows=[], _ssDlUrl=null;

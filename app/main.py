@@ -38,7 +38,7 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  waxie_products, vistaprint_products, otto_products, newegg_products, biggestbook_products,
                  cdw_products, decathlon_products, uline_products, menards_products,
                  target_products, napaonline_products, groupon_products, gemplers_products,
-                 ferguson_products, globalindustrial_products, northerntool_products, ipinfo,
+                 ferguson_products, globalindustrial_products, northerntool_products, ipinfo, appstore_search,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -75,7 +75,7 @@ from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      DomainInfoRequest, YahooSearchRequest, ZoomInfoRequest, ScreenshoterRequest,
                      EventbriteRequest, MeetupRequest, TikTokVideosRequest, TikTokHashtagsRequest,
                      TikTokSearchRequest, TikTokCommentsRequest, AppStoreReviewsRequest,
-                     AsosProductsRequest, ProductUrlsRequest)
+                     AsosProductsRequest, ProductUrlsRequest, AppStoreSearchRequest)
 from .scraper import run_scrape, request_stop, apply_view, REGIONS, SUPPORTED_REGIONS
 from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g2,
                glassdoor_jobs, glassdoor_companies, glassdoor_reviews, walmart, walmart_reviews as walmart_rv,
@@ -122,7 +122,7 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                uline as uline_mod, menards as menards_mod, target as target_mod,
                napaonline as napaonline_mod, groupon as groupon_mod, gemplers as gemplers_mod,
                ferguson as ferguson_mod, globalindustrial as globalindustrial_mod,
-               northerntool as northerntool_mod, ipinfo as ipinfo_mod)
+               northerntool as northerntool_mod, ipinfo as ipinfo_mod, appstore_search as appstore_search_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -669,6 +669,11 @@ async def _northerntool_rows(job_id):
 async def _ipinfo_rows(job_id):
     rows = [d async for d in ipinfo.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, ipinfo_mod.IPINFO_COLUMNS
+
+
+async def _apss_rows(job_id):
+    rows = [d async for d in appstore_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, appstore_search_mod.ASS_COLUMNS
 
 
 async def _start_enrich_lim(kind, queries, lim, run_coro_fn, rows_fn):
@@ -3650,6 +3655,28 @@ async def ipinfo_start(req: ProductUrlsRequest):
 @app.get("/api/ipinfo/results/{job_id}")
 async def ipinfo_results(job_id: str, limit: int = 5000):
     rows = [d async for d in ipinfo.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/appstore-search")
+async def appstore_search_start(req: AppStoreSearchRequest):
+    """AppStore Search Scraper — App Store / iTunes search results via Apple's iTunes Search API."""
+    queries = _clean_queries(req)
+    lim = None if (req.limit or 0) == 0 else req.limit
+    job_id = uuid.uuid4().hex
+    await jobs.insert_one({
+        "job_id": job_id, "kind": "appstore_search", "queries": queries, "limit": lim,
+        "status": "running", "total_scraped": 0, "started_at": datetime.utcnow(), "finished_at": None,
+    })
+    asyncio.create_task(_run_and_archive(
+        appstore_search_mod.run_job(job_id, queries, lim, req.media or "all"),
+        "appstore_search", job_id, _apss_rows))
+    return {"job_id": job_id}
+
+
+@app.get("/api/appstore-search/results/{job_id}")
+async def appstore_search_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in appstore_search.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

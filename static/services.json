@@ -449,7 +449,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "appstore_search"
  },
  {
   "no": "42",
