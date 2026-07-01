@@ -177,7 +177,6 @@
   "live": true,
   "ui": "trustpilot_search"
  },
-
  {
   "no": "17",
   "name": "Trustpilot Reviews Scraper",
@@ -450,7 +449,8 @@
   "tags": [
    "Social & Search"
   ],
-  "live": false
+  "live": true,
+  "ui": "appstore_search"
  },
  {
   "no": "42",
@@ -467,41 +467,45 @@
   "no": "43",
   "name": "BiggestBook Products Scraper",
   "brand": "BiggestBook",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "biggestbook_products"
  },
  {
   "no": "44",
   "name": "Vistaprint Products Scraper",
   "brand": "Vistaprint",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "vistaprint_products"
  },
  {
   "no": "45",
   "name": "Waxie Products Scraper",
   "brand": "Waxie",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "waxie_products"
  },
  {
   "no": "46",
   "name": "Otto Products Scraper",
   "brand": "Otto",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "otto_products"
  },
  {
   "no": "47",
@@ -518,21 +522,23 @@
   "no": "48",
   "name": "Newegg Products Scraper",
   "brand": "Newegg",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "newegg_products"
  },
  {
   "no": "49",
   "name": "CDW Products Scraper",
   "brand": "CDW",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "cdw_products"
  },
  {
   "no": "50",
@@ -549,81 +555,89 @@
   "no": "51",
   "name": "Decathlon Products Scraper",
   "brand": "Decathlon",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "decathlon_products"
  },
  {
   "no": "52",
   "name": "Uline Products Scraper",
   "brand": "Uline",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "uline_products"
  },
  {
   "no": "53",
   "name": "Menards Products Scraper",
   "brand": "Menards",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "menards_products"
  },
  {
   "no": "54",
   "name": "Target Products Scraper",
   "brand": "Target",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "target_products"
  },
  {
   "no": "55",
   "name": "NapaOnline Products Scraper",
   "brand": "NapaOnline",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "napaonline_products"
  },
  {
   "no": "56",
   "name": "Groupon Products Scraper",
   "brand": "Groupon",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "groupon_products"
  },
  {
   "no": "57",
   "name": "IPInfo Scraper",
   "brand": "IPInfo",
-  "description": "",
+  "description": "Returns search results",
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "ipinfo"
  },
  {
   "no": "58",
   "name": "Gemplers Products Scraper",
   "brand": "Gemplers",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "gemplers_products"
  },
  {
   "no": "59",
@@ -643,7 +657,8 @@
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "ferguson_products"
  },
  {
   "no": "61",
@@ -653,7 +668,8 @@
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "globalindustrial_products"
  },
  {
   "no": "62",
@@ -663,7 +679,8 @@
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "northerntool_products"
  },
  {
   "no": "63",
@@ -1411,7 +1428,6 @@
   ],
   "live": false
  },
-
  {
   "no": "135",
   "name": "Trustpilot Reviews Monitoring",
@@ -1672,7 +1688,6 @@
   "live": true,
   "ui": "ai_universal"
  },
-
  {
   "no": "161",
   "name": "Bing Maps Scraper",

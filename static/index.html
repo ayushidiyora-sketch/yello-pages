@@ -3978,6 +3978,294 @@
   <div id="asosResults"></div>
   </div><!-- /asosProductsView -->
 
+  <div id="waxieView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="wxInput" placeholder="https://shop.waxie.com/mStorefront/itemDetail.do?item-id=568747&warehouse-id=37"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="wxFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="wxFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('wxFile').click()">⬆ Upload file</button>
+        <span class="hint" id="wxFileName"></span></div>
+      <span class="hint">Product listings from shop.waxie.com (janitorial supplies), through the proxy pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="wxLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="wxStartBtn" onclick="wxStart()">⬇ Get Data</button><button class="btn-stop" id="wxStopBtn" onclick="wxStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="wxStatus"></div><div class="bar" id="wxBar"><i></i></div>
+  <div class="resbar" id="wxResbar" style="display:none"><div class="count" id="wxCount"></div><div class="resbar-controls"><a id="wxDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="wxDownloadXlsx" style="display:none" onclick="wxDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="wxResults"></div>
+  </div><!-- /waxieView -->
+
+  <div id="vistaprintView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="vpInput" placeholder="https://www.vistaprint.com/business-cards/standard&#10;https://www.vistaprint.com/search?q=flyers"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="vpFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="vpFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('vpFile').click()">⬆ Upload file</button>
+        <span class="hint" id="vpFileName"></span></div>
+      <span class="hint">Product listings from vistaprint.com (schema.org JSON-LD on product pages), through the proxy pool. Category/search pages are JS-driven and return a status. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="vpLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="vpStartBtn" onclick="vpStart()">⬇ Get Data</button><button class="btn-stop" id="vpStopBtn" onclick="vpStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="vpStatus"></div><div class="bar" id="vpBar"><i></i></div>
+  <div class="resbar" id="vpResbar" style="display:none"><div class="count" id="vpCount"></div><div class="resbar-controls"><a id="vpDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="vpDownloadXlsx" style="display:none" onclick="vpDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="vpResults"></div>
+  </div><!-- /vistaprintView -->
+
+  <div id="ottoView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="otInput" placeholder="https://www.otto.de/p/lenovo-ideapad-slim-3-15iah8-notebook-C1663445357/"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="otFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="otFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('otFile').click()">⬆ Upload file</button>
+        <span class="hint" id="otFileName"></span></div>
+      <span class="hint">Product listings from otto.de (schema.org JSON-LD). <b>Residential-only:</b> otto.de blocks datacenter IPs (403) — rows return a "blocked" status on the free pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="otLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="otStartBtn" onclick="otStart()">⬇ Get Data</button><button class="btn-stop" id="otStopBtn" onclick="otStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="otStatus"></div><div class="bar" id="otBar"><i></i></div>
+  <div class="resbar" id="otResbar" style="display:none"><div class="count" id="otCount"></div><div class="resbar-controls"><a id="otDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="otDownloadXlsx" style="display:none" onclick="otDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="otResults"></div>
+  </div><!-- /ottoView -->
+
+  <div id="neweggView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="ngInput" placeholder="https://www.newegg.com/p/N82E16819113567&#10;https://www.newegg.com/Gaming-Desktop-PC/SubCategory/ID-3742"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="ngFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ngFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('ngFile').click()">⬆ Upload file</button>
+        <span class="hint" id="ngFileName"></span></div>
+      <span class="hint">Product listings from newegg.com (schema.org JSON-LD). <b>Residential-only:</b> newegg.com blocks datacenter IPs (403) — rows return a "blocked" status on the free pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="ngLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="ngStartBtn" onclick="ngStart()">⬇ Get Data</button><button class="btn-stop" id="ngStopBtn" onclick="ngStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="ngStatus"></div><div class="bar" id="ngBar"><i></i></div>
+  <div class="resbar" id="ngResbar" style="display:none"><div class="count" id="ngCount"></div><div class="resbar-controls"><a id="ngDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="ngDownloadXlsx" style="display:none" onclick="ngDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="ngResults"></div>
+  </div><!-- /neweggView -->
+
+  <div id="biggestbookView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="bbInput" placeholder="https://www.biggestbook.com/product/12345"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="bbFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="bbFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('bbFile').click()">⬆ Upload file</button>
+        <span class="hint" id="bbFileName"></span></div>
+      <span class="hint">Product listings from biggestbook.com (office supplies). <b>Note:</b> BiggestBook is a JS/API-driven SPA — product data isn't in the page HTML, so rows return a status unless a page embeds JSON-LD. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="bbLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="bbStartBtn" onclick="bbStart()">⬇ Get Data</button><button class="btn-stop" id="bbStopBtn" onclick="bbStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="bbStatus"></div><div class="bar" id="bbBar"><i></i></div>
+  <div class="resbar" id="bbResbar" style="display:none"><div class="count" id="bbCount"></div><div class="resbar-controls"><a id="bbDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="bbDownloadXlsx" style="display:none" onclick="bbDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="bbResults"></div>
+  </div><!-- /biggestbookView -->
+
+  <div id="cdwView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="cdwInput" placeholder="https://www.cdw.com/product/.../3344551&#10;https://www.cdw.com/category/cables/cable-connectors/"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="cdwFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="cdwFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('cdwFile').click()">⬆ Upload file</button>
+        <span class="hint" id="cdwFileName"></span></div>
+      <span class="hint">Product listings from cdw.com, through the proxy pool. Name + price/image best-effort from the page. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="cdwLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="cdwStartBtn" onclick="cdwStart()">⬇ Get Data</button><button class="btn-stop" id="cdwStopBtn" onclick="cdwStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="cdwStatus"></div><div class="bar" id="cdwBar"><i></i></div>
+  <div class="resbar" id="cdwResbar" style="display:none"><div class="count" id="cdwCount"></div><div class="resbar-controls"><a id="cdwDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="cdwDownloadXlsx" style="display:none" onclick="cdwDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="cdwResults"></div>
+  </div><!-- /cdwView -->
+
+  <div id="decathlonView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="decathlonInput" placeholder="https://www.decathlon.com/collections/mens-gloves&#10;https://www.decathlon.com/products/..."></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="decathlonFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="decathlonFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('decathlonFile').click()">⬆ Upload file</button>
+        <span class="hint" id="decathlonFileName"></span></div>
+      <span class="hint">Product listings from decathlon.com (schema.org JSON-LD), through the proxy pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="decathlonLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="decathlonStartBtn" onclick="decathlonStart()">⬇ Get Data</button><button class="btn-stop" id="decathlonStopBtn" onclick="decathlonStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="decathlonStatus"></div><div class="bar" id="decathlonBar"><i></i></div>
+  <div class="resbar" id="decathlonResbar" style="display:none"><div class="count" id="decathlonCount"></div><div class="resbar-controls"><a id="decathlonDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="decathlonDownloadXlsx" style="display:none" onclick="decathlonDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="decathlonResults"></div>
+  </div><!-- /decathlonView -->
+
+  <div id="ulineView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="ulineInput" placeholder="https://www.uline.com/BL_4284/Black-Spill-Containment-Pallets"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="ulineFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ulineFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('ulineFile').click()">⬆ Upload file</button>
+        <span class="hint" id="ulineFileName"></span></div>
+      <span class="hint">Product listings from uline.com, through the proxy pool. Name + price/image best-effort from the page. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="ulineLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="ulineStartBtn" onclick="ulineStart()">⬇ Get Data</button><button class="btn-stop" id="ulineStopBtn" onclick="ulineStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="ulineStatus"></div><div class="bar" id="ulineBar"><i></i></div>
+  <div class="resbar" id="ulineResbar" style="display:none"><div class="count" id="ulineCount"></div><div class="resbar-controls"><a id="ulineDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="ulineDownloadXlsx" style="display:none" onclick="ulineDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="ulineResults"></div>
+  </div><!-- /ulineView -->
+
+  <div id="menardsView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="menardsInput" placeholder="https://www.menards.com/main/p-1444442545239.htm"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="menardsFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="menardsFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('menardsFile').click()">⬆ Upload file</button>
+        <span class="hint" id="menardsFileName"></span></div>
+      <span class="hint">Product listings from menards.com, through the proxy pool. Name + price/image best-effort from the page. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="menardsLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="menardsStartBtn" onclick="menardsStart()">⬇ Get Data</button><button class="btn-stop" id="menardsStopBtn" onclick="menardsStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="menardsStatus"></div><div class="bar" id="menardsBar"><i></i></div>
+  <div class="resbar" id="menardsResbar" style="display:none"><div class="count" id="menardsCount"></div><div class="resbar-controls"><a id="menardsDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="menardsDownloadXlsx" style="display:none" onclick="menardsDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="menardsResults"></div>
+  </div><!-- /menardsView -->
+
+  <div id="targetView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="tgtInput" placeholder="https://www.target.com/p/-/A-91122549"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="tgtFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="tgtFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('tgtFile').click()">⬆ Upload file</button>
+        <span class="hint" id="tgtFileName"></span></div>
+      <span class="hint">Product listings from Target, through the proxy pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="tgtLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="tgtStartBtn" onclick="tgtStart()">⬇ Get Data</button><button class="btn-stop" id="tgtStopBtn" onclick="tgtStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="tgtStatus"></div><div class="bar" id="tgtBar"><i></i></div>
+  <div class="resbar" id="tgtResbar" style="display:none"><div class="count" id="tgtCount"></div><div class="resbar-controls"><a id="tgtDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="tgtDownloadXlsx" style="display:none" onclick="tgtDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="tgtResults"></div>
+  </div><!-- /targetView -->
+
+  <div id="napaonlineView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="napaInput" placeholder="https://www.napaonline.com/en/p/NOL75521"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="napaFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="napaFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('napaFile').click()">⬆ Upload file</button>
+        <span class="hint" id="napaFileName"></span></div>
+      <span class="hint">Product listings from NapaOnline, through the proxy pool. <b>Residential-only</b> on datacenter (403). One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="napaLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="napaStartBtn" onclick="napaStart()">⬇ Get Data</button><button class="btn-stop" id="napaStopBtn" onclick="napaStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="napaStatus"></div><div class="bar" id="napaBar"><i></i></div>
+  <div class="resbar" id="napaResbar" style="display:none"><div class="count" id="napaCount"></div><div class="resbar-controls"><a id="napaDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="napaDownloadXlsx" style="display:none" onclick="napaDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="napaResults"></div>
+  </div><!-- /napaonlineView -->
+
+  <div id="grouponView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="grpnInput" placeholder="https://www.groupon.com/deals/gg-mp-luxury-collection"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="grpnFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="grpnFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('grpnFile').click()">⬆ Upload file</button>
+        <span class="hint" id="grpnFileName"></span></div>
+      <span class="hint">Product listings from Groupon, through the proxy pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="grpnLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="grpnStartBtn" onclick="grpnStart()">⬇ Get Data</button><button class="btn-stop" id="grpnStopBtn" onclick="grpnStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="grpnStatus"></div><div class="bar" id="grpnBar"><i></i></div>
+  <div class="resbar" id="grpnResbar" style="display:none"><div class="count" id="grpnCount"></div><div class="resbar-controls"><a id="grpnDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="grpnDownloadXlsx" style="display:none" onclick="grpnDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="grpnResults"></div>
+  </div><!-- /grouponView -->
+
+  <div id="gemplersView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="gemInput" placeholder="https://gemplers.com/products/agratronix-portable-grain-moisture-tester-kit"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="gemFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gemFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('gemFile').click()">⬆ Upload file</button>
+        <span class="hint" id="gemFileName"></span></div>
+      <span class="hint">Product listings from Gemplers, through the proxy pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="gemLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="gemStartBtn" onclick="gemStart()">⬇ Get Data</button><button class="btn-stop" id="gemStopBtn" onclick="gemStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="gemStatus"></div><div class="bar" id="gemBar"><i></i></div>
+  <div class="resbar" id="gemResbar" style="display:none"><div class="count" id="gemCount"></div><div class="resbar-controls"><a id="gemDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="gemDownloadXlsx" style="display:none" onclick="gemDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="gemResults"></div>
+  </div><!-- /gemplersView -->
+
+  <div id="fergusonView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="ferInput" placeholder="https://www.ferguson.com/product/x/7362177.html"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="ferFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ferFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('ferFile').click()">⬆ Upload file</button>
+        <span class="hint" id="ferFileName"></span></div>
+      <span class="hint">Product listings from Ferguson, through the proxy pool. <b>Residential-only</b> on datacenter (403). One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="ferLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="ferStartBtn" onclick="ferStart()">⬇ Get Data</button><button class="btn-stop" id="ferStopBtn" onclick="ferStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="ferStatus"></div><div class="bar" id="ferBar"><i></i></div>
+  <div class="resbar" id="ferResbar" style="display:none"><div class="count" id="ferCount"></div><div class="resbar-controls"><a id="ferDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="ferDownloadXlsx" style="display:none" onclick="ferDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="ferResults"></div>
+  </div><!-- /fergusonView -->
+
+  <div id="globalindustrialView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="gindInput" placeholder="https://www.globalindustrial.com/p/global-industrial-electric-auto-floor-scrubber"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="gindFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="gindFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('gindFile').click()">⬆ Upload file</button>
+        <span class="hint" id="gindFileName"></span></div>
+      <span class="hint">Product listings from GlobalIndustrial, through the proxy pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="gindLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="gindStartBtn" onclick="gindStart()">⬇ Get Data</button><button class="btn-stop" id="gindStopBtn" onclick="gindStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="gindStatus"></div><div class="bar" id="gindBar"><i></i></div>
+  <div class="resbar" id="gindResbar" style="display:none"><div class="count" id="gindCount"></div><div class="resbar-controls"><a id="gindDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="gindDownloadXlsx" style="display:none" onclick="gindDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="gindResults"></div>
+  </div><!-- /globalindustrialView -->
+
+  <div id="northerntoolView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="ntlInput" placeholder="https://www.northerntool.com/shop/tools/category_power-tools"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="ntlFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ntlFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('ntlFile').click()">⬆ Upload file</button>
+        <span class="hint" id="ntlFileName"></span></div>
+      <span class="hint">Product listings from Northerntool, through the proxy pool. <b>Residential-only</b> on datacenter (403). One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="ntlLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="ntlStartBtn" onclick="ntlStart()">⬇ Get Data</button><button class="btn-stop" id="ntlStopBtn" onclick="ntlStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="ntlStatus"></div><div class="bar" id="ntlBar"><i></i></div>
+  <div class="resbar" id="ntlResbar" style="display:none"><div class="count" id="ntlCount"></div><div class="resbar-controls"><a id="ntlDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="ntlDownloadXlsx" style="display:none" onclick="ntlDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="ntlResults"></div>
+  </div><!-- /northerntoolView -->
+
+  <div id="ipinfoView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries (IP addresses) <span class="req">*</span></label>
+      <textarea id="ipiInput" placeholder="8.8.8.8&#10;1.1.1.1&#10;208.67.222.222"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="ipiFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ipiFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('ipiFile').click()">⬆ Upload file</button>
+        <span class="hint" id="ipiFileName"></span></div>
+      <span class="hint">Geolocation + network info per IP (country, city, ISP, org, AS) via ip-api.com, through the proxy pool. One row per IP.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="ipiLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="ipiStartBtn" onclick="ipiStart()">⬇ Get Data</button><button class="btn-stop" id="ipiStopBtn" onclick="ipiStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="ipiStatus"></div><div class="bar" id="ipiBar"><i></i></div>
+  <div class="resbar" id="ipiResbar" style="display:none"><div class="count" id="ipiCount"></div><div class="resbar-controls"><a id="ipiDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="ipiDownloadXlsx" style="display:none" onclick="ipiDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="ipiResults"></div>
+  </div><!-- /ipinfoView -->
+
+  <div id="appstoreSearchView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Search URLs or terms <span class="req">*</span></label>
+      <textarea id="apssInput" placeholder="meditation&#10;https://apps.apple.com/us/search?term=photo%20editor"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="apssFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="apssFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('apssFile').click()">⬆ Upload file</button>
+        <span class="hint" id="apssFileName"></span></div>
+      <span class="hint">App Store / iTunes search results via Apple's iTunes Search API, through the proxy pool. Country is read from the URL (/us/, /gb/, ...); media defaults to all. One row per result.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="apssLimit" type="number" min="1" max="200" placeholder="100" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="apssStartBtn" onclick="apssStart()">⬇ Get Data</button><button class="btn-stop" id="apssStopBtn" onclick="apssStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="apssStatus"></div><div class="bar" id="apssBar"><i></i></div>
+  <div class="resbar" id="apssResbar" style="display:none"><div class="count" id="apssCount"></div><div class="resbar-controls"><a id="apssDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="apssDownloadXlsx" style="display:none" onclick="apssDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="apssResults"></div>
+  </div><!-- /appstoreSearchView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -6004,7 +6292,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoScraperView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','appstoreReviewsView','asosProductsView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoScraperView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','appstoreReviewsView','asosProductsView','waxieView','vistaprintView','ottoView','neweggView','biggestbookView','cdwView','decathlonView','ulineView','menardsView','targetView','napaonlineView','grouponView','gemplersView','fergusonView','globalindustrialView','northerntoolView','ipinfoView','appstoreSearchView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -6273,6 +6561,24 @@ function selectService(s, keep, fromHistory){
   document.getElementById('tiktokCommentsView').style.display = vt==='tiktok_comments' ? '' : 'none';
   document.getElementById('appstoreReviewsView').style.display = vt==='appstore_reviews' ? '' : 'none';
   document.getElementById('asosProductsView').style.display = vt==='asos_products' ? '' : 'none';
+  document.getElementById('waxieView').style.display = vt==='waxie_products' ? '' : 'none';
+  document.getElementById('vistaprintView').style.display = vt==='vistaprint_products' ? '' : 'none';
+  document.getElementById('ottoView').style.display = vt==='otto_products' ? '' : 'none';
+  document.getElementById('neweggView').style.display = vt==='newegg_products' ? '' : 'none';
+  document.getElementById('biggestbookView').style.display = vt==='biggestbook_products' ? '' : 'none';
+  document.getElementById('cdwView').style.display = vt==='cdw_products' ? '' : 'none';
+  document.getElementById('decathlonView').style.display = vt==='decathlon_products' ? '' : 'none';
+  document.getElementById('ulineView').style.display = vt==='uline_products' ? '' : 'none';
+  document.getElementById('menardsView').style.display = vt==='menards_products' ? '' : 'none';
+  document.getElementById('targetView').style.display = vt==='target_products' ? '' : 'none';
+  document.getElementById('napaonlineView').style.display = vt==='napaonline_products' ? '' : 'none';
+  document.getElementById('grouponView').style.display = vt==='groupon_products' ? '' : 'none';
+  document.getElementById('gemplersView').style.display = vt==='gemplers_products' ? '' : 'none';
+  document.getElementById('fergusonView').style.display = vt==='ferguson_products' ? '' : 'none';
+  document.getElementById('globalindustrialView').style.display = vt==='globalindustrial_products' ? '' : 'none';
+  document.getElementById('northerntoolView').style.display = vt==='northerntool_products' ? '' : 'none';
+  document.getElementById('ipinfoView').style.display = vt==='ipinfo' ? '' : 'none';
+  document.getElementById('appstoreSearchView').style.display = vt==='appstore_search' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -6400,6 +6706,24 @@ function viewType(s){
   if(s.ui === 'tiktok_comments') return 'tiktok_comments';
   if(s.ui === 'appstore_reviews') return 'appstore_reviews';
   if(s.ui === 'asos_products') return 'asos_products';
+  if(s.ui === 'waxie_products') return 'waxie_products';
+  if(s.ui === 'vistaprint_products') return 'vistaprint_products';
+  if(s.ui === 'otto_products') return 'otto_products';
+  if(s.ui === 'newegg_products') return 'newegg_products';
+  if(s.ui === 'biggestbook_products') return 'biggestbook_products';
+  if(s.ui === 'cdw_products') return 'cdw_products';
+  if(s.ui === 'decathlon_products') return 'decathlon_products';
+  if(s.ui === 'uline_products') return 'uline_products';
+  if(s.ui === 'menards_products') return 'menards_products';
+  if(s.ui === 'target_products') return 'target_products';
+  if(s.ui === 'napaonline_products') return 'napaonline_products';
+  if(s.ui === 'groupon_products') return 'groupon_products';
+  if(s.ui === 'gemplers_products') return 'gemplers_products';
+  if(s.ui === 'ferguson_products') return 'ferguson_products';
+  if(s.ui === 'globalindustrial_products') return 'globalindustrial_products';
+  if(s.ui === 'northerntool_products') return 'northerntool_products';
+  if(s.ui === 'ipinfo') return 'ipinfo';
+  if(s.ui === 'appstore_search') return 'appstore_search';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -16153,6 +16477,27 @@ const ASR_COLUMNS=["query","app_id","author","rating","title","review","version"
 _enrichSvc('asr',{api:'/api/appstore-reviews', columns:ASR_COLUMNS, noun:'review', nounP:'reviews', verb:'Exporting', sheet:'appstore-reviews', sheetTab:'AppStore'});
 const ASOS_COLUMNS=["query","product_id","name","brand","price","colour","product_type","url","image"];
 _enrichSvc('asos',{api:'/api/asos-products', columns:ASOS_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'asos-products', sheetTab:'ASOS'});
+const PRODUCT_COLUMNS=["query","name","brand","price","currency","sku","availability","rating","url","image","status"];
+_enrichSvc('wx',{api:'/api/waxie-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'waxie-products', sheetTab:'Waxie'});
+_enrichSvc('vp',{api:'/api/vistaprint-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'vistaprint-products', sheetTab:'Vistaprint'});
+_enrichSvc('ot',{api:'/api/otto-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'otto-products', sheetTab:'Otto'});
+_enrichSvc('ng',{api:'/api/newegg-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'newegg-products', sheetTab:'Newegg'});
+_enrichSvc('bb',{api:'/api/biggestbook-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'biggestbook-products', sheetTab:'BiggestBook'});
+_enrichSvc('cdw',{api:'/api/cdw-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'cdw-products', sheetTab:'CDW'});
+_enrichSvc('decathlon',{api:'/api/decathlon-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'decathlon-products', sheetTab:'Decathlon'});
+_enrichSvc('uline',{api:'/api/uline-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'uline-products', sheetTab:'Uline'});
+_enrichSvc('menards',{api:'/api/menards-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'menards-products', sheetTab:'Menards'});
+_enrichSvc('tgt',{api:'/api/target-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'target-products', sheetTab:'Target'});
+_enrichSvc('napa',{api:'/api/napaonline-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'napaonline-products', sheetTab:'NapaOnline'});
+_enrichSvc('grpn',{api:'/api/groupon-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'groupon-products', sheetTab:'Groupon'});
+_enrichSvc('gem',{api:'/api/gemplers-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'gemplers-products', sheetTab:'Gemplers'});
+_enrichSvc('fer',{api:'/api/ferguson-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'ferguson-products', sheetTab:'Ferguson'});
+_enrichSvc('gind',{api:'/api/globalindustrial-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'globalindustrial-products', sheetTab:'GlobalIndustrial'});
+_enrichSvc('ntl',{api:'/api/northerntool-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'northerntool-products', sheetTab:'Northerntool'});
+const IPINFO_COLUMNS=["query","ip","city","region","country","country_code","zip","lat","lon","timezone","isp","org","as","status"];
+_enrichSvc('ipi',{api:'/api/ipinfo', columns:IPINFO_COLUMNS, noun:'IP', nounP:'IPs', verb:'Looking up', sheet:'ipinfo', sheetTab:'IPInfo'});
+const ASS_COLUMNS=["query","name","artist","kind","genre","price","rating","reviews","url"];
+_enrichSvc('apss',{api:'/api/appstore-search', columns:ASS_COLUMNS, noun:'result', nounP:'results', verb:'Searching', sheet:'appstore-search', sheetTab:'AppStore'});
 
 // ===== WebPage Screenshoter (custom: extra options + image rendering) =====
 let ssTimer=null, ssJob=null, _ssRows=[], _ssDlUrl=null;
