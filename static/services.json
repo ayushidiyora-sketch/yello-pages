@@ -177,7 +177,6 @@
   "live": true,
   "ui": "trustpilot_search"
  },
-
  {
   "no": "17",
   "name": "Trustpilot Reviews Scraper",
@@ -588,51 +587,56 @@
   "no": "54",
   "name": "Target Products Scraper",
   "brand": "Target",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "target_products"
  },
  {
   "no": "55",
   "name": "NapaOnline Products Scraper",
   "brand": "NapaOnline",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "napaonline_products"
  },
  {
   "no": "56",
   "name": "Groupon Products Scraper",
   "brand": "Groupon",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "groupon_products"
  },
  {
   "no": "57",
   "name": "IPInfo Scraper",
   "brand": "IPInfo",
-  "description": "",
+  "description": "Returns search results",
   "tags": [
    "Domain & Web"
   ],
-  "live": false
+  "live": true,
+  "ui": "ipinfo"
  },
  {
   "no": "58",
   "name": "Gemplers Products Scraper",
   "brand": "Gemplers",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "gemplers_products"
  },
  {
   "no": "59",
@@ -652,7 +656,8 @@
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "ferguson_products"
  },
  {
   "no": "61",
@@ -662,7 +667,8 @@
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "globalindustrial_products"
  },
  {
   "no": "62",
@@ -672,7 +678,8 @@
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "northerntool_products"
  },
  {
   "no": "63",
@@ -1420,7 +1427,6 @@
   ],
   "live": false
  },
-
  {
   "no": "135",
   "name": "Trustpilot Reviews Monitoring",
@@ -1681,7 +1687,6 @@
   "live": true,
   "ui": "ai_universal"
  },
-
  {
   "no": "161",
   "name": "Bing Maps Scraper",

@@ -37,6 +37,8 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  tiktok_comments, appstore_reviews, asos_products,
                  waxie_products, vistaprint_products, otto_products, newegg_products, biggestbook_products,
                  cdw_products, decathlon_products, uline_products, menards_products,
+                 target_products, napaonline_products, groupon_products, gemplers_products,
+                 ferguson_products, globalindustrial_products, northerntool_products, ipinfo,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -117,7 +119,10 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                appstore_reviews as appstore_reviews_mod, asos as asos_mod, waxie as waxie_mod,
                vistaprint as vistaprint_mod, otto as otto_mod, newegg as newegg_mod,
                biggestbook as biggestbook_mod, cdw as cdw_mod, decathlon as decathlon_mod,
-               uline as uline_mod, menards as menards_mod)
+               uline as uline_mod, menards as menards_mod, target as target_mod,
+               napaonline as napaonline_mod, groupon as groupon_mod, gemplers as gemplers_mod,
+               ferguson as ferguson_mod, globalindustrial as globalindustrial_mod,
+               northerntool as northerntool_mod, ipinfo as ipinfo_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -624,6 +629,46 @@ async def _uline_rows(job_id):
 async def _menards_rows(job_id):
     rows = [d async for d in menards_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, menards_mod.MENARDS_COLUMNS
+
+
+async def _target_rows(job_id):
+    rows = [d async for d in target_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, target_mod.TARGET_COLUMNS
+
+
+async def _napaonline_rows(job_id):
+    rows = [d async for d in napaonline_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, napaonline_mod.NAPAONLINE_COLUMNS
+
+
+async def _groupon_rows(job_id):
+    rows = [d async for d in groupon_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, groupon_mod.GROUPON_COLUMNS
+
+
+async def _gemplers_rows(job_id):
+    rows = [d async for d in gemplers_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, gemplers_mod.GEMPLERS_COLUMNS
+
+
+async def _ferguson_rows(job_id):
+    rows = [d async for d in ferguson_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, ferguson_mod.FERGUSON_COLUMNS
+
+
+async def _globalindustrial_rows(job_id):
+    rows = [d async for d in globalindustrial_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, globalindustrial_mod.GLOBALINDUSTRIAL_COLUMNS
+
+
+async def _northerntool_rows(job_id):
+    rows = [d async for d in northerntool_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, northerntool_mod.NORTHERNTOOL_COLUMNS
+
+
+async def _ipinfo_rows(job_id):
+    rows = [d async for d in ipinfo.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, ipinfo_mod.IPINFO_COLUMNS
 
 
 async def _start_enrich_lim(kind, queries, lim, run_coro_fn, rows_fn):
@@ -3495,6 +3540,116 @@ async def menards_products_start(req: ProductUrlsRequest):
 @app.get("/api/menards-products/results/{job_id}")
 async def menards_products_results(job_id: str, limit: int = 5000):
     rows = [d async for d in menards_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/target-products")
+async def target_products_start(req: ProductUrlsRequest):
+    """Target Products Scraper — product listings from target.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("target_products", _clean_queries(req), lim, target_mod.run_job, _target_rows)
+
+
+@app.get("/api/target-products/results/{job_id}")
+async def target_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in target_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/napaonline-products")
+async def napaonline_products_start(req: ProductUrlsRequest):
+    """NapaOnline Products Scraper — product listings from napaonline.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("napaonline_products", _clean_queries(req), lim,
+                                   napaonline_mod.run_job, _napaonline_rows)
+
+
+@app.get("/api/napaonline-products/results/{job_id}")
+async def napaonline_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in napaonline_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/groupon-products")
+async def groupon_products_start(req: ProductUrlsRequest):
+    """Groupon Products Scraper — deal/product listings from groupon.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("groupon_products", _clean_queries(req), lim,
+                                   groupon_mod.run_job, _groupon_rows)
+
+
+@app.get("/api/groupon-products/results/{job_id}")
+async def groupon_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in groupon_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/gemplers-products")
+async def gemplers_products_start(req: ProductUrlsRequest):
+    """Gemplers Products Scraper — product listings from gemplers.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("gemplers_products", _clean_queries(req), lim,
+                                   gemplers_mod.run_job, _gemplers_rows)
+
+
+@app.get("/api/gemplers-products/results/{job_id}")
+async def gemplers_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in gemplers_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/ferguson-products")
+async def ferguson_products_start(req: ProductUrlsRequest):
+    """Ferguson Products Scraper — ferguson.com (JSON-LD; residential-only, 403 on datacenter)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("ferguson_products", _clean_queries(req), lim,
+                                   ferguson_mod.run_job, _ferguson_rows)
+
+
+@app.get("/api/ferguson-products/results/{job_id}")
+async def ferguson_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in ferguson_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/globalindustrial-products")
+async def globalindustrial_products_start(req: ProductUrlsRequest):
+    """GlobalIndustrial Products Scraper — product listings from globalindustrial.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("globalindustrial_products", _clean_queries(req), lim,
+                                   globalindustrial_mod.run_job, _globalindustrial_rows)
+
+
+@app.get("/api/globalindustrial-products/results/{job_id}")
+async def globalindustrial_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in globalindustrial_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/northerntool-products")
+async def northerntool_products_start(req: ProductUrlsRequest):
+    """Northerntool Products Scraper — northerntool.com (JSON-LD; residential-only, 403 on datacenter)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("northerntool_products", _clean_queries(req), lim,
+                                   northerntool_mod.run_job, _northerntool_rows)
+
+
+@app.get("/api/northerntool-products/results/{job_id}")
+async def northerntool_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in northerntool_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/ipinfo")
+async def ipinfo_start(req: ProductUrlsRequest):
+    """IPInfo Scraper — geolocation + network info per IP via ip-api.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("ipinfo", _clean_queries(req), lim, ipinfo_mod.run_job, _ipinfo_rows)
+
+
+@app.get("/api/ipinfo/results/{job_id}")
+async def ipinfo_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in ipinfo.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 
