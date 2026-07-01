@@ -36,6 +36,7 @@ from .db import (jobs, businesses, products, reviews, ebay_products, gresults, b
                  screenshoter, eventbrite, meetup, tiktok_videos, tiktok_hashtags, tiktok_search,
                  tiktok_comments, appstore_reviews, asos_products,
                  waxie_products, vistaprint_products, otto_products, newegg_products, biggestbook_products,
+                 cdw_products, decathlon_products, uline_products, menards_products,
                  ensure_indexes)
 from .models import (ScrapeRequest, AmazonScrapeRequest, AmazonReviewsRequest,
                      EbayScrapeRequest, GSearchRequest, BBBRequest, G2Request, BBBReviewsRequest,
@@ -115,7 +116,8 @@ from . import (yp_us, amazon, amazon_reviews, ebay, gsearch, bbb, bbb_reviews, g
                tiktok_search as tiktok_search_mod, tiktok_comments as tiktok_comments_mod,
                appstore_reviews as appstore_reviews_mod, asos as asos_mod, waxie as waxie_mod,
                vistaprint as vistaprint_mod, otto as otto_mod, newegg as newegg_mod,
-               biggestbook as biggestbook_mod)
+               biggestbook as biggestbook_mod, cdw as cdw_mod, decathlon as decathlon_mod,
+               uline as uline_mod, menards as menards_mod)
 
 
 # ---------------- auto-save each finished job to data/<service>/<job>/results.xlsx ----------------
@@ -602,6 +604,26 @@ async def _newegg_rows(job_id):
 async def _biggestbook_rows(job_id):
     rows = [d async for d in biggestbook_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows, biggestbook_mod.BIGBOOK_COLUMNS
+
+
+async def _cdw_rows(job_id):
+    rows = [d async for d in cdw_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, cdw_mod.CDW_COLUMNS
+
+
+async def _decathlon_rows(job_id):
+    rows = [d async for d in decathlon_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, decathlon_mod.DECATHLON_COLUMNS
+
+
+async def _uline_rows(job_id):
+    rows = [d async for d in uline_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, uline_mod.ULINE_COLUMNS
+
+
+async def _menards_rows(job_id):
+    rows = [d async for d in menards_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows, menards_mod.MENARDS_COLUMNS
 
 
 async def _start_enrich_lim(kind, queries, lim, run_coro_fn, rows_fn):
@@ -3420,6 +3442,59 @@ async def biggestbook_products_start(req: ProductUrlsRequest):
 @app.get("/api/biggestbook-products/results/{job_id}")
 async def biggestbook_products_results(job_id: str, limit: int = 5000):
     rows = [d async for d in biggestbook_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/cdw-products")
+async def cdw_products_start(req: ProductUrlsRequest):
+    """CDW Products Scraper — product listings from cdw.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("cdw_products", _clean_queries(req), lim, cdw_mod.run_job, _cdw_rows)
+
+
+@app.get("/api/cdw-products/results/{job_id}")
+async def cdw_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in cdw_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/decathlon-products")
+async def decathlon_products_start(req: ProductUrlsRequest):
+    """Decathlon Products Scraper — product listings from decathlon.com (proxy-only, JSON-LD)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("decathlon_products", _clean_queries(req), lim,
+                                   decathlon_mod.run_job, _decathlon_rows)
+
+
+@app.get("/api/decathlon-products/results/{job_id}")
+async def decathlon_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in decathlon_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/uline-products")
+async def uline_products_start(req: ProductUrlsRequest):
+    """Uline Products Scraper — product listings from uline.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("uline_products", _clean_queries(req), lim, uline_mod.run_job, _uline_rows)
+
+
+@app.get("/api/uline-products/results/{job_id}")
+async def uline_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in uline_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
+    return rows[:limit]
+
+
+@app.post("/api/menards-products")
+async def menards_products_start(req: ProductUrlsRequest):
+    """Menards Products Scraper — product listings from menards.com (proxy-only)."""
+    lim = None if (req.limit or 0) == 0 else req.limit
+    return await _start_enrich_lim("menards_products", _clean_queries(req), lim, menards_mod.run_job, _menards_rows)
+
+
+@app.get("/api/menards-products/results/{job_id}")
+async def menards_products_results(job_id: str, limit: int = 5000):
+    rows = [d async for d in menards_products.find({"job_id": job_id}, {"_id": 0, "job_id": 0})]
     return rows[:limit]
 
 

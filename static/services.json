@@ -533,11 +533,12 @@
   "no": "49",
   "name": "CDW Products Scraper",
   "brand": "CDW",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "cdw_products"
  },
  {
   "no": "50",
@@ -554,31 +555,34 @@
   "no": "51",
   "name": "Decathlon Products Scraper",
   "brand": "Decathlon",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "decathlon_products"
  },
  {
   "no": "52",
   "name": "Uline Products Scraper",
   "brand": "Uline",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "uline_products"
  },
  {
   "no": "53",
   "name": "Menards Products Scraper",
   "brand": "Menards",
-  "description": "",
+  "description": "Returns product listings",
   "tags": [
    "Products"
   ],
-  "live": false
+  "live": true,
+  "ui": "menards_products"
  },
  {
   "no": "54",

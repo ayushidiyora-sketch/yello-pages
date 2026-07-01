@@ -20,6 +20,33 @@ PRODUCT_COLUMNS = ["query", "name", "brand", "price", "currency", "sku", "availa
 
 _LD_RE = re.compile(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', re.S | re.I)
 
+# page-level fallbacks for fields the JSON-LD Product node often omits (price/rating/image live in
+# the rendered HTML or a sibling JSON node) — used to fill a single-product page's blanks.
+_PRICE_RE = re.compile(r"(?:[$€£]|USD|Rs\.?)\s?(\d[\d,]*\.\d{2})")
+_RATING_RE = re.compile(r'ratingValue"?[\\:\s]*"?([0-5](?:\.\d)?)"?')
+_OGIMG_RE = re.compile(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)', re.I)
+_LDIMG_RE = re.compile(r'"image"\s*:\s*\[?\s*"(https://[^"]+?)"')
+
+
+def _enrich_single(row: dict, html: str) -> dict:
+    """Fill a single product's blank price / rating / image from the page HTML (best-effort)."""
+    if not row.get("price"):
+        for m in _PRICE_RE.finditer(html):
+            val = m.group(1)
+            if float(val.replace(",", "")) > 0:   # skip stray $0.00
+                row["price"] = "$" + val
+                row["currency"] = row.get("currency") or "USD"
+                break
+    if not row.get("rating"):
+        m = _RATING_RE.search(html)
+        if m:
+            row["rating"] = m.group(1)
+    if not row.get("image"):
+        m = _OGIMG_RE.search(html) or _LDIMG_RE.search(html)
+        if m:
+            row["image"] = m.group(1)
+    return row
+
 
 def _str(v):
     if isinstance(v, dict):
@@ -88,6 +115,22 @@ def products_from_html(html: str, query: str) -> list:
     return uniq
 
 
+def generic_fallback(soup, query, url):
+    """Default single-product fallback for sites without JSON-LD: name from og:title / <title>
+    (site suffix trimmed); price/rating/image are then backfilled by _enrich_single."""
+    og = soup.find("meta", attrs={"property": "og:title"})
+    name = (og.get("content") if og and og.get("content") else "")
+    if not name:
+        t = soup.find("title")
+        name = t.get_text(" ", strip=True) if t else ""
+    name = re.split(r"\s[|–\-]\s", name)[0].strip()
+    if not name:
+        return []
+    row = {c: "" for c in PRODUCT_COLUMNS}
+    row.update(query=query, name=name, url=url, status="ok")
+    return [row]
+
+
 def scrape(query: str, limit: int | None = None, html_fallback=None) -> list:
     """Fetch one product/category/search URL and return product rows. 403/429 -> a single row with a
     'blocked' status; JSON-LD Products first, then an optional site-specific html_fallback(soup, query)."""
@@ -109,10 +152,15 @@ def scrape(query: str, limit: int | None = None, html_fallback=None) -> list:
     if r.status_code != 200 or not r.text:
         return [{**blank, "status": f"http {r.status_code}"}]
     rows = products_from_html(r.text, query)
-    if not rows and html_fallback is not None:
-        rows = html_fallback(BeautifulSoup(r.text, "lxml"), query, url)
+    if not rows:
+        rows = (html_fallback or generic_fallback)(BeautifulSoup(r.text, "lxml"), query, url)
     if not rows:
         return [{**blank, "status": "no product data found"}]
+    # single-product page: fill any price/rating/image the JSON-LD node left blank, from the HTML
+    if len(rows) == 1 and rows[0].get("status") == "ok":
+        _enrich_single(rows[0], r.text)
+        if not rows[0].get("url"):
+            rows[0]["url"] = url
     return rows[:limit] if limit else rows
 
 

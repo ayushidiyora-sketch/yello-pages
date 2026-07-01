@@ -4058,6 +4058,70 @@
   <div id="bbResults"></div>
   </div><!-- /biggestbookView -->
 
+  <div id="cdwView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="cdwInput" placeholder="https://www.cdw.com/product/.../3344551&#10;https://www.cdw.com/category/cables/cable-connectors/"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="cdwFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="cdwFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('cdwFile').click()">⬆ Upload file</button>
+        <span class="hint" id="cdwFileName"></span></div>
+      <span class="hint">Product listings from cdw.com, through the proxy pool. Name + price/image best-effort from the page. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="cdwLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="cdwStartBtn" onclick="cdwStart()">⬇ Get Data</button><button class="btn-stop" id="cdwStopBtn" onclick="cdwStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="cdwStatus"></div><div class="bar" id="cdwBar"><i></i></div>
+  <div class="resbar" id="cdwResbar" style="display:none"><div class="count" id="cdwCount"></div><div class="resbar-controls"><a id="cdwDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="cdwDownloadXlsx" style="display:none" onclick="cdwDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="cdwResults"></div>
+  </div><!-- /cdwView -->
+
+  <div id="decathlonView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="decathlonInput" placeholder="https://www.decathlon.com/collections/mens-gloves&#10;https://www.decathlon.com/products/..."></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="decathlonFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="decathlonFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('decathlonFile').click()">⬆ Upload file</button>
+        <span class="hint" id="decathlonFileName"></span></div>
+      <span class="hint">Product listings from decathlon.com (schema.org JSON-LD), through the proxy pool. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="decathlonLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="decathlonStartBtn" onclick="decathlonStart()">⬇ Get Data</button><button class="btn-stop" id="decathlonStopBtn" onclick="decathlonStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="decathlonStatus"></div><div class="bar" id="decathlonBar"><i></i></div>
+  <div class="resbar" id="decathlonResbar" style="display:none"><div class="count" id="decathlonCount"></div><div class="resbar-controls"><a id="decathlonDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="decathlonDownloadXlsx" style="display:none" onclick="decathlonDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="decathlonResults"></div>
+  </div><!-- /decathlonView -->
+
+  <div id="ulineView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="ulineInput" placeholder="https://www.uline.com/BL_4284/Black-Spill-Containment-Pallets"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="ulineFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="ulineFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('ulineFile').click()">⬆ Upload file</button>
+        <span class="hint" id="ulineFileName"></span></div>
+      <span class="hint">Product listings from uline.com, through the proxy pool. Name + price/image best-effort from the page. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="ulineLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="ulineStartBtn" onclick="ulineStart()">⬇ Get Data</button><button class="btn-stop" id="ulineStopBtn" onclick="ulineStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="ulineStatus"></div><div class="bar" id="ulineBar"><i></i></div>
+  <div class="resbar" id="ulineResbar" style="display:none"><div class="count" id="ulineCount"></div><div class="resbar-controls"><a id="ulineDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="ulineDownloadXlsx" style="display:none" onclick="ulineDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="ulineResults"></div>
+  </div><!-- /ulineView -->
+
+  <div id="menardsView" style="display:none">
+  <div class="panel"><div class="grid">
+    <div class="field full"><label>Queries <span class="req">*</span></label>
+      <textarea id="menardsInput" placeholder="https://www.menards.com/main/p-1444442545239.htm"></textarea>
+      <div class="upload-row"><span>or select a CSV / XLSX / TXT / Parquet file</span>
+        <input type="file" id="menardsFile" accept=".csv,.xlsx,.txt,.parquet" style="display:none" onchange="menardsFilePicked()">
+        <button type="button" class="btn-upload" onclick="document.getElementById('menardsFile').click()">⬆ Upload file</button>
+        <span class="hint" id="menardsFileName"></span></div>
+      <span class="hint">Product listings from menards.com, through the proxy pool. Name + price/image best-effort from the page. One row per product.</span></div>
+    <div class="field"><label>Limit per one query</label><input id="menardsLimit" type="number" min="1" placeholder="all" value="100"></div>
+  </div><div class="actions"><button class="btn-primary" id="menardsStartBtn" onclick="menardsStart()">⬇ Get Data</button><button class="btn-stop" id="menardsStopBtn" onclick="menardsStop()" disabled>■ Stop</button></div></div>
+  <div class="status" id="menardsStatus"></div><div class="bar" id="menardsBar"><i></i></div>
+  <div class="resbar" id="menardsResbar" style="display:none"><div class="count" id="menardsCount"></div><div class="resbar-controls"><a id="menardsDownload" style="display:none" href="#" download><button class="btn-ghost" type="button">⬇ Download JSON</button></a><button class="btn-ghost" type="button" id="menardsDownloadXlsx" style="display:none" onclick="menardsDownloadExcel()">⬇ Download Excel</button></div></div>
+  <div id="menardsResults"></div>
+  </div><!-- /menardsView -->
+
   <div id="gplayView" style="display:none">
   <div class="panel">
     <div class="grid">
@@ -6084,7 +6148,7 @@ function showHome(){
   activeSvc = null;
   history.replaceState({slug:''}, '', '/');     // refresh on Home stays on Home
   document.querySelector('.svc-head').style.display = 'none';
-  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoScraperView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','appstoreReviewsView','asosProductsView','waxieView','vistaprintView','ottoView','neweggView','biggestbookView','catalogView']
+  ['scraperView','amazonView','amazonReviewsView','ebayView','gsearchView','bbbView','g2View','bbbReviewsView','gjobView','gdrView','wmpView','wmrView','ytcView','abrView','airbnbSearchView','gmapsView','gmDomainsView','expediaView','trustpilotView','trustpilotSearchView','hotelsView','hotelsReviewsView','homedepotView','trustpilotReviewsView','trustpilotMonitoringView','gmapsMonitoringView','gnewsView','gmapsContribView','gmapsPhotosView','gimagesView','gmapsTrafficView','gmapsDirectoryView','gvideosView','geventsView','gcareersView','gtrendsView','linkedinCompaniesView','linkedinPostsView','gsjobsView','gshopView','gsreviewsView','linkedinProfilesView','glassdoorCompanyView','gflightsView','gmapsAutocompleteView','gsearchAutocompleteView','bookingSearchView','bestbuyProductsView','yelpBusinessView','yelpReviewsView','yelpPhotosView','ytTranscriptsView','ytSearchView','emailsContactsView','leadsEnrichmentView','emailVerifierView','companyInsightsView','phoneEnricherView','gplayView','gplayMonitoringView','bookingReviewsView','bookingMonitoringView','bookingPricesView','olxView','apolloView','upworkView','ytvView','gcjView','aiscraperView','kununuView','phView','tbView','feefoView','angiView','offerupView','s1688View','craigslistView','allegroView','immoweltView','mobiledeView','willhabenView','feedbackcompanyView','feedbackcompanyCompanyView','crunchbaseView','crunchbaseSearchView','zoominfoScraperView','deliverooReviewsView','deliverooView','ubereatsView','streeteasyView','bingmapsView','aiUniversalView','emailFinderView','zillowTxnView','phoneIdentityView','similarwebView','geocodingView','builtwithView','disposableEmailView','whitepagesAddrView','fastbgAddrView','reverseGeoView','domainInfoView','yahooSearchView','zoominfoView','screenshoterView','eventbriteView','meetupView','tiktokVideosView','tiktokHashtagsView','tiktokSearchView','tiktokCommentsView','appstoreReviewsView','asosProductsView','waxieView','vistaprintView','ottoView','neweggView','biggestbookView','cdwView','decathlonView','ulineView','menardsView','catalogView']
     .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('homeView').style.display = '';
   renderHome();
@@ -6358,6 +6422,10 @@ function selectService(s, keep, fromHistory){
   document.getElementById('ottoView').style.display = vt==='otto_products' ? '' : 'none';
   document.getElementById('neweggView').style.display = vt==='newegg_products' ? '' : 'none';
   document.getElementById('biggestbookView').style.display = vt==='biggestbook_products' ? '' : 'none';
+  document.getElementById('cdwView').style.display = vt==='cdw_products' ? '' : 'none';
+  document.getElementById('decathlonView').style.display = vt==='decathlon_products' ? '' : 'none';
+  document.getElementById('ulineView').style.display = vt==='uline_products' ? '' : 'none';
+  document.getElementById('menardsView').style.display = vt==='menards_products' ? '' : 'none';
   document.getElementById('gplayView').style.display = vt==='gplay' ? '' : 'none';
   if(vt==='gplay') gplInit();
   document.getElementById('gplayMonitoringView').style.display = vt==='gplay_monitoring' ? '' : 'none';
@@ -6490,6 +6558,10 @@ function viewType(s){
   if(s.ui === 'otto_products') return 'otto_products';
   if(s.ui === 'newegg_products') return 'newegg_products';
   if(s.ui === 'biggestbook_products') return 'biggestbook_products';
+  if(s.ui === 'cdw_products') return 'cdw_products';
+  if(s.ui === 'decathlon_products') return 'decathlon_products';
+  if(s.ui === 'uline_products') return 'uline_products';
+  if(s.ui === 'menards_products') return 'menards_products';
   if(s.ui === 'gplay') return 'gplay';
   if(s.ui === 'gplay_monitoring') return 'gplay_monitoring';
   if(s.live) return 'yellowpages';
@@ -16249,6 +16321,10 @@ _enrichSvc('vp',{api:'/api/vistaprint-products', columns:PRODUCT_COLUMNS, noun:'
 _enrichSvc('ot',{api:'/api/otto-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'otto-products', sheetTab:'Otto'});
 _enrichSvc('ng',{api:'/api/newegg-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'newegg-products', sheetTab:'Newegg'});
 _enrichSvc('bb',{api:'/api/biggestbook-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'biggestbook-products', sheetTab:'BiggestBook'});
+_enrichSvc('cdw',{api:'/api/cdw-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'cdw-products', sheetTab:'CDW'});
+_enrichSvc('decathlon',{api:'/api/decathlon-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'decathlon-products', sheetTab:'Decathlon'});
+_enrichSvc('uline',{api:'/api/uline-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'uline-products', sheetTab:'Uline'});
+_enrichSvc('menards',{api:'/api/menards-products', columns:PRODUCT_COLUMNS, noun:'product', nounP:'products', verb:'Scraping', sheet:'menards-products', sheetTab:'Menards'});
 
 // ===== WebPage Screenshoter (custom: extra options + image rendering) =====
 let ssTimer=null, ssJob=null, _ssRows=[], _ssDlUrl=null;
